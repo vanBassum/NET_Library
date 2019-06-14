@@ -1,4 +1,4 @@
-﻿using Datasave.Serializers;
+﻿using MasterLibrary.Datasave.Serializers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +9,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datasave
+namespace MasterLibrary.Datasave
 {
     public class SaveableBindingList<T> : BindingList<T>, Saveable
     {

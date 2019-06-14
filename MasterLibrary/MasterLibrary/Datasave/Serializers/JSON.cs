@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datasave.Serializers
+namespace MasterLibrary.Datasave.Serializers
 {
     public class JSON : Serializer
     {

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{05024F62-E53B-42F2-8D0F-2EA891031501}</ProjectGuid>
+    <ProjectGuid>{E10936BE-D859-498C-BD70-A1A896260ECF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LowLevel_IO</RootNamespace>
-    <AssemblyName>LowLevel-IO</AssemblyName>
+    <RootNamespace>MasterLibrary</RootNamespace>
+    <AssemblyName>MasterLibrary</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -31,8 +31,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,9 +45,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Hooks\KeyboardHook.cs" />
-    <Compile Include="Hooks\MouseHook.cs" />
+    <Compile Include="LowLevel_IO\Drive\Disk.cs" />
+    <Compile Include="LowLevel_IO\Hooks\Keyboardhook.cs" />
+    <Compile Include="LowLevel_IO\Hooks\MouseHook.cs" />
+    <Compile Include="LowLevel_IO\PInvoke\Kernel32.cs" />
+    <Compile Include="LowLevel_IO\PInvoke\WIN32_DiskDrive.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Datasave\SaveableClasses\Saveable.cs" />
+    <Compile Include="Datasave\SaveableClasses\SaveableBindingList.cs" />
+    <Compile Include="Datasave\SaveableClasses\SaveableSettings.cs" />
+    <Compile Include="Datasave\Serializers\JSON.cs" />
+    <Compile Include="Datasave\Serializers\Serializer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

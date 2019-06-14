@@ -5,9 +5,9 @@ using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Text;
-using LowLevel_IO.PInvoke;
+using MasterLibrary.LowLevel_IO.PInvoke;
 
-namespace LowLevel_IO.Drive
+namespace MasterLibrary.LowLevel_IO.Drive
 {
     public class Disk : Stream
     {

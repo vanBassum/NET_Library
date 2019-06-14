@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LowLevel_IO.PInvoke
+namespace MasterLibrary.LowLevel_IO.PInvoke
 {
     public static class Kernel32
     {

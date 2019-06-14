@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LowLevel_IO.Hooks
+namespace MasterLibrary.LowLevel_IO.Hooks
 {
     /// <summary>
     /// Class for intercepting low level keyboard hooks
