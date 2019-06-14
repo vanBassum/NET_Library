@@ -15,7 +15,6 @@ namespace Datasave
     {
         Serializer serializer;
 
-
         public SaveableBindingList()
         {
             this.serializer = new JSON();
