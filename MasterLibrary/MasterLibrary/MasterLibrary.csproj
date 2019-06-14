@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LowLevel_IO\Drive\Disk.cs" />
+    <Compile Include="LowLevel_IO\Drive\UnmanagedFileLoader.cs" />
     <Compile Include="LowLevel_IO\Hooks\Keyboardhook.cs" />
     <Compile Include="LowLevel_IO\Hooks\MouseHook.cs" />
     <Compile Include="LowLevel_IO\PInvoke\Kernel32.cs" />

@@ -16,7 +16,7 @@ namespace MasterLibrary.Datasave.Serializers
                 return JsonConvert.DeserializeObject<T>(sr.ReadToEnd(), new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.Objects,
-                    TypeNameAssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
                 });
         }
         public override void Serialize<T>(T obj, Stream stream)
@@ -25,7 +25,7 @@ namespace MasterLibrary.Datasave.Serializers
                 sr.WriteLine(JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.Objects,
-                    TypeNameAssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
                 }));
         }
     }
