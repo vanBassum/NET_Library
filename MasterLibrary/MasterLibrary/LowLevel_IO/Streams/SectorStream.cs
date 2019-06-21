@@ -88,19 +88,47 @@ namespace MasterLibrary.LowLevel_IO.Streams
         }
 
 
-
-
-
         public override void Write(byte[] buffer, int offset, int count)
         {
+            if (offset != 0)
+                throw new NotImplementedException();
 
+            Int64 src = 0;
 
-            throw new NotImplementedException();
+            //Copy all complete sectors nessesairy
+            while (count > 0)
+            {
+                int length = Math.Min(sectorStream.BytesPerSector - PosInSect, count);      //Number of bytes to copy
+                Array.Copy(buffer, src, innerBuffer, PosInSect, length);                    //Copy the bytes
+
+                sectorStream.Seek(Sector);                                                  //Move to right sector
+                sectorStream.WriteSector(innerBuffer);                                      //Write sector
+
+                position += length;                                                         //Increase counters
+                src += length;
+                count -= length;
+
+                if (Sector == sectorStream.CurrentSector)                                    //Read next sector if nessesairy
+                    sectorStream.ReadSector(innerBuffer);
+
+                if (Sector != sectorStream.CurrentSector - 1)                               //If something went wrong, make sure the right sector is in the buffer                           
+                {
+                    sectorStream.Seek(Sector);
+                    sectorStream.ReadSector(innerBuffer);
+                }
+            }
         }
+
+        public void Write(byte[] buffer)
+        {
+            Write(buffer, 0, buffer.Length);
+        }
+
+
 
         public override void Flush()
         {
-            throw new NotImplementedException();
+            sectorStream.Flush();
         }
 
 

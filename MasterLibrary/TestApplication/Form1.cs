@@ -54,7 +54,15 @@ namespace TestApplication
             partitions[2] = new Partition(stream.Read(16));
             partitions[3] = new Partition(stream.Read(16));
 
-            stream.Seek(partitions[0].LBA_Begin * disk.BytesPerSector);
+            stream.Seek((partitions[0].LBA_Begin + partitions[0].NumberOfSectors) * disk.BytesPerSector);
+
+
+            stream.Write(new byte[] { 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, });
+
+            stream.Flush();
+
+            stream.Seek((partitions[0].LBA_Begin + partitions[0].NumberOfSectors) * disk.BytesPerSector);
+
 
             byte[] data = stream.Read(1024);
 
