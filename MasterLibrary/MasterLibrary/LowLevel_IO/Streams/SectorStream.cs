@@ -39,6 +39,10 @@ namespace MasterLibrary.LowLevel_IO.Streams
             return position;
         }
 
+        public long Seek(long offset)
+        {
+            return Seek(offset, SeekOrigin.Begin);
+        }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -89,6 +93,8 @@ namespace MasterLibrary.LowLevel_IO.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+
+
             throw new NotImplementedException();
         }
 

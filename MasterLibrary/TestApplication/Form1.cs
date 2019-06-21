@@ -47,13 +47,16 @@ namespace TestApplication
             stream = new SectorStream(disk);
 
 
-            stream.Seek(446, System.IO.SeekOrigin.Begin);
+            stream.Seek(446);
             Partition[] partitions = new Partition[4];
             partitions[0] = new Partition(stream.Read(16));
             partitions[1] = new Partition(stream.Read(16));
             partitions[2] = new Partition(stream.Read(16));
             partitions[3] = new Partition(stream.Read(16));
 
+            stream.Seek(partitions[0].LBA_Begin * disk.BytesPerSector);
+
+            byte[] data = stream.Read(1024);
 
 
 
