@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MasterLibrary.LowLevel_IO.Drive;
 using MasterLibrary.LowLevel_IO.PInvoke;
+using MasterLibrary.Datasave.SaveableClasses;
 using MasterLibrary.LowLevel_IO.Streams;
 
 namespace TestApplication
 {
     public partial class Form1 : Form
     {
-        Disk disk = new Disk();
-        SectorStream stream;
-        
+        Settings settings = new Settings();
+
 
         public Form1()
         {
@@ -42,11 +42,10 @@ namespace TestApplication
 
         private void Button2_Click(object sender, EventArgs e)
         {
-            WIN32_DiskDrive selectedDrive = comboBox1.SelectedItem as WIN32_DiskDrive;
-            disk.Open(selectedDrive);
-            stream = new SectorStream(disk);
+            Disk disk = new Disk();
+            disk.Open(comboBox1.SelectedItem as WIN32_DiskDrive);
 
-
+            SectorStream stream = new SectorStream(disk);
             stream.Seek(446);
             Partition[] partitions = new Partition[4];
             partitions[0] = new Partition(stream.Read(16));
@@ -56,31 +55,38 @@ namespace TestApplication
 
             stream.Seek((partitions[0].LBA_Begin + partitions[0].NumberOfSectors) * disk.BytesPerSector);
 
+            settings.Load(stream);
 
-            stream.Write(new byte[] { 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, });
+            stream.Close();
 
-            stream.Flush();
+            richTextBox1.Text = settings.Test;
+
+        }
+
+
+        private void Button3_Click(object sender, EventArgs e)
+        {
+            Disk disk = new Disk();
+            disk.Open(comboBox1.SelectedItem as WIN32_DiskDrive);
+
+            SectorStream stream = new SectorStream(disk);
+            stream.Seek(446);
+            Partition[] partitions = new Partition[4];
+            partitions[0] = new Partition(stream.Read(16));
+            partitions[1] = new Partition(stream.Read(16));
+            partitions[2] = new Partition(stream.Read(16));
+            partitions[3] = new Partition(stream.Read(16));
 
             stream.Seek((partitions[0].LBA_Begin + partitions[0].NumberOfSectors) * disk.BytesPerSector);
 
-
-            byte[] data = stream.Read(1024);
-
-
-
-
-
+            settings.Test = richTextBox1.Text;
+            settings.Save(stream);
 
             stream.Close();
+
+
         }
 
-        public static string ByteArrayToString(byte[] ba)
-        {
-            StringBuilder hex = new StringBuilder(ba.Length * 2);
-            foreach (byte b in ba)
-                hex.AppendFormat("{0:x2} ", b);
-            return hex.ToString();
-        }
     }
 
     public class Partition
@@ -101,5 +107,12 @@ namespace TestApplication
             LBA_Begin = BitConverter.ToUInt32(data, 8);
             NumberOfSectors = BitConverter.ToUInt32(data, 12);
         }
+    }
+
+    public class Settings : SaveableSettings
+    {
+
+        public string Test { get; set; }
+
     }
 }

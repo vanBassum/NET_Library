@@ -149,7 +149,7 @@ namespace MasterLibrary.LowLevel_IO.Streams
 
         public override long Length => (sectorStream.BytesPerSector * sectorStream.NumberOfSectors);
 
-        public override long Position { get => position; set => throw new NotImplementedException(); }
+        public override long Position { get => position; set => Seek(value); }
 
 
     }
