@@ -51,6 +51,8 @@
     <Compile Include="LowLevel_IO\Hooks\MouseHook.cs" />
     <Compile Include="LowLevel_IO\PInvoke\Kernel32.cs" />
     <Compile Include="LowLevel_IO\PInvoke\WIN32_DiskDrive.cs" />
+    <Compile Include="LowLevel_IO\Streams\ISectorStream.cs" />
+    <Compile Include="LowLevel_IO\Streams\SectorStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Datasave\SaveableClasses\Saveable.cs" />
     <Compile Include="Datasave\SaveableClasses\SaveableBindingList.cs" />

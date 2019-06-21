@@ -6,96 +6,61 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Text;
 using MasterLibrary.LowLevel_IO.PInvoke;
+using MasterLibrary.LowLevel_IO.Streams;
 
 namespace MasterLibrary.LowLevel_IO.Drive
 {
-    public class Disk : Stream
+    public class Disk : ISectorStream
     {
         Stream innerStream;
         UnmanagedFileLoader unmanagedFile;
+        Int64 currentSector = 0;
+        Int64 numberOfSectors = 0;
+        Int32 bytesPerSector = 0;
 
-
-        public Disk()
-        {
-
-        }
-        public void OpenVolume(string driveLetter)
-        {
-            unmanagedFile = new UnmanagedFileLoader(string.Format("\\\\.\\{0}:", driveLetter));
-            innerStream = new FileStream(unmanagedFile.Handle, FileAccess.ReadWrite);
-        }
-
-
-        public void OpenDrive(int driveNumber)
-        {
-            unmanagedFile = new UnmanagedFileLoader(string.Format("\\\\.\\PhysicalDrive{0}", driveNumber));
-            innerStream = new FileStream(unmanagedFile.Handle, FileAccess.ReadWrite);
-        }
+        public long CurrentSector { get => currentSector; }
+        public long NumberOfSectors { get => numberOfSectors; }
+        public int BytesPerSector { get => bytesPerSector; }
+        public bool CanRead => innerStream.CanRead;
+        public bool CanSeek => innerStream.CanSeek;
+        public bool CanWrite => innerStream.CanWrite;
 
         public void Open(WIN32_DiskDrive drive)
         {
             unmanagedFile = new UnmanagedFileLoader(drive.Name);
             innerStream = new FileStream(unmanagedFile.Handle, FileAccess.ReadWrite);
+            currentSector = 0;
+            numberOfSectors = 0;
+            bytesPerSector = (int)drive.BytesPerSector;
         }
 
-        public override void Close()
+        public void Seek(long sectorNo)
+        {
+            innerStream.Seek(sectorNo * bytesPerSector, SeekOrigin.Begin);
+            currentSector = sectorNo;
+        }
+
+        public void ReadSector(byte[] data)
+        {
+            innerStream.Read(data, 0, bytesPerSector);
+            currentSector++;
+        }
+
+        public void WriteSector(byte[] data)
+        {
+            innerStream.Write(data, 0, bytesPerSector);
+            currentSector++;
+        }
+
+        public void Flush()
+        {
+            innerStream.Flush();
+        }
+        public void Close()
         {
             Kernel32.CloseHandle(unmanagedFile.Handle);
         }
 
-
-        public override bool CanRead => innerStream.CanRead;
-
-        public override bool CanSeek => innerStream.CanSeek;
-
-        public override bool CanWrite => innerStream.CanWrite;
-
-        public override long Length => innerStream.Length;
-
-        public override long Position { get => innerStream.Position; set => innerStream.Position = value; }
-
-        public override void Flush()
-        {
-            innerStream.Flush();
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return innerStream.Read(buffer, offset, count);
-        }
-
-        public int Read(byte[] buffer)
-        {
-            return Read(buffer, 0, buffer.Length);
-        }
-
-        public byte[] Read(int length)
-        {
-            byte[] data = new byte[length];
-            Read(data, 0, data.Length);
-            return data;
-        }
-
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return innerStream.Seek(offset, origin);
-        }
-
-        public override void SetLength(long value)
-        {
-            innerStream.SetLength(value);
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            innerStream.Write(buffer, offset, count);
-        }
-
-        public void Write(byte[] buffer)
-        {
-            innerStream.Write(buffer, 0, buffer.Length);
-        }
     }
 
 }
