@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,9 +15,30 @@ namespace MasterLibrary.Datasave.Serializers
         {
             using (StreamReader sr = new StreamReader(data))
             {
-                int length = int.Parse(sr.ReadLine());
-                char[] buffer = new char[length];
-                sr.ReadBlock(buffer, 0, length);
+
+                string info = sr.ReadLine();
+
+                SerialInfo si = JsonConvert.DeserializeObject<SerialInfo>(info, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Objects,
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+                });
+
+
+                /*
+                T a = Activator.CreateInstance<T>();
+
+                SerializerVersionAttribute attr = typeof(T).GetCustomAttribute(typeof(SerializerVersionAttribute)) as SerializerVersionAttribute;
+                if (attr != null)
+                {
+                    if (si.Version != attr.Version)
+                        throw new Exception("Deserialize version mismatch");
+                }
+                */
+
+
+                char[] buffer = new char[si.Size];
+                sr.ReadBlock(buffer, 0, buffer.Length);
 
                 string serial = new string(buffer);
 
@@ -25,6 +47,8 @@ namespace MasterLibrary.Datasave.Serializers
                     TypeNameHandling = TypeNameHandling.Objects,
                     TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
                 });
+                
+
 
             }
                 
@@ -33,16 +57,37 @@ namespace MasterLibrary.Datasave.Serializers
         {
             using (StreamWriter sr = new StreamWriter(stream))
             {
-
                 string serial = JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.Objects,
                     TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
                 });
+                SerialInfo si = new SerialInfo();
+                si.Size = serial.Length;
 
-                sr.WriteLine(serial.Length.ToString());
+                SerializerVersionAttribute attr = obj.GetType().GetCustomAttribute(typeof(SerializerVersionAttribute)) as SerializerVersionAttribute;
+                if (attr != null)
+                    si.Version = attr.Version;
+
+                string serialInfo = JsonConvert.SerializeObject(si, Formatting.None, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Objects,
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+                });
+
+                sr.WriteLine(serialInfo);
                 sr.WriteLine(serial);
             }
         }
+
+        //Used to store information about the serialization
+        private class SerialInfo
+        {
+            public string Version { get; set; } = "";
+            public int Size { get; set; }
+        }
+
+       
     }
+
 }

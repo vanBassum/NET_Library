@@ -30,4 +30,10 @@ namespace MasterLibrary.Datasave.Serializers
 
 
     }
+    
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public class SerializerVersionAttribute : Attribute
+    {
+        public string Version { get; set; } = "";
+    }
 }

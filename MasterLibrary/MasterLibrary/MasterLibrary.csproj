@@ -59,6 +59,7 @@
     <Compile Include="Datasave\SaveableClasses\SaveableSettings.cs" />
     <Compile Include="Datasave\Serializers\JSON.cs" />
     <Compile Include="Datasave\Serializers\Serializer.cs" />
+    <Compile Include="PropertySensitive.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
