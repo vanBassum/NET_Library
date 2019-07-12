@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterLibrary
+namespace MasterLibrary.Misc
 {
     public class AutoUpdate
     {

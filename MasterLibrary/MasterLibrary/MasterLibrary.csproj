@@ -37,6 +37,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,7 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutoUpdate.cs" />
+    <Compile Include="Misc\AutoUpdate.cs" />
     <Compile Include="LowLevel_IO\Drive\Disk.cs" />
     <Compile Include="LowLevel_IO\Drive\UnmanagedFileLoader.cs" />
     <Compile Include="LowLevel_IO\Hooks\Keyboardhook.cs" />
@@ -54,13 +55,16 @@
     <Compile Include="LowLevel_IO\PInvoke\WIN32_DiskDrive.cs" />
     <Compile Include="LowLevel_IO\Streams\ISectorStream.cs" />
     <Compile Include="LowLevel_IO\Streams\SectorStream.cs" />
+    <Compile Include="Misc\ControlExtentions.cs" />
+    <Compile Include="Misc\LevenshteinDistance.cs" />
+    <Compile Include="Misc\ThreadedBindingList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Datasave\SaveableClasses\Saveable.cs" />
     <Compile Include="Datasave\SaveableClasses\SaveableBindingList.cs" />
     <Compile Include="Datasave\SaveableClasses\SaveableSettings.cs" />
     <Compile Include="Datasave\Serializers\JSON.cs" />
     <Compile Include="Datasave\Serializers\Serializer.cs" />
-    <Compile Include="PropertySensitive.cs" />
+    <Compile Include="Misc\PropertySensitive.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
