@@ -11,11 +11,7 @@ namespace MasterLibrary
 {
     public class AutoUpdate
     {
-        public event Action CloseApplication;
-
-        public bool UpdateCheckRequired = true;
-
-        string GetNewestVersion(string path)
+        static string GetNewestVersion(string path)
         {
             string newestVersion = "";
 
@@ -40,80 +36,23 @@ namespace MasterLibrary
         }
 
 
-        public void DoUpdate(string path)
+        public static bool CheckForUpdate(string path, out Version newVersion)
         {
-            UpdateCheckRequired = !_DoUpdate(path);
-        }
+            Version thisVers = Assembly.GetEntryAssembly().GetName().Version;
+            string newest = GetNewestVersion(path);
+            newVersion = new Version(0, 0, 0, 0);
 
+            if (newest == "")
+                return false;
 
-
-        //Returns wether this went sucsessfully.
-        //If not, retry.
-        private bool _DoUpdate(string path)
-        {
-            string[] args = Environment.GetCommandLineArgs();
-
-            //args = new string[] { @"C:\a\Updater\V1.0\AutoUpdaterTest.exe", @"C:\Workspace\NET_Library\MasterLibrary\AutoUpdaterTest\bin\Debug" };
-
-            if (args.Length == 2)
-            {
-                //We are the updator
-
-                try
-                {
-                    //Move running application to the path passed in the arg
-                    //Directory.Delete(args[1], true);
-                    CopyAll(Path.GetDirectoryName(args[0]), args[1]);
-
-                    return true;
-                }
-                catch
-                {
-
-                }
-            }
-            else
-            {
-                //Check for new version and update
-                string newest = GetNewestVersion(path);
-                if (newest == "")
-                    return true;
-
-                Version newVers = Version.Parse(Path.GetFileName(newest).ToUpper().Replace(" ", "").TrimStart('V'));
-                if (newVers < Assembly.GetExecutingAssembly().GetName().Version)
-                    return true;
-
-                string newApplication = Path.Combine(newest, System.AppDomain.CurrentDomain.FriendlyName);
-
-                if (File.Exists(newApplication))
-                {
-                    Process.Start(newApplication, Directory.GetCurrentDirectory());
-                    CloseApplication?.Invoke();
-                }
+            newVersion = Version.Parse(Path.GetFileName(newest).ToUpper().Replace(" ", "").TrimStart('V'));
+            
+            if (newVersion > thisVers)
                 return true;
-            }
+
             return false;
         }
 
 
-        void CopyAll(string source, string dest)
-        {
-            // Now Create all of the directories
-            string[] dirs = Directory.GetDirectories(source, "*", SearchOption.AllDirectories);
-            for (int i = 0; i < dirs.Length; i++)
-            {
-                string dir = dirs[i].Replace(source, dest);
-
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
-            }
-
-            //Copy all the files & Replaces any files with the same name
-            string[] files = Directory.GetFiles(source, "*", SearchOption.AllDirectories);
-            for (int i = 0; i < files.Length; i++)
-            {
-                File.Copy(files[i], files[i].Replace(source, dest), true);
-            }
-        }
     }
 }
