@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoUpdate.cs" />
     <Compile Include="LowLevel_IO\Drive\Disk.cs" />
     <Compile Include="LowLevel_IO\Drive\UnmanagedFileLoader.cs" />
     <Compile Include="LowLevel_IO\Hooks\Keyboardhook.cs" />
