@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace ProjectCopier
+namespace MasterLibrary.Misc
 {
     public static class ControlExtentions
     {
