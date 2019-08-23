@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace MasterLibrary.Misc
+namespace MasterLibrary.Controls
 {
     public static class ControlExtentions
     {
