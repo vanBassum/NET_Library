@@ -36,11 +36,19 @@ namespace MasterLibrary.Datasave.Serializers
                 }
                 */
 
+                string serial;
 
-                char[] buffer = new char[si.Size];
-                sr.ReadBlock(buffer, 0, buffer.Length);
-
-                string serial = new string(buffer);
+                if (si.IgnoreLength)
+                {
+                    serial = sr.ReadToEnd();
+                }
+                else
+                {
+                    char[] buffer = new char[si.Size];
+                    sr.ReadBlock(buffer, 0, buffer.Length);
+                    serial = new string(buffer);
+                }
+                
 
                 return JsonConvert.DeserializeObject<T>(serial, new JsonSerializerSettings
                 {
@@ -85,6 +93,8 @@ namespace MasterLibrary.Datasave.Serializers
         {
             public string Version { get; set; } = "";
             public int Size { get; set; }
+            public bool IgnoreLength { get; set; } = false;
+
         }
 
        
