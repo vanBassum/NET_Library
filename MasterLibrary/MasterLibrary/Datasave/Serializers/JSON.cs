@@ -11,6 +11,8 @@ namespace MasterLibrary.Datasave.Serializers
 {
     public class JSON : Serializer
     {
+        bool ignoreLength = false;
+
         public override T Deserialize<T>(Stream data)
         {
             using (StreamReader sr = new StreamReader(data))
@@ -24,6 +26,7 @@ namespace MasterLibrary.Datasave.Serializers
                     TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
                 });
 
+                ignoreLength = si.IgnoreLength;
 
                 /*
                 T a = Activator.CreateInstance<T>();
@@ -72,6 +75,7 @@ namespace MasterLibrary.Datasave.Serializers
                 });
                 SerialInfo si = new SerialInfo();
                 si.Size = serial.Length;
+                si.IgnoreLength = ignoreLength;
 
                 SerializerVersionAttribute attr = obj.GetType().GetCustomAttribute(typeof(SerializerVersionAttribute)) as SerializerVersionAttribute;
                 if (attr != null)
