@@ -10,8 +10,7 @@ namespace MasterLibrary.Datasave
     public interface Saveable
     {
         void Save(Stream stream);
-
         void Load(Stream stream);
-
+       
     }
 }

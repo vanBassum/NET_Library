@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterLibrary.Datasave.SaveableClasses
+namespace MasterLibrary.Datasave
 {
     public class SaveableSettings : Saveable
     {

@@ -25,6 +25,21 @@ namespace MasterLibrary.Datasave
             this.serializer = serializer;
         }
 
+
+        public void Save(string file)
+        {
+            using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
+                Save(stream);
+        }
+
+        public void Load(string file)
+        {
+            if (!File.Exists(file))
+                return;
+            using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
+                Load(stream);
+        }
+
         public void Save(Stream stream)
         {
             serializer.Serialize<BindingList<T>>(this, stream);
