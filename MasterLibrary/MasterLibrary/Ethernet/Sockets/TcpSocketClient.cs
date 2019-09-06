@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -10,7 +9,8 @@ using System.Windows.Forms;
 
 namespace MasterLibrary.Ethernet
 {
-    public class TcpSocketClient
+    public delegate void OnDataRecievedHandler(object sender, byte[] data);
+    public abstract class TcpSocketClient
     {
         Socket globalSocket;
 
@@ -20,7 +20,6 @@ namespace MasterLibrary.Ethernet
 
         bool DoKeepAlive = false;
 
-        public delegate void OnDataRecievedHandler(object sender, byte[] data);
         public event OnDataRecievedHandler OnDataRecieved;
 
         public event EventHandler OnConnected;
@@ -276,4 +275,5 @@ namespace MasterLibrary.Ethernet
         }
         
     }
+    
 }
