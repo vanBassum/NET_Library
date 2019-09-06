@@ -60,10 +60,29 @@ namespace MasterLibrary.Datasave.Serializers
             string serial = JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects,
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                Formatting = Formatting.Indented
             });
 
             return Encoding.ASCII.GetBytes(serial);
         }
+
+
+        public object Deserialize(byte[] data)
+        {
+
+            string serial = Encoding.ASCII.GetString(data);
+
+            return JsonConvert.DeserializeObject(serial, new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Objects,
+                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+            });
+
+
+
+        }
     }
+
+
 }
