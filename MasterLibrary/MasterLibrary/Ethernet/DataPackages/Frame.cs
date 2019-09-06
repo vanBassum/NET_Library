@@ -4,42 +4,97 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterLibrary.Ethernet.DataPackages
+namespace MasterLibrary.Ethernet.Frames
 {
-    public interface Frame
+    public interface IFrame
     {
-        Command CMD { get; }
-
+        int SenderID { get; }
+        bool Relay { get; } //if true, resend data to all clients
     }
 
-    public class SendID : Frame
+
+
+    public class SendId : IFrame
     {
-        public Command CMD => Command.SendID;
+        public int SenderID { get; }
+        public bool Relay { get; } = false;
 
-        public int ID { get; set; }
-
-        public SendID(int id)
+        public SendId(int senderId)
         {
-            ID = id;
+            SenderID = senderId;
         }
     }
 
-    public class SendUsername : Frame
+    public class SendDecline : IFrame
     {
-        public Command CMD => Command.SendUsername;
+        public int SenderID { get;  }
+        public bool Relay { get; } = false;
 
-        public string Username { get; set; }
-
-        public SendUsername(string username)
+        public SendDecline(int senderId)
         {
-            Username = username;
+            SenderID = senderId;
         }
     }
 
-    public enum Command
+    public class SendClientJoined : IFrame
     {
-        SendID,
-        Decline,
-        SendUsername
+        public int SenderID { get;  }
+        public bool Relay { get; } = false;
+
+        public SendClientJoined(int senderId)
+        {
+            SenderID = senderId;
+        }
+    }
+
+    public class SendClientList : IFrame
+    {
+        public int SenderID { get;  }
+        public bool Relay { get; } = false;
+        public List<int> Clients { get; }
+        public SendClientList(int senderId, List<int> clients)
+        {
+            SenderID = senderId;
+            Clients = clients;
+        }
+    }
+
+    public class SendClientLeft : IFrame
+    {
+        public int SenderID { get;  }
+        public bool Relay { get; } = false;
+
+        public SendClientLeft(int senderId)
+        {
+            SenderID = senderId;
+        }
+    }
+
+
+    public class SendParameterUpdate : IFrame
+    {
+        public bool Relay { get; } = true;
+        public int SenderID { get;  }
+
+        public Dictionary<string, object> Parameters { get; set; }
+
+        public SendParameterUpdate(int senderId, Dictionary<string, object> parameters)
+        {
+            this.SenderID = senderId;
+            Parameters = parameters;
+        }
+    }
+
+    public class SendObject : IFrame
+    {
+        public bool Relay { get; } = true;
+        public int SenderID { get;  }
+        public byte[] serializedObject { get; set; }
+
+        public SendObject(int senderId, byte[] serObj)
+        {
+            this.SenderID = senderId;
+            serializedObject = serObj;
+        }
     }
 }
