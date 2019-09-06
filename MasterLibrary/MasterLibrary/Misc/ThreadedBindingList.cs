@@ -63,5 +63,24 @@ namespace MasterLibrary.Misc
             }
             return -1;
         }
+
+        static public void RemoveWhere<T>(this BindingList<T> list, Predicate<T> predicate)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (predicate(list[i]))
+                    list.RemoveAt(i--);
+            }
+        }
+        static public bool Exists<T>(this BindingList<T> list, Predicate<T> predicate)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (predicate(list[i]))
+                    return true;
+            }
+            return false;
+        }
+
     }
 }
