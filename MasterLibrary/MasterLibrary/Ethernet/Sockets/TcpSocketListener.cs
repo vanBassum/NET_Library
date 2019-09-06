@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace MasterLibrary.Ethernet
 {
-    public class TcpSocketListener
+    public class TcpSocketListener<T>
     {
-        public delegate void OnClientAcceptHandler(TcpSocketClient client);
+        public delegate void OnClientAcceptHandler(T client);
         public event OnClientAcceptHandler OnClientAccept;
 
         Socket globalSocket;
@@ -47,7 +47,7 @@ namespace MasterLibrary.Ethernet
             try
             {
 
-                TcpSocketClient tcpclient = (TcpSocketClient)Activator.CreateInstance(typeof(TcpSocketClient), handler);
+                T tcpclient = (T)Activator.CreateInstance(typeof(T), handler);
                 //context.Send(s =>
                 //{
                     OnClientAccept?.Invoke(tcpclient);
