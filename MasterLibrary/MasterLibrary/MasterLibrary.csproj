@@ -62,7 +62,7 @@
     <Compile Include="Controls\ControlExtentions.cs" />
     <Compile Include="Misc\LevenshteinDistance.cs" />
     <Compile Include="Misc\ThreadedBindingList.cs" />
-    <Compile Include="Misc\UniqueID.cs" />
+    <Compile Include="Misc\AutoIncID.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Datasave\SaveableClasses\Saveable.cs" />
     <Compile Include="Datasave\SaveableClasses\SaveableBindingList.cs" />
