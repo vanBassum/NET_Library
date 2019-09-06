@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Datasave\Serializers\JSONIgnore.cs" />
     <Compile Include="Ethernet\DataPackages\Frame.cs" />
+    <Compile Include="Ethernet\Sockets\TcpSocketClientEscaped.cs" />
     <Compile Include="Misc\AutoUpdate.cs" />
     <Compile Include="LowLevel_IO\Drive\Disk.cs" />
     <Compile Include="LowLevel_IO\Drive\UnmanagedFileLoader.cs" />

@@ -8,7 +8,7 @@ namespace MasterLibrary.Ethernet.Frames
 {
     public interface IFrame
     {
-        int SenderID { get; }
+        int SenderID { get; } //-1 is reserved for the server, all others are clients
         bool Relay { get; } //if true, resend data to all clients
     }
 
@@ -40,10 +40,12 @@ namespace MasterLibrary.Ethernet.Frames
     {
         public int SenderID { get;  }
         public bool Relay { get; } = false;
+        public int ClientId { get; }
 
-        public SendClientJoined(int senderId)
+        public SendClientJoined(int senderId, int clientId)
         {
             SenderID = senderId;
+            ClientId = clientId;
         }
     }
 
@@ -63,10 +65,12 @@ namespace MasterLibrary.Ethernet.Frames
     {
         public int SenderID { get;  }
         public bool Relay { get; } = false;
+        public int ClientId { get; }
 
-        public SendClientLeft(int senderId)
+        public SendClientLeft(int senderId, int clientId)
         {
             SenderID = senderId;
+            ClientId = clientId;
         }
     }
 
@@ -97,4 +101,6 @@ namespace MasterLibrary.Ethernet.Frames
             serializedObject = serObj;
         }
     }
+
+
 }
