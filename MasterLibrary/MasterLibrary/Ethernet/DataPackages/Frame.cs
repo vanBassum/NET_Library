@@ -8,83 +8,77 @@ namespace MasterLibrary.Ethernet.Frames
 {
     public interface IFrame
     {
-        int SenderID { get; } //-1 is reserved for the server, all others are clients
+        int ClientID { get; } //-1 is reserved for the server, all others are clients
         bool Relay { get; } //if true, resend data to all clients
     }
 
 
-
     public class SendId : IFrame
     {
-        public int SenderID { get; }
+        public int ClientID { get; }
         public bool Relay { get; } = false;
 
-        public SendId(int senderId)
+        public SendId(int clientId)
         {
-            SenderID = senderId;
+            ClientID = clientId;
         }
     }
 
     public class SendDecline : IFrame
     {
-        public int SenderID { get;  }
+        public int ClientID { get; }
         public bool Relay { get; } = false;
 
-        public SendDecline(int senderId)
+        public SendDecline(int clientId)
         {
-            SenderID = senderId;
+            ClientID = clientId;
         }
     }
 
     public class SendClientJoined : IFrame
     {
-        public int SenderID { get;  }
         public bool Relay { get; } = false;
-        public int ClientId { get; }
+        public int ClientID { get; }
 
-        public SendClientJoined(int senderId, int clientId)
+        public SendClientJoined(int clientId)
         {
-            SenderID = senderId;
-            ClientId = clientId;
+            ClientID = clientId;
         }
     }
 
     public class SendClientList : IFrame
     {
-        public int SenderID { get;  }
+        public int ClientID { get; }
         public bool Relay { get; } = false;
         public List<int> Clients { get; }
-        public SendClientList(int senderId, List<int> clients)
+        public SendClientList(int clientId, List<int> clients)
         {
-            SenderID = senderId;
+            ClientID = clientId;
             Clients = clients;
         }
     }
 
     public class SendClientLeft : IFrame
     {
-        public int SenderID { get;  }
         public bool Relay { get; } = false;
-        public int ClientId { get; }
+        public int ClientID { get; }
 
-        public SendClientLeft(int senderId, int clientId)
+        public SendClientLeft(int clientId)
         {
-            SenderID = senderId;
-            ClientId = clientId;
+            ClientID = clientId;
         }
     }
-
 
     public class SendParameterUpdate : IFrame
     {
         public bool Relay { get; } = true;
-        public int SenderID { get;  }
+        public int ClientID { get; }
 
         public Dictionary<string, object> Parameters { get; set; }
 
-        public SendParameterUpdate(int senderId, Dictionary<string, object> parameters)
+        public SendParameterUpdate(int clientId, Dictionary<string, object> parameters)
         {
-            this.SenderID = senderId;
+            ClientID = clientId;
             Parameters = parameters;
         }
     }
@@ -92,12 +86,12 @@ namespace MasterLibrary.Ethernet.Frames
     public class SendObject : IFrame
     {
         public bool Relay { get; } = true;
-        public int SenderID { get;  }
+        public int ClientID { get; }
         public byte[] serializedObject { get; set; }
 
-        public SendObject(int senderId, byte[] serObj)
+        public SendObject(int clientId, byte[] serObj)
         {
-            this.SenderID = senderId;
+            ClientID = clientId;
             serializedObject = serObj;
         }
     }
