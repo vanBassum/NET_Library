@@ -10,7 +10,11 @@ namespace Server
 {
     public class TCP_Server
     {
-        int maxClients = 10;
+        public event Action ClientJoined;
+        public event Action ClientLeft;
+        public int ConnectedClients { get => clients.Count; }
+        public int MaxClients { get; set; } = 10;
+
         TcpSocketListener<TcpSocketClientEscaped> serverSocket = new TcpSocketListener<TcpSocketClientEscaped>();
         ThreadedBindingList<Client> clients;
 
@@ -23,7 +27,7 @@ namespace Server
 
         private void ServerSocket_OnClientAccept(TcpSocketClientEscaped socket)
         {
-            Client client = new Client(socket, clients.Count < maxClients);
+            Client client = new Client(socket, clients.Count < MaxClients);
             client.Disposing += C_Disposed;
             client.RelayData += Client_RelayData;
             client.SendFrame(new SendClientList(-1, (from c in clients select c.ID).ToList()));
@@ -32,6 +36,7 @@ namespace Server
                 c.SendFrame(new SendClientJoined(client.ID));
 
             clients.Add(client);
+            ClientJoined?.Invoke();
         }
 
         private void Client_RelayData(Client sender, IFrame frame)
@@ -50,6 +55,7 @@ namespace Server
             //Let the others know this client has left
             foreach (Client c in clients)
                 c.SendFrame(new SendClientLeft(client.ID));
+            ClientLeft?.Invoke();
         }
 
         internal class Client : AutoIncID

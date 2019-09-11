@@ -12,9 +12,10 @@ namespace MasterLibrary.Ethernet
     {
         public event Action<T> OnClientJoined;
         public event Action<T> OnClientLeft;
+        public event Action OnDeclined;
 
         public T myClient = Activator.CreateInstance<T>();
-        public ThreadedBindingList<T> otherClients = new ThreadedBindingList<T>();
+        public ThreadedBindingList<T> otherClients;
 
         private JSONIgnore serializer = new JSONIgnore();
         TcpSocketClientEscaped socket = new TcpSocketClientEscaped();
@@ -23,6 +24,7 @@ namespace MasterLibrary.Ethernet
 
         public TCP_Client()
         {
+            otherClients = new ThreadedBindingList<T>();
             myClient.StartRecordingChanges();
             sendChangesTimer.Interval = 500;
             sendChangesTimer.Tick += SendChangesTimer_Tick;
@@ -86,6 +88,9 @@ namespace MasterLibrary.Ethernet
                         foreach (KeyValuePair<string, object> kvp in frame.Parameters)
                             typeof(T).GetProperty(kvp.Key).SetValue(otherClients[ind], kvp.Value);
                     }
+                    break;
+                case SendDecline frame:
+                    OnDeclined?.Invoke();
                     break;
 
                 default:

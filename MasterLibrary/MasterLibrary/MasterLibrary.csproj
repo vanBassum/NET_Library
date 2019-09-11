@@ -48,6 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\Console.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\Console.designer.cs">
+      <DependentUpon>Console.cs</DependentUpon>
+    </Compile>
     <Compile Include="Datasave\Serializers\JSONIgnore.cs" />
     <Compile Include="Ethernet\DataPackages\Connector.cs" />
     <Compile Include="Ethernet\DataPackages\Frame.cs" />
@@ -84,6 +90,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="External\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Controls\Console.resx">
+      <DependentUpon>Console.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
