@@ -3,14 +3,16 @@ using System.Windows.Forms;
 
 namespace MasterLibrary.Controls
 {
-    public static class ControlExtentions
+    public static class Ext
     {
-        private delegate void SafeCallDelegate(Control c, Predicate<Control> action);
-        public static void InvokeIfRequired(this Control c, Predicate<Control> action)
+        private delegate void SafeCallDelegate<T>(T c, Action<T> action);
+
+        public static void InvokeIfRequired<T>(this T c, Action<T> action)
+            where T : Control
         {
             if (c.InvokeRequired)
             {
-                c.Invoke(new SafeCallDelegate(InvokeIfRequired), new object[] {c,  action });
+                c.Invoke(new SafeCallDelegate<T>(InvokeIfRequired), new object[] { c, action });
             }
             else
             {
