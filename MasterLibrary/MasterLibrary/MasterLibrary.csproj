@@ -49,7 +49,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Datasave\Serializers\JSONIgnore.cs" />
+    <Compile Include="Ethernet\DataPackages\Connector.cs" />
     <Compile Include="Ethernet\DataPackages\Frame.cs" />
+    <Compile Include="Ethernet\DataPackages\TCP_Server.cs" />
+    <Compile Include="Misc\RecordChanges.cs" />
+    <Compile Include="Ethernet\DataPackages\TCP_Object.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketClientEscaped.cs" />
     <Compile Include="Misc\AutoUpdate.cs" />
     <Compile Include="LowLevel_IO\Drive\Disk.cs" />
@@ -61,6 +65,7 @@
     <Compile Include="LowLevel_IO\Streams\ISectorStream.cs" />
     <Compile Include="LowLevel_IO\Streams\SectorStream.cs" />
     <Compile Include="Controls\ControlExtentions.cs" />
+    <Compile Include="Misc\BindingDictionary.cs" />
     <Compile Include="Misc\LevenshteinDistance.cs" />
     <Compile Include="Misc\ThreadedBindingList.cs" />
     <Compile Include="Misc\AutoIncID.cs" />
