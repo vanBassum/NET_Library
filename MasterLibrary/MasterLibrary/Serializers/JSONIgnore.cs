@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterLibrary.Datasave.Serializers
+namespace MasterLibrary.Serializers
 {
     public class JSONIgnore : Serializer
     {
@@ -20,7 +21,7 @@ namespace MasterLibrary.Datasave.Serializers
                 return JsonConvert.DeserializeObject<T>(serial, new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.Objects,
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+                    TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
                 });
 
             }
@@ -33,7 +34,7 @@ namespace MasterLibrary.Datasave.Serializers
                 string serial = JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.Objects,
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+                    TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
                 });
 
                 sr.WriteLine(serial);
@@ -48,7 +49,7 @@ namespace MasterLibrary.Datasave.Serializers
             return JsonConvert.DeserializeObject<T>(serial, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects,
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+                TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
             });
 
             
@@ -60,7 +61,7 @@ namespace MasterLibrary.Datasave.Serializers
             string serial = JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects,
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
                 Formatting = Formatting.Indented
             });
 
@@ -76,7 +77,7 @@ namespace MasterLibrary.Datasave.Serializers
             return JsonConvert.DeserializeObject(serial, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects,
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+                TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
             });
 
 

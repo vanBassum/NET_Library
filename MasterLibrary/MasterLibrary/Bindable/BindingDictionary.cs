@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 
-namespace MasterLibrary.Misc
+namespace MasterLibrary.Bindable
 {
     public class BindableDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IBindingList, IRaiseItemChangedEvents
     {

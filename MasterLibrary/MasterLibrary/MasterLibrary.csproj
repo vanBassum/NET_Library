@@ -54,13 +54,15 @@
     <Compile Include="Controls\Console.designer.cs">
       <DependentUpon>Console.cs</DependentUpon>
     </Compile>
-    <Compile Include="Datasave\Serializers\JSONIgnore.cs" />
+    <Compile Include="Extentions\BindingList_Ext.cs" />
+    <Compile Include="Extentions\Control_Ext.cs" />
+    <Compile Include="Extentions\TimeSpan_Ext.cs" />
+    <Compile Include="Serializers\JSONIgnore.cs" />
     <Compile Include="Ethernet\DataPackages\Connector.cs" />
     <Compile Include="Ethernet\DataPackages\Frame.cs" />
     <Compile Include="Ethernet\DataPackages\TCP_Server.cs" />
-    <Compile Include="Misc\Copier.cs" />
-    <Compile Include="Misc\PropertySensitiveExternal.cs" />
-    <Compile Include="Misc\RecordChanges.cs" />
+    <Compile Include="PropertySensitive\PropertySensitiveExternal.cs" />
+    <Compile Include="PropertySensitive\RecordChanges.cs" />
     <Compile Include="Ethernet\DataPackages\TCP_Object.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketClientEscaped.cs" />
     <Compile Include="Misc\AutoUpdate.cs" />
@@ -72,27 +74,24 @@
     <Compile Include="LowLevel_IO\PInvoke\WIN32_DiskDrive.cs" />
     <Compile Include="LowLevel_IO\Streams\ISectorStream.cs" />
     <Compile Include="LowLevel_IO\Streams\SectorStream.cs" />
-    <Compile Include="Misc\Extentions.cs" />
-    <Compile Include="Misc\BindingDictionary.cs" />
-    <Compile Include="Misc\LevenshteinDistance.cs" />
-    <Compile Include="Misc\ThreadedBindingList.cs" />
+    <Compile Include="Extentions\String_Ext.cs" />
+    <Compile Include="Bindable\BindingDictionary.cs" />
+    <Compile Include="Bindable\ThreadedBindingList.cs" />
     <Compile Include="Misc\AutoIncID.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Datasave\SaveableClasses\Saveable.cs" />
-    <Compile Include="Datasave\SaveableClasses\SaveableBindingList.cs" />
-    <Compile Include="Datasave\SaveableClasses\SaveableSettings.cs" />
-    <Compile Include="Datasave\Serializers\JSON.cs" />
-    <Compile Include="Datasave\Serializers\Serializer.cs" />
-    <Compile Include="Misc\PropertySensitiveInternal.cs" />
+    <Compile Include="Saveable\Saveable.cs" />
+    <Compile Include="Saveable\SaveableBindingList.cs" />
+    <Compile Include="Saveable\SaveableSettings.cs" />
+    <Compile Include="Serializers\JSON.cs" />
+    <Compile Include="Serializers\Serializer.cs" />
+    <Compile Include="PropertySensitive\PropertySensitiveInternal.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketClient.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="External\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Controls\Console.resx">
       <DependentUpon>Console.cs</DependentUpon>

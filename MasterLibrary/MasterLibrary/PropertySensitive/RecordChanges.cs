@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace MasterLibrary.Misc
+namespace MasterLibrary.PropertySensitive
 {
     public abstract class RecordChanges : INotifyPropertyChanged
     {

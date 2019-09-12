@@ -3,8 +3,9 @@ using System.Windows.Forms;
 using MasterLibrary.Ethernet.Frames;
 using MasterLibrary.Misc;
 using System.Collections.Generic;
-using MasterLibrary.Datasave.Serializers;
+using MasterLibrary.Serializers;
 using MasterLibrary.Ethernet;
+using MasterLibrary.Bindable;
 
 namespace MasterLibrary.Ethernet
 {

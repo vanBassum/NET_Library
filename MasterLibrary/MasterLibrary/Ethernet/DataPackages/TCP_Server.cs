@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Data;
 using System.Linq;
+using MasterLibrary.Bindable;
 using MasterLibrary.Ethernet;
 using MasterLibrary.Ethernet.Frames;
 using MasterLibrary.Misc;
-using MasterLibrary.Datasave.Serializers;
+using MasterLibrary.Serializers;
 
 namespace Server
 {

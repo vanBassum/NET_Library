@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterLibrary.Misc
+namespace MasterLibrary.PropertySensitive
 {
 
     public class PropertySensitiveInternal : RecordChanges, INotifyPropertyChanged

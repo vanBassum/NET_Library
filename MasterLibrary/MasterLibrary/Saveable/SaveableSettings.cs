@@ -1,4 +1,4 @@
-﻿using MasterLibrary.Datasave.Serializers;
+﻿using MasterLibrary.Serializers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterLibrary.Datasave
+namespace MasterLibrary.Saveable
 {
     public class SaveableSettings : Saveable
     {
