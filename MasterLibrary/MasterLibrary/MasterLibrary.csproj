@@ -58,6 +58,7 @@
     <Compile Include="Ethernet\DataPackages\Connector.cs" />
     <Compile Include="Ethernet\DataPackages\Frame.cs" />
     <Compile Include="Ethernet\DataPackages\TCP_Server.cs" />
+    <Compile Include="Misc\Copier.cs" />
     <Compile Include="Misc\PropertySensitiveExternal.cs" />
     <Compile Include="Misc\RecordChanges.cs" />
     <Compile Include="Ethernet\DataPackages\TCP_Object.cs" />
