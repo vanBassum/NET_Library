@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bindable\ObservableConcurrentQueue.cs" />
     <Compile Include="Controls\Console.cs">
       <SubType>UserControl</SubType>
     </Compile>
