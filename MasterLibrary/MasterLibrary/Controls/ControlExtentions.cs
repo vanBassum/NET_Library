@@ -19,5 +19,23 @@ namespace MasterLibrary.Controls
                 action(c);
             }
         }
+
+        public static bool ContainsAny(this string s, string[] filter, bool ignoreCase = false)
+        {
+            if(ignoreCase)
+            {
+                string ss = s.ToLower();
+                foreach (string f in filter)
+                    if (ss.Contains(f.ToLower()))
+                        return true;
+            }
+            else
+            {
+                foreach (string f in filter)
+                    if (s.Contains(f))
+                        return true;
+            }
+            return false;
+        }
     }
 }
