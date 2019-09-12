@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Text;
 using System.Windows.Forms;
 
 namespace MasterLibrary.Controls
@@ -36,6 +38,17 @@ namespace MasterLibrary.Controls
                         return true;
             }
             return false;
+        }
+
+        public static string ListAsString(this BindingList<string> list)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (string s in list)
+                sb.Append("'" + s + "', ");
+
+            sb = sb.Remove(sb.Length - 2, 1);
+            return sb.ToString();
         }
     }
 }
