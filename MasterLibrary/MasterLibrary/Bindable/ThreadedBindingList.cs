@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Threading;
 
-namespace MasterLibrary.Misc
+namespace MasterLibrary.Bindable
 {
     public class ThreadedBindingList<T> : BindingList<T>
     {

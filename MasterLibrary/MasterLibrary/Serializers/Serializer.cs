@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterLibrary.Datasave.Serializers
+namespace MasterLibrary.Serializers
 {
     public abstract class Serializer
     {

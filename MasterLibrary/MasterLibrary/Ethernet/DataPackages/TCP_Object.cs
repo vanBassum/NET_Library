@@ -1,4 +1,4 @@
-﻿using MasterLibrary.Misc;
+﻿using MasterLibrary.PropertySensitive;
 
 namespace MasterLibrary.Ethernet
 {

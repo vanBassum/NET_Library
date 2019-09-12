@@ -1,13 +1,10 @@
 ﻿using System;
 
-namespace MasterLibrary.Misc
+namespace MasterLibrary.Extentions
 {
-    public static class LevenshteinDistance
+    public static class String_Ext
     {
-        /// <summary>
-        /// Compute the distance between two strings.
-        /// </summary>
-        public static int Compute(string s, string t)
+        public static int LevenshteinDistance(this string s, string t)
         {
             int n = s.Length;
             int m = t.Length;
@@ -50,6 +47,24 @@ namespace MasterLibrary.Misc
             }
             // Step 7
             return d[n, m];
+        }
+
+        public static bool ContainsAny(this string s, string[] filter, bool ignoreCase = false)
+        {
+            if (ignoreCase)
+            {
+                string ss = s.ToLower();
+                foreach (string f in filter)
+                    if (ss.Contains(f.ToLower()))
+                        return true;
+            }
+            else
+            {
+                foreach (string f in filter)
+                    if (s.Contains(f))
+                        return true;
+            }
+            return false;
         }
     }
 }

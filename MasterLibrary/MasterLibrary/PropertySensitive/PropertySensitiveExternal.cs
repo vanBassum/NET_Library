@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace MasterLibrary.Misc
+namespace MasterLibrary.PropertySensitive
 {
     public class PropertySensitiveExternal : RecordChanges, INotifyPropertyChanged
     {
