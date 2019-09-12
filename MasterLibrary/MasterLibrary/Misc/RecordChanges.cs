@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace MasterLibrary.Ethernet
+namespace MasterLibrary.Misc
 {
     public class RecordChanges : PropertySensitive
     {

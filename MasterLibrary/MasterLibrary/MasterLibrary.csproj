@@ -70,7 +70,7 @@
     <Compile Include="LowLevel_IO\PInvoke\WIN32_DiskDrive.cs" />
     <Compile Include="LowLevel_IO\Streams\ISectorStream.cs" />
     <Compile Include="LowLevel_IO\Streams\SectorStream.cs" />
-    <Compile Include="Controls\ControlExtentions.cs" />
+    <Compile Include="Misc\Extentions.cs" />
     <Compile Include="Misc\BindingDictionary.cs" />
     <Compile Include="Misc\LevenshteinDistance.cs" />
     <Compile Include="Misc\ThreadedBindingList.cs" />

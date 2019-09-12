@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Windows.Forms;
 
-namespace MasterLibrary.Controls
+namespace MasterLibrary.Misc
 {
     public static class Ext
     {
@@ -24,7 +24,7 @@ namespace MasterLibrary.Controls
 
         public static bool ContainsAny(this string s, string[] filter, bool ignoreCase = false)
         {
-            if(ignoreCase)
+            if (ignoreCase)
             {
                 string ss = s.ToLower();
                 foreach (string f in filter)
@@ -49,6 +49,25 @@ namespace MasterLibrary.Controls
 
             sb = sb.Remove(sb.Length - 2, 1);
             return sb.ToString();
+        }
+
+        public static string ToReadableString(this TimeSpan ts)
+        {
+
+            if (ts.Days > 0)
+                return string.Format("{0} days",  ts.Days);
+                                       
+            if (ts.Hours > 0)          
+                return string.Format("{0} hours",  ts.Hours);
+                                       
+            if (ts.Minutes > 0)        
+                return string.Format("{0} minutes",  ts.Minutes);
+                                       
+            if (ts.Seconds > 0)        
+                return string.Format("{0} seconds",  ts.Seconds);
+
+
+            return string.Format("0 seconds");
         }
     }
 }
