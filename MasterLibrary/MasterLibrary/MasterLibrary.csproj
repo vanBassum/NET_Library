@@ -58,6 +58,7 @@
     <Compile Include="Ethernet\DataPackages\Connector.cs" />
     <Compile Include="Ethernet\DataPackages\Frame.cs" />
     <Compile Include="Ethernet\DataPackages\TCP_Server.cs" />
+    <Compile Include="Misc\PropertySensitiveExternal.cs" />
     <Compile Include="Misc\RecordChanges.cs" />
     <Compile Include="Ethernet\DataPackages\TCP_Object.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketClientEscaped.cs" />
@@ -81,7 +82,7 @@
     <Compile Include="Datasave\SaveableClasses\SaveableSettings.cs" />
     <Compile Include="Datasave\Serializers\JSON.cs" />
     <Compile Include="Datasave\Serializers\Serializer.cs" />
-    <Compile Include="Misc\PropertySensitive.cs" />
+    <Compile Include="Misc\PropertySensitiveInternal.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketClient.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketListener.cs" />
   </ItemGroup>

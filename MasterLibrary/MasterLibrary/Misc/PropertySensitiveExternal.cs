@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MasterLibrary.Misc
 {
-    public class PropertySensitive : INotifyPropertyChanged
+    public class PropertySensitiveExternal : RecordChanges, INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public override event PropertyChangedEventHandler PropertyChanged;
         private Dict fields = new Dict();
 
         protected virtual void Verify(string propertyName)
@@ -38,7 +34,6 @@ namespace MasterLibrary.Misc
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             return true;
         }
-
         protected T GetPar<T>([CallerMemberName] string propertyName = null)
         {
             object value = null;

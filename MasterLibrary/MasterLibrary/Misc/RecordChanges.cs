@@ -4,10 +4,12 @@ using System.ComponentModel;
 
 namespace MasterLibrary.Misc
 {
-    public class RecordChanges : PropertySensitive
+    public abstract class RecordChanges : INotifyPropertyChanged
     {
         private object SendParLock = new object();
         private Dictionary<string, object> changedPars = new Dictionary<string, object>();
+
+        public abstract event PropertyChangedEventHandler PropertyChanged;
 
         public void StartRecordingChanges()
         {
@@ -15,7 +17,7 @@ namespace MasterLibrary.Misc
         }
 
         public void StopRecordingChanges()
-        { 
+        {
             PropertyChanged -= RecordChanges_PropertyChanged;
         }
 
