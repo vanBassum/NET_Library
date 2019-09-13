@@ -4,10 +4,10 @@ namespace MasterLibrary.Extentions
 {
     public static class String_Ext
     {
-        public static int LevenshteinDistance(this string s, string t)
+        public static int LevenshteinDistance(this string s, string search)
         {
             int n = s.Length;
-            int m = t.Length;
+            int m = search.Length;
             int[,] d = new int[n + 1, m + 1];
 
             // Step 1
@@ -37,7 +37,7 @@ namespace MasterLibrary.Extentions
                 for (int j = 1; j <= m; j++)
                 {
                     // Step 5
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    int cost = (search[j - 1] == s[i - 1]) ? 0 : 1;
 
                     // Step 6
                     d[i, j] = Math.Min(

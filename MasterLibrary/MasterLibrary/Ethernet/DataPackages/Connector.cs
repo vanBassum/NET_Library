@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using MasterLibrary.Serializers;
 using MasterLibrary.Ethernet;
 using MasterLibrary.Bindable;
+using MasterLibrary.Extentions;
 
 namespace MasterLibrary.Ethernet
 {

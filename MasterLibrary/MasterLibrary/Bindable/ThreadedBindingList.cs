@@ -50,37 +50,4 @@ namespace MasterLibrary.Bindable
             base.OnListChanged(e);
         }
     }
-
-
-    static public class BindingListExt
-    {
-        static public int FindIndex<T>(this BindingList<T> list, Predicate<T> predicate)
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (predicate(list[i]))
-                    return i;
-            }
-            return -1;
-        }
-
-        static public void RemoveWhere<T>(this BindingList<T> list, Predicate<T> predicate)
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (predicate(list[i]))
-                    list.RemoveAt(i--);
-            }
-        }
-        static public bool Exists<T>(this BindingList<T> list, Predicate<T> predicate)
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (predicate(list[i]))
-                    return true;
-            }
-            return false;
-        }
-
-    }
 }
