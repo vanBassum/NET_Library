@@ -11,6 +11,7 @@ namespace MasterLibrary.Misc
 {
     public class Copier
     {
+        public event Action CopyFirstDone;
         private static int tot = 0;
 
         void counter(object parameters)
@@ -23,11 +24,12 @@ namespace MasterLibrary.Misc
             }
         }
 
-        public void CopyAll(string sourceDir, string destDir, Action<int> ReportProgress, string[] filter, bool exclusiveFiltering = true)
+        public void CopyAll(string sourceDir, string destDir, Action<int> ReportProgress, string[] CopyFirst)
         {
             IEnumerable<string> files = from a in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories)
-                                        where (exclusiveFiltering ^ a.ContainsAny(filter, true))
+                                        orderby a.ToLower().ContainsAny(CopyFirst)?0:1
                                         select a;
+
 
             Thread t = new Thread(counter)
             {
@@ -39,6 +41,7 @@ namespace MasterLibrary.Misc
 
             Thread.Sleep(100);
             int i = 0;
+            bool report = true;
             foreach (string source in files)
             {
                 int progress = i * 100 / Math.Max(tot, 1);
@@ -52,7 +55,15 @@ namespace MasterLibrary.Misc
                     Directory.CreateDirectory(dir);
 
                 File.Copy(source, dest, true);
-                
+
+                if (report)
+                {
+                    if (!source.ToLower().ContainsAny(CopyFirst))
+                    {
+                        CopyFirstDone?.Invoke();
+                        report = false;
+                    }
+                }
             }
 
 
