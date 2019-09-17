@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bindable\ObservableConcurrentQueue.cs" />
+    <Compile Include="Bindable\ThreadedBindingQueue.cs" />
     <Compile Include="Controls\Console.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -58,6 +59,7 @@
     <Compile Include="Extentions\BindingList_Ext.cs" />
     <Compile Include="Extentions\Control_Ext.cs" />
     <Compile Include="Extentions\TimeSpan_Ext.cs" />
+    <Compile Include="Extentions\TreeView_Ext.cs" />
     <Compile Include="Misc\Copier.cs" />
     <Compile Include="Serializers\JSONIgnore.cs" />
     <Compile Include="Ethernet\DataPackages\Connector.cs" />
@@ -89,6 +91,8 @@
     <Compile Include="PropertySensitive\PropertySensitiveInternal.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketClient.cs" />
     <Compile Include="Ethernet\Sockets\TcpSocketListener.cs" />
+    <Compile Include="Threading\AWorker.cs" />
+    <Compile Include="Threading\WorkerPool.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
