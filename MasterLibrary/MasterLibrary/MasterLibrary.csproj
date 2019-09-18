@@ -60,6 +60,7 @@
     <Compile Include="Extentions\Control_Ext.cs" />
     <Compile Include="Extentions\TimeSpan_Ext.cs" />
     <Compile Include="Extentions\TreeView_Ext.cs" />
+    <Compile Include="Math\V2D.cs" />
     <Compile Include="Misc\Copier.cs" />
     <Compile Include="Serializers\JSONIgnore.cs" />
     <Compile Include="Ethernet\DataPackages\Connector.cs" />
