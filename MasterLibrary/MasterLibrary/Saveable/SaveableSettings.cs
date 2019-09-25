@@ -25,6 +25,19 @@ namespace MasterLibrary.Saveable
             this.serializer = serializer;
         }
 
+
+        public void Save(string file)
+        {
+            using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
+                Save(stream);
+        }
+
+        public void Load(string file)
+        {
+            using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
+                Save(stream);
+        }
+
         public void Save(Stream stream)
         {
             serializer.Serialize<SaveableSettings>(this, stream);

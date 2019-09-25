@@ -38,15 +38,14 @@ namespace MasterLibrary.PropertySensitive
             return cpy;
         }
 
-        public bool HasChanges
+        public bool HasChanges()
         {
-            get
+
+            using (var dictionaryEnum = changedPars.GetEnumerator())
             {
-                using (var dictionaryEnum = changedPars.GetEnumerator())
-                {
-                    return dictionaryEnum.MoveNext();
-                }
+                return dictionaryEnum.MoveNext();
             }
+            
         }
     }
 

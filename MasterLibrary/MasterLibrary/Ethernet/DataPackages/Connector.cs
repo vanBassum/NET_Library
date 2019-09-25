@@ -19,7 +19,7 @@ namespace MasterLibrary.Ethernet
         public T myClient = Activator.CreateInstance<T>();
         public ThreadedBindingList<T> otherClients;
 
-        private JSONIgnore serializer = new JSONIgnore();
+        private JSON serializer = new JSON();
         TcpSocketClientEscaped socket = new TcpSocketClientEscaped();
         private Timer sendChangesTimer = new Timer();
         
@@ -104,7 +104,7 @@ namespace MasterLibrary.Ethernet
 
         private void SendChangesTimer_Tick(object sender, EventArgs e)
         {
-            if(myClient.HasChanges)
+            if(myClient.HasChanges())
                 SendFrame(new SendParameterUpdate(myClient.ID, myClient.GetAndClearChangedPars()));
         }
 

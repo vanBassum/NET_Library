@@ -62,7 +62,7 @@ namespace Server
         internal class Client : AutoIncID
         {
             private TcpSocketClientEscaped socket;
-            private JSONIgnore serializer = new JSONIgnore();
+            private JSON serializer = new JSON();
 
             public event EventHandler Disposing;                    //Is called before object is disposed!
             public event Action<Client, IFrame> RelayData;          //Is called whebn client wants this frame resend to all other clients.

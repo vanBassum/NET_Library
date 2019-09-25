@@ -12,55 +12,54 @@ namespace MasterLibrary.Serializers
 {
     public class JSON : Serializer
     {
-        bool ignoreLength = false;
+        bool writeInfo = false;
+
+
+        public JSON(bool writeInfo = false)
+        {
+            this.writeInfo = writeInfo;
+        }
+
+
+        public T Deserialize<T>(byte[] data)
+        {
+            return JsonConvert.DeserializeObject<T>(Encoding.ASCII.GetString(data));
+        }
+
+        public byte[] Serialize<T>(T obj)
+        {
+            return Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(obj));
+        }
+
+
 
         public override T Deserialize<T>(Stream data)
         {
             using (StreamReader sr = new StreamReader(data))
             {
-
-                string info = sr.ReadLine();
-
-                SerialInfo si = JsonConvert.DeserializeObject<SerialInfo>(info, new JsonSerializerSettings
-                {
-                    TypeNameHandling = TypeNameHandling.Objects,
-                    TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
-                });
-
-                ignoreLength = si.IgnoreLength;
-
-                /*
-                T a = Activator.CreateInstance<T>();
-
-                SerializerVersionAttribute attr = typeof(T).GetCustomAttribute(typeof(SerializerVersionAttribute)) as SerializerVersionAttribute;
-                if (attr != null)
-                {
-                    if (si.Version != attr.Version)
-                        throw new Exception("Deserialize version mismatch");
-                }
-                */
-
                 string serial;
+                if (writeInfo)
+                {
+                    string info = sr.ReadLine();
 
-                if (si.IgnoreLength)
-                {
-                    serial = sr.ReadToEnd();
-                }
-                else
-                {
+                    SerialInfo si = JsonConvert.DeserializeObject<SerialInfo>(info, new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.Objects,
+                        TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
+                    });
                     char[] buffer = new char[si.Size];
                     sr.ReadBlock(buffer, 0, buffer.Length);
                     serial = new string(buffer);
                 }
-                
+                else
+                    serial = sr.ReadToEnd();
+               
 
                 return JsonConvert.DeserializeObject<T>(serial, new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.Objects,
                     TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
                 });
-                
-
 
             }
                 
@@ -74,21 +73,25 @@ namespace MasterLibrary.Serializers
                     TypeNameHandling = TypeNameHandling.Objects,
                     TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
                 });
-                SerialInfo si = new SerialInfo();
-                si.Size = serial.Length;
-                si.IgnoreLength = ignoreLength;
 
-                SerializerVersionAttribute attr = obj.GetType().GetCustomAttribute(typeof(SerializerVersionAttribute)) as SerializerVersionAttribute;
-                if (attr != null)
-                    si.Version = attr.Version;
 
-                string serialInfo = JsonConvert.SerializeObject(si, Formatting.None, new JsonSerializerSettings
+                if (writeInfo)
                 {
-                    TypeNameHandling = TypeNameHandling.Objects,
-                    TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
-                });
 
-                sr.WriteLine(serialInfo);
+                    SerialInfo si = new SerialInfo();
+                    si.Size = serial.Length;
+                    SerializerVersionAttribute attr = obj.GetType().GetCustomAttribute(typeof(SerializerVersionAttribute)) as SerializerVersionAttribute;
+                    if (attr != null)
+                        si.Version = attr.Version;
+
+                    string serialInfo = JsonConvert.SerializeObject(si, Formatting.None, new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.Objects,
+                        TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
+                    });
+
+                    sr.WriteLine(serialInfo);
+                }
                 sr.WriteLine(serial);
             }
         }
@@ -98,7 +101,6 @@ namespace MasterLibrary.Serializers
         {
             public string Version { get; set; } = "";
             public int Size { get; set; }
-            public bool IgnoreLength { get; set; } = false;
 
         }
 
