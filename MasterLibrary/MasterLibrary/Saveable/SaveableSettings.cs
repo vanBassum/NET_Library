@@ -35,7 +35,7 @@ namespace MasterLibrary.Saveable
         public void Load(string file)
         {
             using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
-                Save(stream);
+                Load(stream);
         }
 
         public void Save(Stream stream)
