@@ -31,6 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DevExpress.Data.v18.2, Version=18.2.9.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Xpo.v18.2, Version=18.2.9.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>External\Newtonsoft.Json.dll</HintPath>
@@ -50,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Bindable\ObservableConcurrentQueue.cs" />
     <Compile Include="Bindable\ThreadedBindingQueue.cs" />
+    <Compile Include="BVProt\Framing.cs" />
     <Compile Include="Controls\Console.cs">
       <SubType>UserControl</SubType>
     </Compile>
