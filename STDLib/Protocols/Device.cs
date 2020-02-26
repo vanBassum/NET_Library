@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace STDLib
@@ -10,15 +11,35 @@ namespace STDLib
         Dictionary<UInt16, TaskCompletionSource<Command>> pending = new Dictionary<ushort, TaskCompletionSource<Command>>();
         public UInt16 ID { get; private set; } = 0;
         public Func<Command, Command> RequestHandler = new Func<Command, Command>((a) => { return new Command { CMD = a.CMD, IsError = true, Data = Encoding.ASCII.GetBytes("This client doenst support request handling.") }; });
-        IComminucator comminucator;
+        public ICommunicator Comminucator { get; private set; }
+
+        public event EventHandler<Package> OnPackageRecieved;
 
 
-        public void SetComminucator(IComminucator com)
+        public Device()
         {
-            comminucator = com;
-            comminucator.OnPackageRecieved += (object sender, Package e) =>
+
+        }
+
+        public Device(UInt16 id)
+        {
+            ID = id;
+        }
+
+
+        public void SendPackage(Package package)
+        {
+            Comminucator.SendPackage(package);
+        }
+        
+
+        public void SetComminucator(ICommunicator com)
+        {
+            Comminucator = com;
+            Comminucator.OnPackageRecieved += (object sender, Package e) =>
             {
-                if (!e.IsReply)
+                OnPackageRecieved?.Invoke(this, e);
+                if (!e.IsReply && (e.RID == ID || e.RID == 0 || e.RID == 0xFFFF))
                 {
                     Package pack = new Package();
                     pack.Command = HandleRequest(e.Command);
@@ -26,7 +47,7 @@ namespace STDLib
                     pack.SID = 0;
                     pack.TID = e.TID;
                     pack.IsReply = true;
-                    comminucator.SendPackage(pack);
+                    Comminucator.SendPackage(pack);
                 }
             };
         }
@@ -38,7 +59,7 @@ namespace STDLib
             {
                 case 0:
                     ID = BitConverter.ToUInt16(cmd.Data, 0);
-                    cmd.IsError = false;
+                    result.IsError = false;
                     break;
                 default:
                     RequestHandler(cmd);
@@ -48,10 +69,20 @@ namespace STDLib
         }
 
 
-        public async Task<Command> SendRequest(Command cmd)
+        public async Task<Command> SendRequest(Command cmd, CancellationTokenSource cts = null)
         {
             cmd.IsError = false;
             UInt16 tid = SendRequestAsync(cmd);
+            cts?.Token.Register(() => 
+            { 
+
+                lock (pending) 
+                    if(pending.ContainsKey(tid))
+                        pending[tid].TrySetCanceled(); 
+            });
+
+
+
             Command result = await pending[tid].Task;
             lock (pending)
                 pending.Remove(tid);
@@ -74,7 +105,7 @@ namespace STDLib
             package.SID = 0;
             package.RID = ID;
             package.Command = cmd;
-            comminucator.OnPackageRecieved += (object sender, Package e) =>
+            Comminucator.OnPackageRecieved += (object sender, Package e) =>
             {
                 lock (pending)
                 {
@@ -83,7 +114,7 @@ namespace STDLib
                 }
             };
 
-            comminucator.SendPackage(package);
+            Comminucator.SendPackage(package);
             return package.TID;
         }
 

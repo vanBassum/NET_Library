@@ -8,6 +8,15 @@ namespace STDLib
         private UInt16 cmd;
         public byte[] Data { get; set; }
 
+
+        public Command Clone()
+        {
+            Command cmd = new Command();
+            cmd.cmd = this.cmd;
+            cmd.Data = (byte[])Data.Clone();
+            return cmd;
+        }
+
         public bool IsError
         {
             get { return ((cmd & 0x8000) > 0); }

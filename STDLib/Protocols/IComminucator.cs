@@ -2,7 +2,7 @@
 
 namespace STDLib
 {
-    public interface IComminucator
+    public interface ICommunicator
     {
         void SendPackage(Package package);
         event EventHandler<Package> OnPackageRecieved;

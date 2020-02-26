@@ -2,7 +2,7 @@
 
 namespace STDLib
 {
-    public class TCPCommunicator : IComminucator
+    public class TCPCommunicator : ICommunicator
     {
         public event EventHandler<Package> OnPackageRecieved;
 

@@ -13,6 +13,18 @@ namespace STDLib
         public Command Command { get; set; }
 
 
+
+        public Package Clone()
+        {
+            Package p = new Package();
+            p.Command = Command.Clone();
+            p.SID = SID;
+            p.TID = TID;
+            p.RID = RID;
+            p.Flags = Flags;
+            return p;
+        }
+
         public bool IsReply
         {
             get { return ((Flags & 0x01) > 0); }
