@@ -3,45 +3,75 @@ using System.Net;
 using System.Net.Sockets;
 using System.Timers;
 
-namespace STDLib
+namespace STDLib.Ethernet
 {
+    /// <summary>
+    /// A TCP client created around the .net <see cref="System.Net.Sockets.Socket"> Socket. </see>
+    /// </summary>
     public class TcpSocketClient
     {
         Socket globalSocket;
-
         Timer ConnectionTimeout;
         byte[] rxBuffer = new byte[1024];
         byte[] inOptionValues;
-
         bool DoKeepAlive = false;
 
+        /// <summary>
+        /// Fires when data was recieved by the socket.
+        /// </summary>
         public event EventHandler<byte[]> OnDataRecieved;
 
+        /// <summary>
+        /// Fires when the socket has sucessfully connected.
+        /// </summary>
         public event EventHandler OnConnected;
-        public event EventHandler OnConnectionFailed;
+
+        /// <summary>
+        /// Fires when beginconnect was timeout.
+        /// </summary>
         public event EventHandler OnConnectionTimeout;
+
+        /// <summary>
+        /// Fires when the connection is closed.
+        /// </summary>
         public event EventHandler OnDisconnected;
 
-        //public IPEndPoint LocalEndPoint { get { return globalSocket.LocalEndPoint as IPEndPoint; } }
+        /// <summary>
+        /// The IP endpoint of the client to witch the socket is connected.
+        /// </summary>
         public IPEndPoint RemoteEndPoint { get; private set; }
+
+        /// <summary>
+        /// Returns true if the socket is connected.
+        /// </summary>
         public bool IsConnected { get { return globalSocket == null ? false : globalSocket.Connected; } }
 
 
         //--------------------------------------------------------------------------------
         //                          Constructor and destructor
         //--------------------------------------------------------------------------------
+        /// <summary>
+        /// Creates a new client.
+        /// </summary>
         public TcpSocketClient()
         {
             ConnectionTimeout = new Timer();
             ConnectionTimeout.Elapsed += ConnectionTimeout_Tick;
         }
 
+        /// <summary>
+        /// Creates a new client based upon an existing socket.
+        /// </summary>
+        /// <param name="s">The socket to be used by this client.</param>
         public TcpSocketClient(Socket s)
         {
             globalSocket = s;
             OnConnect(globalSocket);
         }
 
+        /// <summary>
+        /// Destructor.
+        /// </summary>
         ~TcpSocketClient()
         {
             if (globalSocket != null)
@@ -51,7 +81,11 @@ namespace STDLib
         //--------------------------------------------------------------------------------
         //                              Connection setup
         //--------------------------------------------------------------------------------
-
+        /// <summary>
+        /// Async method to connect to a host.
+        /// </summary>
+        /// <param name="server">The server to connect to.</param>
+        /// <param name="timeout">Timeout defined in miliseconds.</param>
         public void BeginConnect(IPEndPoint server, int timeout)
         {
             ConnectionTimeout.Stop();
@@ -64,6 +98,12 @@ namespace STDLib
             ConnectionTimeout.Start();
         }
 
+        /// <summary>
+        /// Async method to connect to a host.
+        /// </summary>
+        /// <param name="ip">The IP address of the host.</param>
+        /// <param name="port">The port of the host.</param>
+        /// <param name="timeout">Timeout defined in miliseconds.</param>
         public void BeginConnect(string ip, int port, int timeout)
         {
             BeginConnect(new IPEndPoint(IPAddress.Parse(ip), port), timeout);
@@ -105,35 +145,18 @@ namespace STDLib
             catch (Exception ex)
             {
                 socket.Close();
-
-                if (!((ex is ObjectDisposedException)
-                    || (ex is NullReferenceException)
-                    ))
-                {
-                    OnConnectionFailed?.Invoke(this, null);
-                }
             }
         }
 
+        /// <summary>
+        /// Async method to close the connection.
+        /// </summary>
         public void BeginDisconnect()
         {
             if (globalSocket != null)
                 if (globalSocket.Connected)
                     globalSocket.Shutdown(SocketShutdown.Send);     //Shutdown the socket, the recieve event will raise and 0 bytes will be read.
         }
-
-        /*
-        public void SetTcpKeepAlive(bool enabled, uint retryInterval, uint keepAliveInterval)
-        {
-            //ServicePointManager.SetTcpKeepAlive();
-            uint dummy = 0;
-            inOptionValues = new byte[Marshal.SizeOf(dummy) * 3];
-            BitConverter.GetBytes(enabled).CopyTo(inOptionValues, 0);
-            BitConverter.GetBytes(retryInterval).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
-            BitConverter.GetBytes(keepAliveInterval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
-            DoKeepAlive = true;
-
-        }*/
 
 
         //--------------------------------------------------------------------------------
@@ -142,13 +165,13 @@ namespace STDLib
         
         
         /// <summary>
-        ///  
+        /// Method to send data.
         /// </summary>
         /// <param name="data">The data to be send</param>
-        /// <returns>true if number of send bytes equals the number of bytes in data</returns>
-        public bool SendDataSync(byte[] data)
+        /// <returns>Number of bytes that where send.</returns>
+        public int SendDataSync(byte[] data)
         {
-            return (globalSocket.Send(data) == data.Length);
+            return globalSocket.Send(data);
         }
 
 
@@ -172,7 +195,7 @@ namespace STDLib
                         byte[] data = new byte[bytesRead]; //Make a copy of the recieved data so we can continue recieving data.
 
                         Array.Copy(rxBuffer, data, bytesRead);
-                        DataRecieved(data);
+                        OnDataRecieved?.Invoke(this, data);
                         socket.BeginReceive(rxBuffer, 0, rxBuffer.Length, SocketFlags.None, OnRecieve, socket);
                     }
                     else    //Some error occured, Close socket and raise disconnect event
@@ -182,11 +205,5 @@ namespace STDLib
                     }
                 }
         }
-
-        public virtual void DataRecieved(byte[] data)
-        {
-            OnDataRecieved?.Invoke(this, data);
-        }
-
     }
 }
