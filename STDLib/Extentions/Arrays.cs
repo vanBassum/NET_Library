@@ -2,8 +2,9 @@
 
 namespace STDLib
 {
-    public static partial class Arrays
+    public static partial class Extentions
     {
+
         public static T[] SubArray<T>(this T[] data, int index, int length)
         {
             T[] result = new T[length];
