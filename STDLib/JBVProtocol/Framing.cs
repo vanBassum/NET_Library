@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace STDLib
+namespace STDLib.JBVProtocol
 {
 
     public class Framing

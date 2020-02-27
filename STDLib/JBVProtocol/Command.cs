@@ -1,7 +1,8 @@
-﻿using System;
+﻿using STDLib.Extentions;
+using System;
 using System.Collections.Generic;
 
-namespace STDLib
+namespace STDLib.JBVProtocol
 {
     public class Command
     {

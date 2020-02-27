@@ -1,6 +1,7 @@
-﻿using System;
+﻿using STDLib.Ethernet;
+using System;
 
-namespace STDLib
+namespace STDLib.JBVProtocol
 {
     public class TCPCommunicator : ICommunicator
     {

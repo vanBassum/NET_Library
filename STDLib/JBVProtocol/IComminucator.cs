@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace STDLib
+namespace STDLib.JBVProtocol
 {
     public interface ICommunicator
     {
