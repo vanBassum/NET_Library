@@ -1,35 +1,22 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 
 namespace STDLib.Ethernet
 {
-    /// <summary>
-    /// A TCP client created around the .net <see cref="System.Net.Sockets.Socket"> Socket. </see>
-    /// </summary>
     public class TcpSocketClient
     {
         Socket globalSocket;
-        Timer ConnectionTimeout;
-        byte[] rxBuffer = new byte[1024];
-        byte[] inOptionValues;
-        bool DoKeepAlive = false;
+        readonly byte[] rxBuffer = new byte[1024];
+        //readonly byte[] inOptionValues;
 
         /// <summary>
-        /// Fires when data was recieved by the socket.
+        /// Fires when data is recieved by the socket.
         /// </summary>
         public event EventHandler<byte[]> OnDataRecieved;
-
-        /// <summary>
-        /// Fires when the socket has sucessfully connected.
-        /// </summary>
-        public event EventHandler OnConnected;
-
-        /// <summary>
-        /// Fires when beginconnect was timeout.
-        /// </summary>
-        public event EventHandler OnConnectionTimeout;
 
         /// <summary>
         /// Fires when the connection is closed.
@@ -55,8 +42,6 @@ namespace STDLib.Ethernet
         /// </summary>
         public TcpSocketClient()
         {
-            ConnectionTimeout = new Timer();
-            ConnectionTimeout.Elapsed += ConnectionTimeout_Tick;
         }
 
         /// <summary>
@@ -66,7 +51,7 @@ namespace STDLib.Ethernet
         public TcpSocketClient(Socket s)
         {
             globalSocket = s;
-            OnConnect(globalSocket);
+            HandleNewConnection(globalSocket);
         }
 
         /// <summary>
@@ -81,77 +66,61 @@ namespace STDLib.Ethernet
         //--------------------------------------------------------------------------------
         //                              Connection setup
         //--------------------------------------------------------------------------------
-        /// <summary>
-        /// Async method to connect to a host.
-        /// </summary>
-        /// <param name="server">The server to connect to.</param>
-        /// <param name="timeout">Timeout defined in miliseconds.</param>
-        public void BeginConnect(IPEndPoint server, int timeout)
+        public async Task<bool> ConnectAsync(string host, CancellationTokenSource cts = null)
         {
-            ConnectionTimeout.Stop();
+            TaskCompletionSource<Socket> taskCompletionSource = new TaskCompletionSource<Socket>();
+            IPEndPoint ep = DNSExt.Parse(host);
 
             if (globalSocket != null)
                 globalSocket.Close();
 
-            StartConnecting(server);
-            ConnectionTimeout.Interval = timeout;
-            ConnectionTimeout.Start();
-        }
+            globalSocket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-        /// <summary>
-        /// Async method to connect to a host.
-        /// </summary>
-        /// <param name="ip">The IP address of the host.</param>
-        /// <param name="port">The port of the host.</param>
-        /// <param name="timeout">Timeout defined in miliseconds.</param>
-        public void BeginConnect(string ip, int port, int timeout)
-        {
-            BeginConnect(new IPEndPoint(IPAddress.Parse(ip), port), timeout);
-        }
+            if (cts == null)
+                (cts = new CancellationTokenSource()).CancelAfter(2500);
 
-        private void StartConnecting(IPEndPoint server)
-        {
-            globalSocket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            globalSocket.BeginConnect(server, OnConnect, globalSocket);
-        }
+            cts.Token.Register(() => { taskCompletionSource.TrySetCanceled(); });
 
-        private void ConnectionTimeout_Tick(object sender, EventArgs e)
-        {
-            ConnectionTimeout.Stop();
-            globalSocket.Close();
-            OnConnectionTimeout?.Invoke(this, null);
-        }
-
-        private void OnConnect(IAsyncResult ar)
-        {
-            Socket socket = ar.AsyncState as Socket;
-            OnConnect(socket);
-        }
-
-
-        private void OnConnect(Socket socket)
-        {
-            ConnectionTimeout?.Stop();
+            bool result = false;
             try
             {
-                if (DoKeepAlive)
-                    socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+                globalSocket.BeginConnect(ep, (res) => taskCompletionSource.SetResult(res.AsyncState as Socket), globalSocket);
+                Socket sock = await taskCompletionSource.Task;
+                result = HandleNewConnection(sock);
+            }
+            catch(Exception ex)
+            {
+                result = false;
+            }
+            finally
+            {
+                cts.Cancel();
+            }
 
+            return result;
+        }
+
+
+        private bool HandleNewConnection(Socket socket)
+        {
+            bool result = false;
+            try
+            {
                 RemoteEndPoint = globalSocket.RemoteEndPoint as IPEndPoint;
-
                 socket.BeginReceive(rxBuffer, 0, rxBuffer.Length, SocketFlags.None, OnRecieve, socket);
-                OnConnected?.Invoke(this, null);
+                result = true;
             }
             catch (Exception ex)
             {
                 socket.Close();
             }
+            return result;
         }
 
         /// <summary>
-        /// Async method to close the connection.
+        /// Method to close the connection.
         /// </summary>
-        public void BeginDisconnect()
+        public void Disconnect()
         {
             if (globalSocket != null)
                 if (globalSocket.Connected)
@@ -180,30 +149,30 @@ namespace STDLib.Ethernet
             SocketError sockError;
             Socket socket = ar.AsyncState as Socket;
 
-                int bytesRead = socket.EndReceive(ar, out sockError);
+            int bytesRead = socket.EndReceive(ar, out sockError);
 
-                if (bytesRead == 0)     //This happens after a socket shutdown or a keep alive timeout
+            if (bytesRead == 0)     //This happens after a socket shutdown or a keep alive timeout
+            {
+
+                socket.Close();     //Dispose the socket               
+                OnDisconnected?.Invoke(this, null);
+            }
+            else
+            {
+                if (sockError == SocketError.Success)
                 {
+                    byte[] data = new byte[bytesRead]; //Make a copy of the recieved data so we can continue recieving data.
 
-                    socket.Close();     //Dispose the socket               
-                    OnDisconnected?.Invoke(this, null);
+                    Array.Copy(rxBuffer, data, bytesRead);
+                    OnDataRecieved?.Invoke(this, data);
+                    socket.BeginReceive(rxBuffer, 0, rxBuffer.Length, SocketFlags.None, OnRecieve, socket);
                 }
-                else
+                else    //Some error occured, Close socket and raise disconnect event
                 {
-                    if (sockError == SocketError.Success)
-                    {
-                        byte[] data = new byte[bytesRead]; //Make a copy of the recieved data so we can continue recieving data.
-
-                        Array.Copy(rxBuffer, data, bytesRead);
-                        OnDataRecieved?.Invoke(this, data);
-                        socket.BeginReceive(rxBuffer, 0, rxBuffer.Length, SocketFlags.None, OnRecieve, socket);
-                    }
-                    else    //Some error occured, Close socket and raise disconnect event
-                    {
-                        socket.Close();
-                        throw new NotImplementedException();
-                    }
+                    socket.Close();
+                    throw new NotImplementedException();
                 }
+            }
         }
     }
 }
