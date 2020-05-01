@@ -35,8 +35,8 @@ namespace STDLib.Saveable
 
         ~SaveableBindingList()
         {
-            //if (file != null)
-            //    Save();
+            if (file != null)
+                Save();
         }
 
         public void Save()
