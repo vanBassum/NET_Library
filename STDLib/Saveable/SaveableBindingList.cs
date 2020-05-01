@@ -14,6 +14,7 @@ namespace STDLib.Saveable
     public class SaveableBindingList<T> : BindingList<T>, Saveable
     {
         Serializer serializer;
+        string file = null;
 
         public SaveableBindingList()
         {
@@ -25,6 +26,34 @@ namespace STDLib.Saveable
             this.serializer = serializer;
         }
 
+        public SaveableBindingList(string file)
+        {
+            this.serializer = new JSON();
+            this.file = file;
+            Load();
+        }
+
+        ~SaveableBindingList()
+        {
+            //if (file != null)
+            //    Save();
+        }
+
+        public void Save()
+        {
+            if (file == null)
+                throw new Exception("Wrong initializer used, use SaveableBindingList(string file)");
+            Save(file);
+        }
+
+        public void Load()
+        {
+            if (file == null)
+                throw new Exception("Wrong initializer used, use SaveableBindingList(string file)");
+            if (!File.Exists(file))
+                return;
+            Load(file);
+        }
 
         public void Save(string file)
         {
