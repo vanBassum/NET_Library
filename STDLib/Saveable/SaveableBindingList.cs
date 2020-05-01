@@ -35,8 +35,16 @@ namespace STDLib.Saveable
 
         ~SaveableBindingList()
         {
-            if (file != null)
-                Save();
+            //if (file != null)
+            //    Save();
+        }
+
+        public void SortBy<Tkey>(Func<T, Tkey> predicate)
+        {
+            var sortedListInstance = new BindingList<T>(this.OrderBy(predicate).ToList());
+            this.Clear();
+            foreach (var v in sortedListInstance)
+                this.Add(v);
         }
 
         public void Save()
