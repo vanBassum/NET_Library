@@ -13,6 +13,7 @@ namespace FRMLib.Scope.Controls
 {
     public partial class TraceView : UserControl
     {
+        DataGridView dataGridView1 = new DataGridView();
         private ScopeController dataSource;
         public ScopeController DataSource
         {
@@ -30,6 +31,9 @@ namespace FRMLib.Scope.Controls
         {
             InitializeComponent();
 
+            this.Controls.Add(dataGridView1);
+            dataGridView1.Dock = DockStyle.Fill;
+            dataGridView1.RowHeadersVisible = false;
             dataGridView1.AutoGenerateColumns = false;
             dataGridView1.RowHeadersVisible = false;
             dataGridView1.AllowUserToAddRows = false;
@@ -41,19 +45,44 @@ namespace FRMLib.Scope.Controls
                 TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
 
 
-                DataGridViewColumn col;
-                if (pi.PropertyType == typeof(bool))
-                    dataGridView1.Columns.Add(col = new DataGridViewColumn(new DataGridViewCheckBoxCell()));
-                else
-                    dataGridView1.Columns.Add(col = new DataGridViewColumn(new DataGridViewTextBoxCell()));
 
+                DataGridViewColumn col;
+
+                if (pi.PropertyType == typeof(bool))
+                {
+                    col = new DataGridViewCheckBoxColumn();
+                }
+                else if (pi.PropertyType.IsEnum)
+                {
+                    if (pi.PropertyType.GetCustomAttributes<FlagsAttribute>().Any())
+                    {
+                        //https://www.codeproject.com/Articles/24614/How-to-Host-a-Color-Picker-Combobox-in-Windows-For
+                        DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
+                        ccol.DataSource = Enum.GetValues(pi.PropertyType);
+                        col = ccol;
+                    }
+                    else
+                    {
+                        DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
+                        ccol.DataSource = Enum.GetValues(pi.PropertyType);
+                        col = ccol;
+                    }
+                        
+                }
+                else
+                {
+                    col = new DataGridViewTextBoxColumn();
+                }
+
+
+                dataGridView1.Columns.Add(col);
                 col.DataPropertyName = pi.Name;
                 col.Name = pi.Name;
                 col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
                 col.Width = attr.Width == 0 ? 100 : attr.Width;
 
             }
-            dataGridView1.ClearSelection();
+            dataGridView1.CellFormatting += dataGridView1_CellFormatting;
         }
 
 

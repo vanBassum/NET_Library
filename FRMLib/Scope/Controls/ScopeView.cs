@@ -14,8 +14,34 @@ namespace FRMLib.Scope.Controls
     {
 
         public ScopeViewSettings Settings { get; set; } = new ScopeViewSettings();
-        public ScopeController DataSource { get; set; }
+        private ScopeController dataSource;
+        public ScopeController DataSource
+        {
+            get { return dataSource; }
+            set
+            {
+                dataSource = value;
+                if (dataSource != null)
+                {
+                    dataSource.Traces.ListChanged += Traces_ListChanged;
+                    dataSource.Markers.ListChanged += Markers_ListChanged;
+                }
+            }
+        }
 
+        private void Markers_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            DrawForeground();
+        }
+
+        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            DrawData();
+        }
+
+        private Point lastClick = Point.Empty;
+        private int dragMarkerLine = -1;
+        private int hoverMarkerLine = -1;
         int columns;
         int hPxPerSub;
         int thiswidth;
@@ -23,13 +49,39 @@ namespace FRMLib.Scope.Controls
         int vPxPerSub;
         int thisheight;
 
+
+        PictureBox pictureBox1 = new PictureBox();
+        PictureBox pictureBox2 = new PictureBox();
+        PictureBox pictureBox3 = new PictureBox();
+
         public ScopeView()
         {
             InitializeComponent();
             DrawAll();
+
+            this.Controls.Add(pictureBox1);
+            pictureBox1.Controls.Add(pictureBox2);
+            pictureBox2.Controls.Add(pictureBox3);
+
+            pictureBox1.Dock = DockStyle.Fill;
+            pictureBox2.Dock = DockStyle.Fill;
+            pictureBox3.Dock = DockStyle.Fill;
+
+
+            pictureBox1.BackColor = Color.Transparent;
+            pictureBox2.BackColor = Color.Transparent;
+            pictureBox3.BackColor = Color.Transparent;
+
+            pictureBox1.Paint += PictureBox1_Paint;
+            pictureBox2.Paint += PictureBox2_Paint;
+            pictureBox3.Paint += PictureBox3_Paint;
+
+            pictureBox1.BringToFront();
+            pictureBox2.BringToFront();
+            pictureBox3.BringToFront();
         }
 
-
+        
 
         private void ScopeView_Load(object sender, EventArgs e)
         {
@@ -42,9 +94,70 @@ namespace FRMLib.Scope.Controls
             }
 
             Settings.PropertyChanged += (a, b) => this.InvokeIfRequired(() => DrawBackground());
-            DrawBackground();
+            DrawAll();
+
+            
+            pictureBox3.MouseClick += picBox_MouseClick;
+            pictureBox3.MouseMove += picBox_MouseMove;
+            pictureBox3.MouseDown += picBox_MouseDown;
+            pictureBox3.MouseUp += picBox_MouseUp;
+            
+            //pictureBox1.Resize += PictureBox1_Resize;
         }
 
+
+        private void picBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            dragMarkerLine = -1;
+        }
+
+        private void picBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            dragMarkerLine = hoverMarkerLine;
+        }
+
+        private void picBox_MouseClick(object sender, MouseEventArgs e)
+        {
+            lastClick = e.Location;
+            if (e.Button == MouseButtons.Right)
+            {
+                if (dragMarkerLine != -1)
+                    dragMarkerLine = -1;
+                //else
+                //    menu.Show(this, e.Location);
+            }
+        }
+        private void picBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (dragMarkerLine != -1)
+            {
+                double x = (e.X * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) + Settings.HorOffset;
+                DataSource.Markers[dragMarkerLine].X = x;
+                //MarkerLineView.DoTheThing(Scope.MarkerLines);
+                DrawForeground();
+            }
+            else
+            {
+                double x = (e.X * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) + Settings.HorOffset;
+
+                double xMin = ((e.X - 4) * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) + Settings.HorOffset;
+                double xMax = ((e.X + 4) * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) + Settings.HorOffset;
+
+
+                Cursor cur = Cursors.Default;
+                hoverMarkerLine = -1;
+                for (int i = 0; i < DataSource.Markers.Count; i++)
+                {
+                    if (DataSource.Markers[i].X > xMin && DataSource.Markers[i].X < xMax)
+                    {
+                        cur = Cursors.VSplit;
+                        hoverMarkerLine = i;
+                    }
+                }
+                Cursor.Current = cur;
+                
+            }
+        }
 
 
         private void Form_ResizeEnd(object sender, EventArgs e)
@@ -146,23 +259,7 @@ namespace FRMLib.Scope.Controls
 
         }
 
-
-
-
-
         #endregion
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -179,147 +276,187 @@ namespace FRMLib.Scope.Controls
             DrawForeground();
         }
 
+
+
         private void DrawBackground()
         {
-            this.BackgroundImage = new Bitmap(this.Width, this.Height);
-            using (Graphics g = Graphics.FromImage(this.BackgroundImage))
+            pictureBox1.Refresh();
+        }
+
+        //Draw the background
+        private void PictureBox1_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.Clear(Settings.BackgroundColor);
+
+            //Draw the horizontal lines
+            for (int row = 1; row < rows + 0; row++)
             {
-                g.Clear(Settings.BackgroundColor);
+                int y = (int)(row * vPxPerSub);
+                if (row % (Settings.VerticalDivisions / Settings.VerticalDivisions.LowestDiv()) == 0)
+                    g.DrawLine(Settings.GridPen, 0, y, thiswidth, y);
+                else
+                    g.DrawLine(Settings.GridSubPen, 0, y, thiswidth, y);
+            }
 
-                //Draw the horizontal lines
-                for (int row = 1; row < rows + 1; row++)
-                {
-                    int y = (int)(row * vPxPerSub);
-                    if (row % (Settings.VerticalDivisions / Settings.VerticalDivisions.LowestDiv()) == 0)
-                        g.DrawLine(Settings.GridPen, 0, y, thiswidth, y);
-                    else
-                        g.DrawLine(Settings.GridSubPen, 0, y, thiswidth, y);
-                }
+            //Draw the vertical lines
+            for (int i = 1; i < columns + 0; i++)
+            {
+                int x = (int)(i * hPxPerSub);
+                if (i % (Settings.HorizontalDivisions / Settings.HorizontalDivisions.LowestDiv()) == 0)
+                    g.DrawLine(Settings.GridPen, x, 0, x, thisheight);
+                else
+                    g.DrawLine(Settings.GridSubPen, x, 0, x, thisheight);
 
-                //Draw the vertical lines
-                for (int i = 0; i < columns + 1; i++)
-                {
-                    int x = (int)(i * hPxPerSub);
-                    if (i % (Settings.HorizontalDivisions / Settings.HorizontalDivisions.LowestDiv()) == 0)
-                        g.DrawLine(Settings.GridPen, x, 0, x, thisheight);
-                    else
-                        g.DrawLine(Settings.GridSubPen, x, 0, x, thisheight);
-
-                }
             }
         }
+
+
 
         private void DrawData()
         {
-            pictureBox1.BackgroundImage = new Bitmap(this.Width, this.Height);
-            using (Graphics g = Graphics.FromImage(pictureBox1.BackgroundImage))
+            pictureBox2.Refresh();
+        }
+
+        private void PictureBox2_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            if (DataSource == null)
             {
-                if (DataSource == null)
+                g.DrawString("No datasource bound", DefaultFont, Brushes.White, new Point(this.Width / 2 - 50, this.Height / 2));
+            }
+            else
+            {
+                double pxPerUnits_hor = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
+
+
+                var sortedTraces = from trace in DataSource.Traces
+                                   orderby trace.Layer descending
+                                   select trace;
+
+
+
+                int traceNo = 0;
+                //Loop through plots
+                foreach (Trace trace in sortedTraces)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
                 {
-                    g.DrawString("No datasource bound", DefaultFont, Brushes.White, new Point(this.Width / 2 - 50, this.Height / 2));
-                }
-                else
-                {
-                    double pxPerUnits_hor = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
+                    Pen pen = trace.Pen;
+                    Brush brush = new SolidBrush(pen.Color);
 
-
-                    var sortedTraces = from trace in DataSource.Traces
-                                       orderby trace.Layer descending
-                                       select trace;
-
-
-
-                    int traceNo = 0;
-                    //Loop through plots
-                    foreach (Trace trace in sortedTraces)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
+                    //Trace trace = Scope.Traces[traceIndex];
+                    if (trace.Visible)
                     {
-                        Pen pen = trace.Pen;
-                        Brush brush = new SolidBrush(pen.Color);
+                        //Pen linePen = new Pen(trace.Colour);
+                        double pxPerUnits_ver = thisheight / (Settings.VerticalDivisions * trace.Scale);// /** grid.Vertical.Divisions*/);
+                                                                                                        //Draw plot
+                        int pointCnt = trace.Points.Count;
+                        int inc = pointCnt / thiswidth;
+                        if (inc < 1)
+                            inc = 1;
 
-                        //Trace trace = Scope.Traces[traceIndex];
-                        if (trace.Visible)
+                        try
                         {
-                            //Pen linePen = new Pen(trace.Colour);
-                            double pxPerUnits_ver = thisheight / (Settings.VerticalDivisions * trace.Scale);// /** grid.Vertical.Divisions*/);
-                                                                                                            //Draw plot
-                            int pointCnt = trace.Points.Count;
-                            int inc = pointCnt / thiswidth;
-                            if (inc < 1)
-                                inc = 1;
+                            Point p = Point.Empty;
+                            Point pPrev = Point.Empty;
 
-                            try
+
+
+                            for (int i = 0; i < pointCnt; i += inc)
                             {
-                                Point p = Point.Empty;
-                                Point pPrev = Point.Empty;
+
+                                double x = (float)(trace.Points[i].X + Settings.HorOffset) * pxPerUnits_hor;
+                                double y = thisheight / 2 - (trace.Points[i].Y + trace.Offset) * pxPerUnits_ver;// * trace.Scale;
+
+                                p = new Point((int)x, (int)y);
 
 
+                                if (trace.DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
+                                    g.DrawCross(pen, p, 3);
 
-                                for (int i = 0; i < pointCnt; i += inc)
+
+                                switch (trace.DrawStyle)
                                 {
+                                    case Trace.DrawStyles.Points:
+                                        g.Drawpoint(brush, p, 2);
+                                        break;
 
-                                    double x = (float)(trace.Points[i].X + Settings.HorOffset) * pxPerUnits_hor;
-                                    double y = thisheight / 2 - (trace.Points[i].Y + trace.Offset) * pxPerUnits_ver;// * trace.Scale;
+                                    case Trace.DrawStyles.DiscreteSingal:
+                                        g.Drawpoint(brush, p, 4);
+                                        g.DrawLine(pen, new Point(p.X, thisheight / 2), p);
+                                        break;
 
-                                    p = new Point((int)x, (int)y);
+                                    case Trace.DrawStyles.Lines:
+                                        if (!pPrev.IsEmpty)
+                                            g.DrawLine(pen, p, pPrev);
 
+                                        break;
 
-                                    if (trace.DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
-                                        g.DrawCross(pen, p, 3);
+                                    case Trace.DrawStyles.NonInterpolatedLine:
+                                        if (!pPrev.IsEmpty)
+                                        {
+                                            Point between = new Point(p.X, pPrev.Y);
+                                            g.DrawLine(pen, pPrev, between);
+                                            g.DrawLine(pen, between, p);
+                                        }
+                                        break;
 
+                                    default:
+                                        g.DrawString($"Drawing of '{trace.DrawStyle}' is not supported yet.", Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height));
+                                        i = pointCnt;
+                                        break;
 
-                                    switch (trace.DrawStyle)
-                                    {
-                                        case Trace.DrawStyles.Points:
-                                            g.Drawpoint(brush, p, 2);
-                                            break;
-
-                                        case Trace.DrawStyles.DiscreteSingal:
-                                            g.Drawpoint(brush, p, 4);
-                                            g.DrawLine(pen, new Point(p.X, thisheight / 2), p);
-                                            break;
-
-                                        case Trace.DrawStyles.Lines:
-                                            if (!pPrev.IsEmpty)
-                                                g.DrawLine(pen, p, pPrev);
-
-                                            break;
-
-                                        case Trace.DrawStyles.NonInterpolatedLine:
-                                            if (!pPrev.IsEmpty)
-                                            {
-                                                Point between = new Point(p.X, pPrev.Y);
-                                                g.DrawLine(pen, pPrev, between);
-                                                g.DrawLine(pen, between, p);
-                                            }
-                                            break;
-
-                                        default:
-                                            g.DrawString($"Drawing of '{trace.DrawStyle}' is not supported yet.", Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height));
-                                            i = pointCnt;
-                                            break;
-
-                                    }
-
-                                    pPrev = p;
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                g.DrawString(ex.Message, Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height));
+
+                                pPrev = p;
                             }
                         }
-
-                        traceNo++;
+                        catch (Exception ex)
+                        {
+                            g.DrawString(ex.Message, Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height));
+                        }
                     }
+
+                    traceNo++;
                 }
             }
         }
 
+
+
         private void DrawForeground()
         {
+            pictureBox3.Refresh();
+        }
+
+        private void PictureBox3_Paint(object sender, PaintEventArgs e)
+        {
+            
+            Graphics g = e.Graphics;
+            
             if (DataSource != null)
             {
+                double pxPerUnits_hor = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
 
+                int markerNo = 0;
+                //Loop through markers
+                foreach (Marker marker in DataSource.Markers)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
+                {
+                    Pen pen = marker.Pen;
+                    Brush brush = new SolidBrush(pen.Color);
+
+                    try
+                    {
+                        float x = (float)((marker.X + Settings.HorOffset) * pxPerUnits_hor);
+                        g.DrawLine(pen, x, 0, x, thisheight);
+                        g.DrawString(marker.ID.ToString(), Settings.Font, brush, new PointF(x, 0));
+                    }
+
+                    catch (Exception ex)
+                    {
+                        g.DrawString(ex.Message, Settings.Font, brush, new Point(0, markerNo * Settings.Font.Height));
+                    }
+                    markerNo++;
+                }
             }
         }
 

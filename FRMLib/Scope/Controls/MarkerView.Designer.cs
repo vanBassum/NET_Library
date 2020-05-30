@@ -1,6 +1,6 @@
 ﻿namespace FRMLib.Scope.Controls
 {
-    partial class TraceView
+    partial class MarkerView
     {
         /// <summary> 
         /// Required designer variable.
@@ -28,17 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.SuspendLayout();
-            // 
-            // TraceView
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            components = new System.ComponentModel.Container();
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Name = "TraceView";
-            this.Size = new System.Drawing.Size(350, 163);
-            this.Load += new System.EventHandler(this.TraceView_Load);
-            this.ResumeLayout(false);
-
         }
 
         #endregion

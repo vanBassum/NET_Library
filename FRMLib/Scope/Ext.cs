@@ -18,7 +18,9 @@ namespace FRMLib.Scope
         {
             string smallPrefix = "mµnpf";
             string largePrefix = "kMGT";
-
+            bool negative = number < 0;
+            if (negative)
+                number = -number;
             int thousands = (int)Math.Log(Math.Abs(number), 1000);
 
             if (Math.Log(Math.Abs(number), 1000) < 0)
@@ -41,6 +43,8 @@ namespace FRMLib.Scope
             if (thousands < 0)
                 if (Math.Abs(thousands) < largePrefix.Length)
                     s += smallPrefix[Math.Abs(thousands) - 1];
+            if (negative)
+                s = $"-{s}";
             return s;
         }
     }

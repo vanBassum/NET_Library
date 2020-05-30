@@ -23,7 +23,9 @@ namespace FRMLib.Scope
         [TraceViewAttribute(Width = 50)]
         public int Layer { get { return GetPar(10); } set { SetPar(value); } }
         public ThreadedBindingList<PointD> Points { get; } = new ThreadedBindingList<PointD>();
+        [TraceViewAttribute]
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
+        // [TraceViewAttribute]
         public DrawOptions DrawOption { get { return GetPar(DrawOptions.None); } set { SetPar(value); } }
         public Func<double, string> ToHumanReadable { get { return GetPar( new Func<double, string>((a) => a.ToHumanReadable(3)) ); } set { SetPar(value); } }
         public PointD Minimum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
@@ -57,6 +59,61 @@ namespace FRMLib.Scope
             Minimum.KeepMinimum(pt);
             Maximum.KeepMaximum(pt);
         }
+
+
+
+
+
+
+        public double GetYValue(double x)
+        {
+            int i;
+
+            if (Points.Count == 0)
+                return 0;
+
+            for (i = 0; i < Points.Count; i++)
+            {
+                if (Points[i].X > x)
+                    break;
+            }
+
+
+            switch (DrawStyle)
+            {
+                case DrawStyles.DiscreteSingal:
+                case DrawStyles.Points:
+                    if ((Points[i].X - x) > (Points[i - 1].X - x))
+                        i -= 1;
+                    // i = closest to x
+                    if (i == -1)
+                        i = 0;
+                    if (i >= Points.Count)
+                        i = Points.Count - 1;
+                    return Points[i].Y;
+
+                case DrawStyles.Lines:
+                    if (i >= 0 & i + 1 < Points.Count)
+                    {
+                        double x1 = Points[i].X;
+                        double x2 = Points[i + 1].X;
+                        double y1 = Points[i].Y;
+                        double y2 = Points[i + 1].Y;
+                        double a = (y2 - y1) / (x2 - x1);
+                        double b = y2 - a * x2;
+                        double y = a * x + b;
+                        return y;
+                    }
+                    else
+                        return double.NaN;
+
+                default:
+                    throw new NotImplementedException($"Not yet implemented GetYValue of drawstyle '{DrawStyle}'");
+
+            }
+        }
+
+
 
         public enum DrawStyles
         {
