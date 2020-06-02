@@ -43,9 +43,6 @@ namespace FRMLib.Scope.Controls
             foreach (var pi in typeof(Trace).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
             {
                 TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
-
-
-
                 DataGridViewColumn col;
 
                 if (pi.PropertyType == typeof(bool))

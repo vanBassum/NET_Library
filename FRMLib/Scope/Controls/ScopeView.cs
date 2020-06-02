@@ -12,8 +12,8 @@ namespace FRMLib.Scope.Controls
 {
     public partial class ScopeView : UserControl
     {
-
         public ScopeViewSettings Settings { get; set; } = new ScopeViewSettings();
+        
         private ScopeController dataSource;
         public ScopeController DataSource
         {
@@ -29,19 +29,11 @@ namespace FRMLib.Scope.Controls
             }
         }
 
-        private void Markers_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            DrawForeground();
-        }
 
-        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            DrawData();
-        }
-
+        private ContextMenuStrip menu;
         private Point lastClick = Point.Empty;
-        private int dragMarkerLine = -1;
-        private int hoverMarkerLine = -1;
+        private Marker dragMarker = null;
+        private Marker hoverMarker = null;
         int columns;
         int hPxPerSub;
         int thiswidth;
@@ -79,9 +71,107 @@ namespace FRMLib.Scope.Controls
             pictureBox1.BringToFront();
             pictureBox2.BringToFront();
             pictureBox3.BringToFront();
+
+            menu = new ContextMenuStrip();
+
+            ToolStripMenuItem item;
+                
+            item = new ToolStripMenuItem("Add marker");
+            item.Click += AddMarker_Click;
+            menu.Items.Add(item);
+
+            item = new ToolStripMenuItem("Zoom");
+            item.Click += Zoom_Click;
+            //TODO: Only testing needed!
+            //menu.Items.Add(item);
+
         }
 
-        
+        private void AddMarker_Click(object sender, EventArgs e)
+        {
+            dataSource.Markers.Add(/*dragMarker = */new Marker() { X = -Settings.HorOffset });
+        }
+
+        private void Zoom_Click(object sender, EventArgs e)
+        {
+            if (DataSource.Markers.Count == 0)
+                return;
+
+            Marker left = null;
+            Marker right = null;
+
+            GetMarkersAdjecentToX(lastClick.X, ref left, ref right);
+
+            double x1 = 0;
+            double x2 = 0;
+
+            if (left != null)
+                x1 = left.X;
+            else
+            {
+                x1 = (from trace in DataSource.Traces
+                      from pt in trace.Points
+                      orderby pt.X ascending
+                      select pt.X).FirstOrDefault();
+            }
+
+            if (right != null)
+                x2 = right.X;
+            else
+            {
+                x2 = (from trace in DataSource.Traces
+                      from pt in trace.Points
+                      orderby pt.X descending
+                      select pt.X).FirstOrDefault();
+            }
+
+            Settings.HorOffset = -x1;
+            Settings.HorScale = x2 - x1;
+            DrawAll();
+        }
+
+        void GetMarkersAdjecentToX(double xPos, ref Marker left, ref Marker right)
+        {
+            double x = (xPos * Settings.HorScale / thiswidth) - Settings.HorOffset;
+
+            int iLeft = -1;
+            int iRight = -1;
+
+            for (int i = 0; i < DataSource.Markers.Count; i++)
+            {
+                if (DataSource.Markers[i].X < x)
+                {
+                    if (iLeft == -1)
+                        iLeft = i;
+                    else
+                    {
+                        if (DataSource.Markers[i].X > DataSource.Markers[iLeft].X)
+                            iLeft = i;
+                    }
+                }
+
+                if (DataSource.Markers[i].X > x)
+                {
+                    if (iRight == -1)
+                        iRight = i;
+                    else
+                    {
+                        if (DataSource.Markers[i].X < DataSource.Markers[iRight].X)
+                            iRight = i;
+                    }
+                }
+            }
+
+            if (iLeft == -1)
+                left = null;
+            else
+                left = DataSource.Markers[iLeft];
+
+            if (iRight == -1)
+                right = null;
+            else
+                right = DataSource.Markers[iRight];
+        }
 
         private void ScopeView_Load(object sender, EventArgs e)
         {
@@ -108,12 +198,12 @@ namespace FRMLib.Scope.Controls
 
         private void picBox_MouseUp(object sender, MouseEventArgs e)
         {
-            dragMarkerLine = -1;
+            dragMarker = null;
         }
 
         private void picBox_MouseDown(object sender, MouseEventArgs e)
         {
-            dragMarkerLine = hoverMarkerLine;
+            dragMarker = hoverMarker;
         }
 
         private void picBox_MouseClick(object sender, MouseEventArgs e)
@@ -121,37 +211,36 @@ namespace FRMLib.Scope.Controls
             lastClick = e.Location;
             if (e.Button == MouseButtons.Right)
             {
-                if (dragMarkerLine != -1)
-                    dragMarkerLine = -1;
-                //else
-                //    menu.Show(this, e.Location);
+                if (dragMarker != null)
+                    dragMarker = null;
+                else
+                    menu.Show(this, e.Location);
             }
         }
         private void picBox_MouseMove(object sender, MouseEventArgs e)
         {
-            if (dragMarkerLine != -1)
+
+            double pxPerUnits_hor = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale);
+            if (dragMarker != null)
             {
-                double x = (e.X * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) + Settings.HorOffset;
-                DataSource.Markers[dragMarkerLine].X = x;
-                //MarkerLineView.DoTheThing(Scope.MarkerLines);
+                double x = (e.X / pxPerUnits_hor) - Settings.HorOffset;
+                dragMarker.X = x;
                 DrawForeground();
             }
             else
             {
-                double x = (e.X * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) + Settings.HorOffset;
-
-                double xMin = ((e.X - 4) * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) + Settings.HorOffset;
-                double xMax = ((e.X + 4) * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) + Settings.HorOffset;
+                double xMin = ((e.X - 4) / pxPerUnits_hor) - Settings.HorOffset;
+                double xMax = ((e.X + 4) / pxPerUnits_hor) - Settings.HorOffset;
 
 
                 Cursor cur = Cursors.Default;
-                hoverMarkerLine = -1;
+                hoverMarker = null;
                 for (int i = 0; i < DataSource.Markers.Count; i++)
                 {
                     if (DataSource.Markers[i].X > xMin && DataSource.Markers[i].X < xMax)
                     {
                         cur = Cursors.VSplit;
-                        hoverMarkerLine = i;
+                        hoverMarker = DataSource.Markers[i];
                     }
                 }
                 Cursor.Current = cur;
@@ -159,6 +248,17 @@ namespace FRMLib.Scope.Controls
             }
         }
 
+
+        
+        private void Markers_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            DrawForeground();
+        }
+
+        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            DrawData();
+        }
 
         private void Form_ResizeEnd(object sender, EventArgs e)
         {
@@ -229,6 +329,13 @@ namespace FRMLib.Scope.Controls
             }
 
             double distance = max.X - min.X;
+            if(distance == 0)
+            {
+                Settings.HorScale = 1;
+                Settings.HorOffset = -min.X;
+                return;
+            }
+
             double div = distance / ((double)Settings.HorizontalDivisions);
             double multiplier = 1f;
 
@@ -447,8 +554,10 @@ namespace FRMLib.Scope.Controls
                     try
                     {
                         float x = (float)((marker.X + Settings.HorOffset) * pxPerUnits_hor);
+
                         g.DrawLine(pen, x, 0, x, thisheight);
                         g.DrawString(marker.ID.ToString(), Settings.Font, brush, new PointF(x, 0));
+                        
                     }
 
                     catch (Exception ex)

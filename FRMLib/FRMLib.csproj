@@ -52,6 +52,12 @@
     <Compile Include="Scope\Controls\MarkerView.Designer.cs">
       <DependentUpon>MarkerView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Scope\Controls\MathView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Scope\Controls\MathView.Designer.cs">
+      <DependentUpon>MathView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Scope\Controls\ScopeView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -65,8 +71,11 @@
     <Compile Include="Scope\Controls\TraceView.Designer.cs">
       <DependentUpon>TraceView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Scope\MathTypes\DeltaX.cs" />
     <Compile Include="Scope\Ext.cs" />
     <Compile Include="Scope\Marker.cs" />
+    <Compile Include="Scope\MathItem.cs" />
+    <Compile Include="Scope\MathTypes\IMathType.cs" />
     <Compile Include="Scope\PointD.cs" />
     <Compile Include="Scope\ScopeController.cs" />
     <Compile Include="Scope\SizeD.cs" />
@@ -86,5 +95,6 @@
       <DependentUpon>TraceView.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

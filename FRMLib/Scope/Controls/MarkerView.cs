@@ -93,6 +93,12 @@ namespace FRMLib.Scope.Controls
             {
                 e.Value = t.ToHumanReadable(t.GetYValue(DataSource.Markers[e.RowIndex].X));
             }
+
+            if(dgv.Columns[e.ColumnIndex].DataPropertyName == nameof(Marker.X))
+            {
+                e.Value = dataSource.HorizontalToHumanReadable((double)e.Value);
+            }
+
         }
     }
 }
