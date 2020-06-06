@@ -16,6 +16,9 @@ namespace STDLib.Saveable
         Serializer serializer;
         string file = null;
 
+        private bool saveOnDestruction = false;
+        public bool SaveOnDestruction { get { return saveOnDestruction; } set { saveOnDestruction = value; if (file == null) throw new Exception("Can't save on destruction if file is unknown"); } }
+
         public SaveableBindingList()
         {
             this.serializer = new JSON();
@@ -35,8 +38,8 @@ namespace STDLib.Saveable
 
         ~SaveableBindingList()
         {
-            //if (file != null)
-            //    Save();
+            if (SaveOnDestruction && file != null)
+                Save();
         }
 
         public void SortBy<Tkey>(Func<T, Tkey> predicate)
