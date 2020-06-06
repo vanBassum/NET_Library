@@ -1,4 +1,4 @@
-﻿using MasterLibrary.Serializers;
+﻿using STDLib.Serializers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

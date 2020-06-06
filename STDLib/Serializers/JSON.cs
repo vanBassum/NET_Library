@@ -8,7 +8,7 @@ using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterLibrary.Serializers
+namespace STDLib.Serializers
 {
     public class JSON : Serializer
     {
