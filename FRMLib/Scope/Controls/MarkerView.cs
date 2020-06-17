@@ -76,6 +76,7 @@ namespace FRMLib.Scope.Controls
                     col.HeaderText = t.Name;
                 }
             }
+            dataGridView.AutoResizeColumns();
         }
 
         private void Markers_ListChanged(object sender, ListChangedEventArgs e)

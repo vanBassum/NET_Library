@@ -138,6 +138,17 @@ namespace FRMLib.Scope
                     }
                     else
                         return double.NaN;
+                case DrawStyles.NonInterpolatedLine:
+                    if (i > 0 & i < Points.Count)
+                        return Points[i-1].Y;
+                    else
+                        return double.NaN;
+
+                case DrawStyles.State:
+                    if (i > 0 & i < Points.Count)
+                        return Points[i - 1].Y;
+                    else
+                        return double.NaN;
 
                 default:
                     throw new NotImplementedException($"Not yet implemented GetYValue of drawstyle '{DrawStyle}'");
@@ -152,7 +163,7 @@ namespace FRMLib.Scope
             Lines,
             NonInterpolatedLine,
             DiscreteSingal,
-            //State,
+            State,
         }
 
         [Flags]
