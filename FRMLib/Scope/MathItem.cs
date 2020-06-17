@@ -1,62 +1,67 @@
-﻿using FRMLib.Scope.Controls;
-using FRMLib.Scope.MathTypes;
-using STDLib.Misc;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FRMLib.Scope.Controls;
+using STDLib.Misc;
 
 namespace FRMLib.Scope
 {
     public class MathItem : PropertySensitive
     {
+        [TraceViewAttribute(Text = "", Width = 20)]
+        public Pen Pen { get { return GetPar(Pens.Red); } set { SetPar(value); } }
+        [TraceViewAttribute(Width = 60)]
+        public Trace Trace { get { return GetPar<Trace>(null); } set { SetPar(value); } } 
         [TraceViewAttribute(Text = "M1", Width = 40)]
-        public Marker Marker1 { get { return GetPar<Marker>(null); } set { SetPar(value); } }
+        public Marker Marker1 { get { return GetPar<Marker>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
         [TraceViewAttribute(Text = "M2", Width = 40)]
-        public Marker Marker2 { get { return GetPar<Marker>(null); } set { SetPar(value); } }
+        public Marker Marker2 { get { return GetPar<Marker>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
+        [TraceViewAttribute(Width = 80)]
+        public MathFunction Function { get { return GetPar<MathFunction>(null); } set { SetPar(value); } }
+        [TraceViewAttribute(Width = 80)]
+        public object Value { get { return GetPar<object>(null); } set { SetPar(value); } }
 
-        //[TraceViewAttribute()]
-        //public MathType MathType { get; set; }
 
-
-        
-        private IMathType mathInstance = new DeltaX();
-
-        [TraceViewAttribute()]
-        public MathType MathType 
+        public MathItem()
         {
-            get 
+            this.PropertyChanged += Recalculate;
+        }
+
+        private void Recalculate(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(this.Value))
             {
-                return GetPar<MathType>();
-
-                //return GetPar<MathType>(new MathType(mathInstance.GetType())); 
+                if (Function != null && Marker1 != null && Marker2 != null && Trace != null)
+                    Value = Function.Calculate(this);
             }
-            set 
-            { 
-                SetPar(value);
-                mathInstance = (IMathType)Activator.CreateInstance(value.Type);
-            } 
         }
-
-        [TraceViewAttribute()]
-        public object Value { get { return mathInstance.GetValue(); } }
         
-
-    }
-
-
-    public class MathType
-    {
-        public Type Type { get; set; }
-        public MathType Self { get { return this; } }
-        public string Name { get { return Type.Name; } }
-
-        public MathType(Type type)
+        public void Draw(Graphics g, Func<double, int> scaleY, Func<double, int> scaleX)
         {
-            Type = type;
+            if (Function != null && Marker1 != null && Marker2 != null && Trace != null)
+                Function.Draw(g, this, scaleY, scaleX);
         }
 
+
+        public static BindingList<MathFunction> MathFunctions { get; } = new BindingList<MathFunction>(GetMathFunctions());
+        public static MathFunction[] GetMathFunctions()
+        {
+            var vs = AppDomain.CurrentDomain.GetAssemblies()
+                                .SelectMany(s => s.GetTypes())
+                                .Where(p => typeof(MathFunction).IsAssignableFrom(p) && p.IsClass && !p.IsAbstract);
+            List<MathFunction> mathCalculators = new List<MathFunction>();
+            foreach (var v in vs)
+                mathCalculators.Add((MathFunction)Activator.CreateInstance(v));
+            return mathCalculators.ToArray();
+        }
+
+
     }
+
+
+
+
 }

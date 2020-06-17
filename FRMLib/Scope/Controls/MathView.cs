@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Reflection;
-using FRMLib.Scope.MathTypes;
+using System;
 
 namespace FRMLib.Scope.Controls
 {
     public partial class MathView : UserControl
     {
+
         DataGridViewComboBoxColumn markerColumn1 = new DataGridViewComboBoxColumn();
         DataGridViewComboBoxColumn markerColumn2 = new DataGridViewComboBoxColumn();
-        private static BindingList<MathType> mathTypes = new BindingList<MathType>();
+        DataGridViewComboBoxColumn traceColumn = new DataGridViewComboBoxColumn();
+        DataGridViewComboBoxColumn functionColumn = new DataGridViewComboBoxColumn();
+
         DataGridView dataGridView = new DataGridView();
         private ScopeController dataSource;
         public ScopeController DataSource
@@ -30,24 +30,16 @@ namespace FRMLib.Scope.Controls
                     dataGridView.DataSource = dataSource.MathItems;
                     markerColumn1.DataSource = dataSource.Markers;
                     markerColumn2.DataSource = dataSource.Markers;
+                    traceColumn.DataSource = DataSource.Traces;
                 }
             }
         }
-
+ 
 
 
         public MathView()
         {
             InitializeComponent();
-            if (mathTypes.Count == 0)
-            {
-                var vs = AppDomain.CurrentDomain.GetAssemblies()
-                            .SelectMany(s => s.GetTypes())
-                            .Where(p => typeof(IMathType).IsAssignableFrom(p) && p.IsClass).ToArray();
-
-                foreach(var v in vs)
-                    mathTypes.Add(new MathType(v));
-            }
 
             dataGridView.AutoGenerateColumns = false;
             dataGridView.Dock = DockStyle.Fill;
@@ -58,46 +50,57 @@ namespace FRMLib.Scope.Controls
             dataGridView.RowHeadersVisible = false;
             dataGridView.CellFormatting += DataGridView_CellFormatting;
 
-            foreach (var pi in typeof(MathItem).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
+            try
             {
-                TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
-                DataGridViewColumn col;
-
-                if (pi.Name == nameof(MathItem.MathType))
+                foreach (var pi in typeof(MathItem).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
                 {
-                    DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
-                    ccol.DataSource = mathTypes;
-                    Type t = typeof(int);
 
-                    ccol.ValueMember = nameof(IMathType.Self);
-                    ccol.DisplayMember = nameof(IMathType.Name);
+                    TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
+                    DataGridViewColumn col;
 
-                    col = ccol;
-                }
-                else if (pi.Name == nameof(MathItem.Marker1))
-                {
-                    markerColumn1.DisplayMember = nameof(Marker.ID);
-                    markerColumn1.ValueMember = nameof(Marker.Self);
-                    col = markerColumn1;
-                }
-                else if (pi.Name == nameof(MathItem.Marker2))
-                {
-                    markerColumn2.DisplayMember = nameof(Marker.ID);
-                    markerColumn2.ValueMember = nameof(Marker.Self);
-                    col = markerColumn2;
-                }
-                else
-                {
-                    col = new DataGridViewTextBoxColumn();
-                }
+                    if (pi.Name == nameof(MathItem.Trace))
+                    {
+                        traceColumn.DisplayMember = nameof(Trace.Name);
+                        traceColumn.ValueMember = nameof(Trace.Self);
+                        col = traceColumn;
+                    }
+                    else if (pi.Name == nameof(MathItem.Marker1))
+                    {
+                        markerColumn1.DisplayMember = nameof(Marker.ID);
+                        markerColumn1.ValueMember = nameof(Marker.Self);
+                        col = markerColumn1;
+                    }
+                    else if (pi.Name == nameof(MathItem.Marker2))
+                    {
+                        markerColumn2.DisplayMember = nameof(Marker.ID);
+                        markerColumn2.ValueMember = nameof(Marker.Self);
+                        col = markerColumn2;
+                    }
+                    else if (pi.Name == nameof(MathItem.Function))
+                    {
+                        functionColumn.DataSource = MathItem.MathFunctions;
+                        functionColumn.DisplayMember = nameof(MathFunction.Name);
+                        functionColumn.ValueMember = nameof(MathFunction.Self);
+                        col = functionColumn;
+                    }
+                    else
+                    {
+                        col = new DataGridViewTextBoxColumn();
+                    }
 
 
-                dataGridView.Columns.Add(col);
-                col.DataPropertyName = pi.Name;
-                col.Name = pi.Name;
-                col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
-                col.Width = attr.Width == 0 ? 100 : attr.Width;
+                    dataGridView.Columns.Add(col);
+                    col.DataPropertyName = pi.Name;
+                    col.Name = pi.Name;
+                    col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
+                    col.Width = attr.Width == 0 ? 100 : attr.Width;
+                }
             }
+            catch(Exception ex)
+            {
+
+            }
+            
         }
 
         private void DataGridView_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -119,6 +122,7 @@ namespace FRMLib.Scope.Controls
         }
     }
 
-    
+
+
 
 }

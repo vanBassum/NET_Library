@@ -1,6 +1,7 @@
 ﻿using FRMLib.Scope.Controls;
 using STDLib.Misc;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace FRMLib.Scope
@@ -12,25 +13,25 @@ namespace FRMLib.Scope
 
         [TraceViewAttribute(Width = 20, Text = "")]
         public bool Visible { get { return GetPar(true); } set { SetPar(value); } }
-        [TraceViewAttribute]
+        [TraceViewAttribute(Width = 50)]
         public string Name { get { return GetPar("New Trace"); } set { SetPar(value); } }
         //[TraceViewAttribute]
         public string Unit { get { return GetPar(""); } set { SetPar(value); } }
-        [TraceViewAttribute(Width = 50)]
+        [TraceViewAttribute(Width = 40)]
         public double Scale { get { return GetPar<double>(1f); } set { SetPar<double>(value); } }
-        [TraceViewAttribute(Width = 50)]
+        [TraceViewAttribute(Width = 40)]
         public double Offset { get { return GetPar<double>(0f); } set { SetPar<double>(value); } }
-        [TraceViewAttribute(Width = 50)]
+        [TraceViewAttribute(Width = 40)]
         public int Layer { get { return GetPar(10); } set { SetPar(value); } }
         public ThreadedBindingList<PointD> Points { get; } = new ThreadedBindingList<PointD>();
-        [TraceViewAttribute]
+        [TraceViewAttribute(Width = 80)]
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
         // [TraceViewAttribute]
         public DrawOptions DrawOption { get { return GetPar(DrawOptions.None); } set { SetPar(value); } }
         public Func<double, string> ToHumanReadable { get { return GetPar( new Func<double, string>((a) => a.ToHumanReadable(3)) ); } set { SetPar(value); } }
         public PointD Minimum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public PointD Maximum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
-
+        public Trace Self { get { return this; } }
         public Trace()
         {
             Points.ListChanged += Points_ListChanged;
@@ -61,7 +62,38 @@ namespace FRMLib.Scope
         }
 
 
+        public IEnumerable<PointD> GetPointsBetweenMarkers(Marker marker1, Marker marker2)
+        {
+            double x1 = 0;
+            double x2 = 0;
 
+            if(marker1.X < marker2.X)
+            {
+                x1 = marker1.X;
+                x2 = marker2.X;
+            }
+            else
+            {
+                x1 = marker2.X;
+                x2 = marker1.X;
+            }
+
+
+            bool startFound = false;
+            bool endFound = false;
+            for (int i=0; i<Points.Count; i++)
+            {
+                if (Points[i].X >= x1)
+                    startFound = true;
+
+                if (Points[i].X > x2)
+                    endFound = true;
+
+                if (startFound == true && endFound == false)
+                    yield return Points[i];
+
+            }
+        }
 
 
 
@@ -111,9 +143,8 @@ namespace FRMLib.Scope
                     throw new NotImplementedException($"Not yet implemented GetYValue of drawstyle '{DrawStyle}'");
 
             }
+
         }
-
-
 
         public enum DrawStyles
         {
@@ -132,8 +163,8 @@ namespace FRMLib.Scope
             //ExtendBegin,
             //ExtendEnd,
         }
-    }
 
-   
+        
+    }
 
 }

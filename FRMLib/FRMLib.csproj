@@ -45,6 +45,8 @@
   <ItemGroup>
     <Compile Include="Ext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scope\MathFunctions\AVG.cs" />
+    <Compile Include="Scope\MathFunctions\DiffX.cs" />
     <Compile Include="Scope\Controls\GraphicsExt.cs" />
     <Compile Include="Scope\Controls\MarkerView.cs">
       <SubType>UserControl</SubType>
@@ -52,6 +54,10 @@
     <Compile Include="Scope\Controls\MarkerView.Designer.cs">
       <DependentUpon>MarkerView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Scope\MathFunction.cs" />
+    <Compile Include="Scope\MathFunctions\Max.cs" />
+    <Compile Include="Scope\MathFunctions\Min.cs" />
+    <Compile Include="Scope\MathItem.cs" />
     <Compile Include="Scope\Controls\MathView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -71,11 +77,8 @@
     <Compile Include="Scope\Controls\TraceView.Designer.cs">
       <DependentUpon>TraceView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Scope\MathTypes\DeltaX.cs" />
     <Compile Include="Scope\Ext.cs" />
     <Compile Include="Scope\Marker.cs" />
-    <Compile Include="Scope\MathItem.cs" />
-    <Compile Include="Scope\MathTypes\IMathType.cs" />
     <Compile Include="Scope\PointD.cs" />
     <Compile Include="Scope\ScopeController.cs" />
     <Compile Include="Scope\SizeD.cs" />

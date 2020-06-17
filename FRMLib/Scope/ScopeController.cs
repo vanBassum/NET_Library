@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FRMLib.Scope.Controls;
 using STDLib.Misc;
 
 namespace FRMLib.Scope
