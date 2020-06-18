@@ -509,12 +509,13 @@ namespace FRMLib.Scope.Controls
 
                             for (int i = 0; i < pointCnt; i += inc)
                             {
-
                                 double x = (float)(trace.Points[i].X + Settings.HorOffset) * pxPerUnits_hor;
                                 double y = thisheight / 2 - (trace.Points[i].Y + trace.Offset) * pxPerUnits_ver;// * trace.Scale;
                                 double stateY = thisheight / 2 - trace.Offset * pxPerUnits_ver;// * trace.Scale;
                                 p = new Point((int)x, (int)y);
 
+                                bool last = (i == (pointCnt - 1));
+                                bool extendEnd = trace.DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
 
                                 if (trace.DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
                                     g.DrawCross(pen, p, 3);
@@ -534,7 +535,6 @@ namespace FRMLib.Scope.Controls
                                     case Trace.DrawStyles.Lines:
                                         if (!pPrev.IsEmpty)
                                             g.DrawLine(pen, p, pPrev);
-
                                         break;
 
                                     case Trace.DrawStyles.NonInterpolatedLine:
@@ -543,15 +543,18 @@ namespace FRMLib.Scope.Controls
                                             Point between = new Point(p.X, pPrev.Y);
                                             g.DrawLine(pen, pPrev, between);
                                             g.DrawLine(pen, between, p);
+                                            if(last && extendEnd)
+                                                g.DrawLine(pen, p, new Point(thiswidth, p.Y));
+                                            
                                         }
                                         break;
 
                                     case Trace.DrawStyles.State:
                                         if (!pPrev.IsEmpty)
                                         {
-                                            Rectangle rect = new Rectangle(pPrev.X, (int)stateY - 8, p.X - pPrev.X, 16);
                                             string text = trace.ToHumanReadable(trace.Points[i - 1].Y);
-                                            g.DrawState(pen, rect, text, Settings.Font);
+                                            Rectangle rect = new Rectangle(pPrev.X, (int)stateY - 8, p.X - pPrev.X, 16);
+                                            g.DrawState(pen, rect, text, Settings.Font, true, true);
                                         }
                                         break;
 

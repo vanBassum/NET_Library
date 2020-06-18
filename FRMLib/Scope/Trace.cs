@@ -21,10 +21,10 @@ namespace FRMLib.Scope
         public double Scale { get { return GetPar<double>(1f); } set { SetPar<double>(value); } }
         [TraceViewAttribute(Width = 40)]
         public double Offset { get { return GetPar<double>(0f); } set { SetPar<double>(value); } }
-        [TraceViewAttribute(Width = 40)]
+        //[TraceViewAttribute(Width = 40)]
         public int Layer { get { return GetPar(10); } set { SetPar(value); } }
         public ThreadedBindingList<PointD> Points { get; } = new ThreadedBindingList<PointD>();
-        [TraceViewAttribute(Width = 80)]
+        //[TraceViewAttribute(Width = 80)]
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
         // [TraceViewAttribute]
         public DrawOptions DrawOption { get { return GetPar(DrawOptions.None); } set { SetPar(value); } }
@@ -139,13 +139,13 @@ namespace FRMLib.Scope
                     else
                         return double.NaN;
                 case DrawStyles.NonInterpolatedLine:
-                    if (i > 0 & i < Points.Count)
+                    if (i > 0 && (i < (Points.Count + (DrawOption.HasFlag(DrawOptions.ExtendEnd) ? 1 : 0))))
                         return Points[i-1].Y;
                     else
                         return double.NaN;
 
                 case DrawStyles.State:
-                    if (i > 0 & i < Points.Count)
+                    if (i > 0 && (i < (Points.Count + (DrawOption.HasFlag(DrawOptions.ExtendEnd) ? 1 : 0))))
                         return Points[i - 1].Y;
                     else
                         return double.NaN;
@@ -172,7 +172,7 @@ namespace FRMLib.Scope
             None = 0,
             ShowCrosses = 1,
             //ExtendBegin,
-            //ExtendEnd,
+            ExtendEnd,
         }
 
         
