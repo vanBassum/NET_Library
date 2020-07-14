@@ -5,20 +5,34 @@ using System.Linq;
 namespace STDLib.JBVProtocol
 {
 
+    /// <summary>
+    /// Framing implements a bytestuffing algorithm that converts an incomming bytestream into complete frames and vice-versa.
+    /// </summary>
     public class Framing
     {
         enum BS : byte
         {
-            SOF = (byte)'&',
-            EOF = (byte)'%',
-            ESC = (byte)'\\',
-            NOP = (byte)'*',
+            SOF = (byte)'&',    //Start of frame
+            EOF = (byte)'%',    //End of frame
+            ESC = (byte)'\\',   //Escape character
+            NOP = (byte)'*',    //Does nothing, used to fill remainder when a static ammount of data is required by the I/O.
         }
 
         bool startFound = false;
         bool esc = false;
         List<byte> dataBuffer = new List<byte>();
 
+
+        /// <summary>
+        /// Fires when a complete frame has been recieved.
+        /// </summary>
+        public event EventHandler<byte[]> OnFrameCollected;
+
+        /// <summary>
+        /// Method to destuff incomming data. 
+        /// When a frame is complete <see cref="OnFrameCollected"/> will be fired.
+        /// </summary>
+        /// <param name="data">The stuffed data to unstuff</param>
         public void Unstuff(byte[] data)
         {
             int len = data.Length;
@@ -59,6 +73,11 @@ namespace STDLib.JBVProtocol
             } 
         }
 
+        /// <summary>
+        /// Method to stuff a frame into raw data.
+        /// </summary>
+        /// <param name="frame"></param>
+        /// <returns></returns>
         public byte[] Stuff(byte[] frame)
         {
             List<byte> dataOut = new List<byte>();
@@ -75,7 +94,7 @@ namespace STDLib.JBVProtocol
         }
 
 
-        public event EventHandler<byte[]> OnFrameCollected;
+        
     }
 
 
