@@ -16,11 +16,12 @@ namespace STDLib.JBVProtocol
     public class Communicator
     {
         Connection connection;
-        byte protocolVersion = 1;
         /// <summary>
         /// Our device id.
         /// </summary>
-        public byte ID { get; set; } = 0;
+        public UInt16 ID { get; set; } = 0;
+
+        public string Name { get; set; } = "";
 
         readonly Dictionary<UInt16, TaskCompletionSource<Frame>> pending = new Dictionary<ushort, TaskCompletionSource<Frame>>();
 
@@ -28,23 +29,27 @@ namespace STDLib.JBVProtocol
         /// A callback to handle incomming request messages.
         /// Make sure to reply something.
         /// </summary>
-        public Func<byte[], byte[]> HandleRequestCallback = new Func<byte[], byte[]>((a) => { return Encoding.ASCII.GetBytes("This client doenst support request handling."); });
+        public Func<object, byte[], byte[]> HandleRequestCallback = new Func<object, byte[], byte[]>((a, b) => { return Encoding.ASCII.GetBytes("This client doenst support request handling."); });
 
         /// <summary>
         /// A callback to handle incomming broadcast messages.
         /// </summary>
-        public Action<byte[]> HandleBroadcastCallback;
+        public Action<object, byte[]> HandleBroadcastCallback;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="con">Supply the comminucator with the connection to be used</param>
-        public Communicator(Connection con)
+        public Communicator(UInt16 id)
+        {
+            this.ID = id;
+        }
+
+        public void SetConnection(Connection con)
         {
             connection = con;
             connection.OnFrameReceived += Connection_OnFrameReceived;
         }
-
 
         /// <summary>
         /// Method to send a request frame
@@ -56,36 +61,12 @@ namespace STDLib.JBVProtocol
         public byte[] SendRequest(byte RID, byte[] payload, CancellationTokenSource cts = null)
         {
             Frame frame = new Frame();
-            frame.VER = protocolVersion;
             frame.SID = ID;
             frame.Reply = false;
             frame.Broadcast = false;
-            frame.SendToAny = false;
             frame.Error = false;
             frame.FID = 0;
             frame.RID = RID;
-            frame.PAY = payload;
-
-            return SendFrame(frame, cts).Result;
-        }
-
-        /// <summary>
-        /// Send a message to the one that is directly connected.
-        /// </summary>
-        /// <param name="payload">The data to be send</param>
-        /// <param name="cts">Cancellation token to stop the async process</param>
-        /// <returns>The reply of the client to witch this request was send</returns>
-        public byte[] SendRequestToAny(byte[] payload, CancellationTokenSource cts = null)
-        {
-            Frame frame = new Frame();
-            frame.VER = protocolVersion;
-            frame.SID = ID;
-            frame.Reply = false;
-            frame.Broadcast = false;
-            frame.SendToAny = true;
-            frame.Error = false;
-            frame.FID = 0;
-            frame.RID = 0;
             frame.PAY = payload;
 
             return SendFrame(frame, cts).Result;
@@ -98,11 +79,9 @@ namespace STDLib.JBVProtocol
         public void SendBroadcast(byte[] payload)
         {
             Frame frame = new Frame();
-            frame.VER = protocolVersion;
             frame.SID = ID;
             frame.Reply = false;
             frame.Broadcast = true;
-            frame.SendToAny = false;
             frame.Error = false;
             frame.FID = 0;
             frame.RID = 0;
@@ -123,30 +102,37 @@ namespace STDLib.JBVProtocol
             else
             {
                 if (e.Broadcast)
-                    HandleBroadcastCallback?.Invoke(e.PAY);
+                    HandleBroadcastCallback?.Invoke(this, e.PAY);
                 else
                 {
                     Frame reply = new Frame();
-                    reply.VER = protocolVersion;
                     reply.SID = ID;
                     reply.Reply = true;
                     reply.Broadcast = false;
-                    reply.SendToAny = false;
                     reply.Error = false;
                     reply.FID = e.FID;
                     reply.RID = e.SID;
-                    
 
-                    try
+                    if(e.RID != ID)
                     {
-                        reply.PAY = HandleRequestCallback?.Invoke(e.PAY);
-                    }
-                    catch(Exception ex)
-                    {
-                        reply.PAY = Encoding.ASCII.GetBytes(ex.Message);
+                        //Frame was not addressed to me.
+                        reply.PAY = Encoding.ASCII.GetBytes($"Recieved frame that was not meant for '{e.RID}' but i am {ID}.");
                         reply.Error = true;
-                    }
 
+                    }
+                    else
+                    {
+                        //Frame was addressed to me.
+                        try
+                        {
+                            reply.PAY = HandleRequestCallback?.Invoke(this, e.PAY);
+                        }
+                        catch (Exception ex)
+                        {
+                            reply.PAY = Encoding.ASCII.GetBytes(ex.Message);
+                            reply.Error = true;
+                        }
+                    }
                     c.SendFrame(reply);
                 }
             }

@@ -22,78 +22,88 @@ namespace ProtocolTesting
         private void Form1_Load(object sender, EventArgs e)
         {
 
+            Router r1 = new Router();
+            Router r2 = new Router();
+
+            Bridge bridge_r1r2 = new Bridge();
+            r1.AddConnection(bridge_r1r2.C1);
+            r2.AddConnection(bridge_r1r2.C2);
+
+            Communicator c1 = new Communicator(1);
+            Bridge bridge_r1c1 = new Bridge();
+            r1.AddConnection(bridge_r1c1.C1);
+            c1.SetConnection(bridge_r1c1.C2);
+            c1.Name = "C1";
+
+            Communicator c2 = new Communicator(2);
+            Bridge bridge_r2c2 = new Bridge();
+            r2.AddConnection(bridge_r2c2.C1);
+            c2.SetConnection(bridge_r2c2.C2);
+            c2.Name = "C2";
+
+
+            c2.HandleBroadcastCallback = Broadcast;
+            c2.HandleRequestCallback = Request;
+
+
+            
+
+            c1.SendBroadcast(Encoding.ASCII.GetBytes("Hoi"));
+            c2.SendBroadcast(Encoding.ASCII.GetBytes("Hoi"));
+
+            string s = Encoding.ASCII.GetString( c1.SendRequest(2, Encoding.ASCII.GetBytes("REQ")));
 
 
         }
 
 
+        void Broadcast(object sender, byte[] data)
+        {
+
+        }
+
+
+        byte[] Request(object sender, byte[] data)
+        {
+            return Encoding.ASCII.GetBytes("ANS");
+        }
+
 
     }
 
-    public class Test
+
+
+    public class Bridge
     {
-        DummyConnection con1;
-        DummyConnection con2;
+        public DummyConnection C1 { get; private set; } = new DummyConnection();
+        public DummyConnection C2 { get; private set; } = new DummyConnection();
 
-        void RUN()
+        public Bridge()
         {
-            con1 = new DummyConnection();
-            con2 = new DummyConnection();
-
-            con1.OnSend += Con1_OnSend;
-            con2.OnSend += Con2_OnSend;
-
-
-            Communicator c1 = new Communicator(con1);
-            c1.HandleRequestCallback = Handle1;
-
-            Communicator c2 = new Communicator(con2);
-            c2.HandleRequestCallback = Handle2;
-
-            byte[] reply = c1.SendRequestToAny(new byte[] { 0xAA });
+            C1.OnSend += (a, b) => C2.Recieve(b);
+            C2.OnSend += (a, b) => C1.Recieve(b);
         }
 
 
-        private void Con2_OnSend(object sender, byte[] e)
+        public class DummyConnection : Connection
         {
-            con1.Recieve(e);
-        }
+            public event EventHandler<byte[]> OnSend;
+            protected override void SendData(byte[] data)
+            {
+                OnSend?.Invoke(this, data);
+            }
 
-        private void Con1_OnSend(object sender, byte[] e)
-        {
-            con2.Recieve(e);
-        }
-
-        byte[] Handle1(byte[] data)
-        {
-            return new byte[] { 0x55 };
-        }
-
-        byte[] Handle2(byte[] data)
-        {
-            return new byte[] { 0x44 };
+            public void Recieve(byte[] data)
+            {
+                HandleData(data);
+            }
         }
     }
 
 
 
-    public class DummyConnection : Connection
-    {
-        public event EventHandler<byte[]> OnSend;
 
 
-        protected override void SendData(byte[] data)
-        {
-            OnSend?.Invoke(this, data);
-        }
-
-
-        public void Recieve(byte[] data)
-        {
-            HandleData(data);
-        }
-
-
-    }
+    
 
 }
