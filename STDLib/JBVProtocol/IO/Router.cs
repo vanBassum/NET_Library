@@ -1,13 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace STDLib.JBVProtocol.IO
 {
-
-
-
     /// <summary>
     /// The router acts as a node in the network accepting multiple connections.
     /// Its job is to re-route incomming data to the right client.
@@ -17,16 +16,22 @@ namespace STDLib.JBVProtocol.IO
     /// </summary>
     public class Router
     {
+        private const byte MaxHop = 32;
+        Task routerTask;
         //Contains all active connections to this router.
         List<Connection> connections = new List<Connection>();
-
         //Contains all information how to reroute data
         List<Route> routingTable = new List<Route>();
 
-        /// <summary>
-        /// Maximum number of times a frame will be resend, if its reached this number it will die.
-        /// </summary>
-        public int MaxHop { get; set; } = 32;
+        public UInt16 ID { get; set; } = 0;
+
+
+        public Router(UInt16 id)
+        {
+            ID = id;
+            routerTask = new Task(DoRouting);
+            routerTask.Start();
+        }
 
         /// <summary>
         /// Add a connection to this router.
@@ -34,159 +39,148 @@ namespace STDLib.JBVProtocol.IO
         /// <param name="connection"></param>
         public void AddConnection(Connection connection)
         {
-            connections.Add(connection);
+            lock(connections)
+                connections.Add(connection);
             connection.OnFrameReceived += Connection_OnFrameReceived;
             connection.OnDisconnected += Connection_OnDisconnected;
         }
 
-        private void Connection_OnDisconnected(object sender, EventArgs e )
+        
+
+        private void Connection_OnDisconnected(object sender, EventArgs e)
         {
-            //Let the others know that we cant reach any devices that where routed via this connection
-
-            List<Route> invalidRoutes = new List<Route>();
-
-            lock (routingTable)
-            {
-                foreach (Route r in routingTable)
-                    if (r.con == sender)
-                        invalidRoutes.Add(r);
-            }
-
-
-            foreach(Route r in invalidRoutes)
+            if (sender is Connection con)
             {
                 lock (routingTable)
-                    routingTable.Remove(r);
-
-                Frame frame = new Frame();
-                frame.SID = 0;
-                frame.Broadcast = true;
-                //frame.RoutingError = true;
-                frame.RID = 0;
-                frame.HOP = 0;
-                frame.PAY = BitConverter.GetBytes(r.id);
-
-                //Send to all nodes that the route to this id is now invalid
-                //When the broadcast arrives at the id trough another route the client should reply with a broadcast announcing itself again.
-                //@TODO: How do we ensure that all routers have recieved the invalid before the client re-anounces itself?
-
-                foreach(Connection con in connections)
-                    con.SendFrame(frame);
+                    routingTable.RemoveAll(r => r.con == con);
             }
+
+            //@TODO: We don't inform the others. Its probably not nessesairy because the network will recover automatically.
         }
+
+
+
+
+        BlockingCollection<Tuple<Connection, Frame>> frameBuffer = new BlockingCollection<Tuple<Connection, Frame>> ();
+        List<Frame> unknownRouteFrames = new List<Frame>();//Frames that coulnt be rerouted are stored here untill further notice.
 
         private void Connection_OnFrameReceived(object sender, Frame e)
         {
-            Connection connection = sender as Connection;
+            if (sender is Connection con)
+                frameBuffer.Add(new Tuple<Connection, Frame>(con, e));
+        }
 
-            if (e.HOP == MaxHop)
-                return;
-
-            e.HOP++;
-            if (e.Broadcast)
+        private void DoRouting()
+        {
+            //@TODO: CancellationToken something something...
+            while(true)
             {
+                Tuple<Connection, Frame> item = frameBuffer.Take();
+                Connection rxCon = item.Item1;
+                Frame rxFrame = item.Item2;
 
-                //if(e.RoutingError)
-                //{
-                //    //An invalid route
-                //
-                //    UInt16 id = BitConverter.ToUInt16(e.PAY, 0);
-                //    int removed = 0;
-                //    lock (routingTable)
-                //        removed = routingTable.RemoveAll(r => r.id == id);
-                //    
-                //    if(removed > 0)
-                //    {
-                //        //Resend the broadcast.
-                //        foreach (Connection con in connections)
-                //        {
-                //            if (con != connection)
-                //                con.SendFrame(e);
-                //        }
-                //    }
-                //}
-                //else
+                rxFrame.HOP++;
+                if (rxFrame.HOP <= MaxHop)
                 {
-                    //Broadcasts are also used to build the routing table
-                    Route route;
-                    lock (routingTable)
+                    //@TODO: Maybe solve this by using a threadsafe collection???
+                    lock (routingTable) //Do everything within the lock, we dont want the colletion to be changed by another process in the meanwhile.
                     {
-                        route = routingTable.FirstOrDefault(r => r.id == e.RID);
-                        if (route == null)
+                        if (rxFrame.Broadcast)
                         {
-                            //Create new route, add to table
-                            route = new Route() { con = connection, hops = e.HOP, id = e.SID };
-                            routingTable.Add(route);
+                            HandleBroadcast(rxCon, rxFrame);
                         }
                         else
                         {
-                            if (e.HOP < route.hops)
-                            {
-                                //Better route found, update table
-                                route.con = connection;
-                                route.hops = e.HOP;
-                            }
+                            HandleMessage(rxCon, rxFrame);
                         }
                     }
-
-                    if (e.HOP == route.hops)
-                    {
-                        //Resend package to all connections except for sender.
-
-                        foreach (Connection con in connections)
-                        {
-                            if (con != connection)
-                                con.SendFrame(e);
-                        }
-                    }
-                }
-                
-            }
-            else
-            {
-                //if(e.RoutingError)
-                //{
-                //    //This router has a route that is no longer available.
-                //    UInt16 unreachableID = BitConverter.ToUInt16(e.PAY, 0);
-                //    lock (routingTable)
-                //        routingTable.RemoveAll(r => r.id == unreachableID);
-                //}
-
-                //Try to route the package.
-                Route route;
-                lock (routingTable)
-                {
-                    route = routingTable.FirstOrDefault(r => r.id == e.RID);
-                }
-
-                if (route == null)
-                {
-                    //Route not found, reply with an error to the sender.
-
-                    //@TODO, We could send a broadcast requesting for the specific ID, if it isnt recieved within x time we send the reply.
-
-                    Frame reply = new Frame();
-                    reply.SID = e.RID;
-                    reply.Broadcast = false;
-                    //reply.RoutingError = true;
-                    //reply.FID = e.FID;
-                    reply.RID = e.SID;
-                    reply.HOP = 0;
-                    reply.PAY = BitConverter.GetBytes(e.RID);
-                    connection.SendFrame(reply);
-
-                    //Also, send a broadcast telling the other routers that the route of this sid has been compromised.
-                    //Still need to figure out the details of this.
-
                 }
                 else
                 {
-                    e.HOP++;
-                    route.con.SendFrame(e);
+                    //TODO: Should we do something here???
                 }
             }
         }
 
+
+
+        void HandleBroadcast(Connection rxCon, Frame rxFrame)
+        {
+            //First, check if we know this route already.
+            Route rxRoute = routingTable.FirstOrDefault(r => r.id == rxFrame.SID);
+
+            if(rxRoute == null)
+            {
+                rxRoute = new Route();
+                rxRoute.con = rxCon;
+                rxRoute.hops = rxFrame.HOP;
+                rxRoute.id = rxFrame.SID;
+                routingTable.Add(rxRoute);
+            }
+
+            if (rxFrame.HOP < rxRoute.hops)
+            {
+                //A better shorter route was found, update the route.
+                rxRoute.con = rxCon;
+                rxRoute.hops = rxFrame.HOP;
+            }
+
+            if (rxFrame.RoutingInfo)
+                HandleRoutingInfo(rxCon, rxFrame, rxRoute);
+
+
+            if (rxFrame.HOP == rxRoute.hops)
+            {
+                //Resend the broadcast.
+                lock (connections)
+                {
+                    foreach (Connection txCon in connections.Where(r => r != rxCon))
+                        txCon.SendFrame(rxFrame);
+                }
+            }
+
+            //if (rxFrame.HOP > rxRoute.hops) => let the frame die.
+        }
+
+        void HandleMessage(Connection rxCon, Frame rxFrame)
+        {
+            Route txRoute = routingTable.FirstOrDefault(r => r.id == rxFrame.RID);
+
+            if(txRoute == null)
+            {
+
+                lock (unknownRouteFrames)
+                    unknownRouteFrames.Add(rxFrame);
+
+                Frame txFrame = Frame.CreateRequestID(ID, rxFrame.RID);
+
+                lock (connections)
+                {
+                    foreach (Connection txCon in connections.Where(r => r != rxCon))
+                        txCon.SendFrame(txFrame);
+                }
+
+                //@TODO Implement a timeout for the frames in the waitinglist 'unknownRouteFrames'
+            }
+            else
+            {
+                //route is known so send the frame to the next client.
+                txRoute.con.SendFrame(rxFrame);
+            }
+        }
+
+        void HandleRoutingInfo(Connection rxCon, Frame rxFrame, Route newRoute)
+        {
+            lock (unknownRouteFrames)
+            {
+                List<Frame> resolvedFrames = unknownRouteFrames.Where(f => f.RID == rxFrame.SID).ToList();
+                foreach (Frame f in resolvedFrames)
+                {
+                    newRoute.con.SendFrame(f);
+                    unknownRouteFrames.Remove(f);
+                }
+            }
+        }
 
 
 

@@ -47,7 +47,11 @@ namespace STDLib.JBVProtocol.IO
         /// </summary>
         public bool Broadcast { get { return optGet(0); } set { optSet(0, value); } }
 
-
+        /// <summary>
+        /// When true one of the routers is requesting one of the clients to send a broadcast so the router can update its routingtable.
+        /// RID will be used to indicate witch client is supposed to send the broadcast.
+        /// </summary>
+        public bool RoutingInfo { get { return optGet(1); } set { optSet(1, value); } }
 
 
 
@@ -106,6 +110,7 @@ namespace STDLib.JBVProtocol.IO
             frame.RID = RID;
             frame.PAY = payload;
             frame.Broadcast = false;
+            frame.RoutingInfo = false;
             return frame;
         }
 
@@ -123,8 +128,45 @@ namespace STDLib.JBVProtocol.IO
             frame.RID = 0;
             frame.PAY = payload;
             frame.Broadcast = true;
+            frame.RoutingInfo = false;
             return frame;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="SID">The ID of the router requesting the id.</param>
+        /// <param name="requestedID">The ID of the client that has to send the broadcast.</param>
+        /// <returns></returns>
+        public static Frame CreateRequestID(UInt16 SID, UInt16 requestedID)
+        {
+            Frame frame = new Frame();
+            frame.VER = PROTOCOLVERSION;
+            frame.HOP = 0;
+            frame.SID = SID;
+            frame.RID = requestedID;
+            frame.PAY = new byte[0];
+            frame.Broadcast = true;
+            frame.RoutingInfo = true;
+            return frame;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="SID">The ID of the client responding to the router</param>
+        /// <returns></returns>
+        public static Frame CreateReplyToRequestID(UInt16 SID)
+        {
+            Frame frame = new Frame();
+            frame.VER = PROTOCOLVERSION;
+            frame.HOP = 0;
+            frame.SID = SID;
+            frame.RID = 0;
+            frame.PAY = new byte[0];
+            frame.Broadcast = true;
+            frame.RoutingInfo = true;
+            return frame;
+        }
     }
 }

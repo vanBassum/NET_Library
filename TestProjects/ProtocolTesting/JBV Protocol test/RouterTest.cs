@@ -30,7 +30,7 @@ namespace JBV_Protocol_test
             DummyConnection.CoupleConnections(con1, con2);
             DummyConnection.CoupleConnections(con3, con4);
 
-            router = new Router();
+            router = new Router(3);
             router.AddConnection(con2);
             router.AddConnection(con3);
 
@@ -59,7 +59,8 @@ namespace JBV_Protocol_test
 
 
             client1.SendBroadcast(txPayload);
-            //Since nothing is done on another thread, we dont have to wait or anything.
+            //Stuff is done on another thread, so wait for the broadcast.
+            System.Threading.Thread.Sleep(1000);
 
 
             //No messages should have been recieved.
@@ -84,7 +85,8 @@ namespace JBV_Protocol_test
 
 
             client1.SendMessage(2, txPayload);
-            //Since nothing is done on another thread, we dont have to wait or anything.
+            //Stuff is done on another thread, so wait for the broadcast.
+            System.Threading.Thread.Sleep(1000);
 
 
             //No broadcasts should have been recieved.

@@ -70,10 +70,21 @@ namespace STDLib.JBVProtocol
         {
             Connection c = sender as Connection;
 
-            if(e.Broadcast)
-                OnBroadcastRecieved?.Invoke(this, new Message(e));
+            if(e.RoutingInfo)
+            {
+                if(e.RID == ID)
+                {
+                    Frame tx = Frame.CreateReplyToRequestID(ID);
+                    c.SendFrame(tx);
+                }
+            }
             else
-                OnMessageRecieved?.Invoke(this, new Message(e));
+            {
+                if (e.Broadcast)
+                    OnBroadcastRecieved?.Invoke(this, new Message(e));
+                else
+                    OnMessageRecieved?.Invoke(this, new Message(e));
+            }
         }       
     }
 }
