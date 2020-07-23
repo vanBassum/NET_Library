@@ -1,16 +1,22 @@
 ﻿using System;
 
-namespace STDLib.JBVProtocol
+namespace STDLib.JBVProtocol.IO
 {
     /// <summary>
     /// Manages a single connetion.
     /// </summary>
     public abstract class Connection
     {
+
         /// <summary>
         /// Event will fire ones a complete frame has been recieved.
         /// </summary>
         public event EventHandler<Frame> OnFrameReceived;
+
+        /// <summary>
+        /// This event will fire if the connection is lost.
+        /// </summary>
+        public event EventHandler OnDisconnected;
 
         readonly Framing framing = new Framing();
 
@@ -45,6 +51,11 @@ namespace STDLib.JBVProtocol
         protected void HandleData(byte[] data)
         {
             framing.Unstuff(data);
+        }
+
+        protected void Disconnected()
+        {
+            OnDisconnected?.Invoke(this, null);
         }
     }
 }

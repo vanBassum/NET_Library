@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace STDLib.JBVProtocol
+namespace STDLib.JBVProtocol.IO
 {
 
     /// <summary>

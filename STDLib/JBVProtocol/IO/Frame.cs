@@ -1,20 +1,26 @@
 ﻿using STDLib.Extentions;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
-namespace STDLib.JBVProtocol
+namespace STDLib.JBVProtocol.IO
 {
-
+    
     /// <summary>
     /// The frame contains all information nessesary to get the frame to the right client.
     /// </summary>
     public class Frame
     {
+        /// <summary>
+        /// The version of this protocol.
+        /// </summary>
+        public const byte ProtocolVersion = 1;
+
         private byte OPT = 0;
         /// <summary>
         /// Version, Used to indicate the version of the protocol frame used incase we want to change something later and keep things compatible.
         /// </summary>
-        public byte VER { get; private set; } = 1;
+        public byte VER { get; private set; } = ProtocolVersion;
 
         /// <summary>
         /// The number of hops the frame was rerouted between nodes in the network.
@@ -32,31 +38,19 @@ namespace STDLib.JBVProtocol
         public UInt16 RID { get; set; } = 0;
 
         /// <summary>
-        /// Frame Id, Used to differentiate between frames. E.G. when multiple are send and the order of reply isn't guaranteed.
-        /// </summary>
-        public byte FID { get; set; } = 0;
-
-        /// <summary>
         /// Payload, The payload of the frame.
         /// </summary>
         public byte[] PAY { get; set; } = new byte[0];
 
         /// <summary>
-        /// Whether the package is a reply to a request send earlier, If false the package is a request itself.
-        /// </summary>
-        public bool Reply { get { return optGet(0); } set { optSet(0, value); } }
-
-        /// <summary>
-        /// Indicates whether an error has occured, for example when the command isn't recognized by the recieving party.
-        /// </summary>
-        public bool Error { get { return optGet(1); } set { optSet(1, value); } }
-
-        /// <summary>
         /// Indicates wheter this frame should be broadcasted to all potential recievers.
         /// </summary>
-        public bool Broadcast { get { return optGet(2); } set { optSet(2, value); } }
+        public bool Broadcast { get { return optGet(1); } set { optSet(1, value); } }
 
-
+        /// <summary>
+        /// One of the routers couln't deliver the package.
+        /// </summary>
+        public bool RoutingError { get { return optGet(2); } set { optSet(2, value); } }
 
 
 
@@ -83,9 +77,8 @@ namespace STDLib.JBVProtocol
             OPT = raw[0];
             VER = raw[1];
             HOP = raw[2];
-            FID = raw[3];
-            SID = BitConverter.ToUInt16(raw, 4);
-            RID = BitConverter.ToUInt16(raw, 6);
+            SID = BitConverter.ToUInt16(raw, 3);
+            RID = BitConverter.ToUInt16(raw, 5);
             PAY = raw.SubArray(8);
         }
 
@@ -100,12 +93,43 @@ namespace STDLib.JBVProtocol
             raw.Add(OPT);
             raw.Add(VER);
             raw.Add(HOP);
-            raw.Add(FID);
             raw.AddRange(BitConverter.GetBytes(SID));
             raw.AddRange(BitConverter.GetBytes(RID));
             raw.AddRange(PAY);
-
             return raw.ToArray();
         }
+
+
+        public static Frame CreateMessageFrame(UInt16 SID, UInt16 RID, byte[] payload)
+        {
+            Frame frame = new Frame();
+            frame.VER = ProtocolVersion;
+            frame.HOP = 0;
+            frame.SID = SID;
+            frame.RID = RID;
+            frame.PAY = payload;
+            frame.Broadcast = false;
+            frame.RoutingError = false;
+            return frame;
+        }
+
+
+        /// <summary>
+        /// Method to send a message to all connected clients when a server is used.
+        /// </summary>
+        /// <param name="payload">Data to be send</param>
+        public static Frame CreateBroadcastFrame(UInt16 SID, byte[] payload)
+        {
+            Frame frame = new Frame();
+            frame.VER = ProtocolVersion;
+            frame.HOP = 0;
+            frame.SID = SID;
+            frame.RID = 0;
+            frame.PAY = payload;
+            frame.Broadcast = true;
+            frame.RoutingError = false;
+            return frame;
+        }
+
     }
 }
