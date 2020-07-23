@@ -1,4 +1,5 @@
-﻿using System;
+﻿using STDLib.JBVProtocol.IO;
+using System;
 using System.Collections.Generic;
 using System.Net.Mail;
 using System.Text;
@@ -70,13 +71,9 @@ namespace STDLib.JBVProtocol
             Connection c = sender as Connection;
 
             if(e.Broadcast)
-            {
                 OnBroadcastRecieved?.Invoke(this, new Message(e));
-            }
             else
-            {
                 OnMessageRecieved?.Invoke(this, new Message(e));
-            }
         }       
     }
 }

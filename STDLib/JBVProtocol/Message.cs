@@ -21,6 +21,15 @@ namespace STDLib.JBVProtocol
         public UInt16 SID => frame.SID;
 
         /// <summary>
+        /// Used to retrieve the origional frame.
+        /// </summary>
+        /// <returns></returns>
+        public Frame GetFrame()
+        {
+            return frame;
+        }
+
+        /// <summary>
         /// </summary>
         /// <param name="frame"></param>
         public Message(Frame frame)

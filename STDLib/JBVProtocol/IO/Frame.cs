@@ -14,13 +14,13 @@ namespace STDLib.JBVProtocol.IO
         /// <summary>
         /// The version of this protocol.
         /// </summary>
-        public const byte ProtocolVersion = 1;
+        public const byte PROTOCOLVERSION = 1;
 
         private byte OPT = 0;
         /// <summary>
         /// Version, Used to indicate the version of the protocol frame used incase we want to change something later and keep things compatible.
         /// </summary>
-        public byte VER { get; private set; } = ProtocolVersion;
+        public byte VER { get; private set; } = PROTOCOLVERSION;
 
         /// <summary>
         /// The number of hops the frame was rerouted between nodes in the network.
@@ -45,12 +45,9 @@ namespace STDLib.JBVProtocol.IO
         /// <summary>
         /// Indicates wheter this frame should be broadcasted to all potential recievers.
         /// </summary>
-        public bool Broadcast { get { return optGet(1); } set { optSet(1, value); } }
+        public bool Broadcast { get { return optGet(0); } set { optSet(0, value); } }
 
-        /// <summary>
-        /// One of the routers couln't deliver the package.
-        /// </summary>
-        public bool RoutingError { get { return optGet(2); } set { optSet(2, value); } }
+
 
 
 
@@ -79,7 +76,7 @@ namespace STDLib.JBVProtocol.IO
             HOP = raw[2];
             SID = BitConverter.ToUInt16(raw, 3);
             RID = BitConverter.ToUInt16(raw, 5);
-            PAY = raw.SubArray(8);
+            PAY = raw.SubArray(7);
         }
 
         /// <summary>
@@ -103,13 +100,12 @@ namespace STDLib.JBVProtocol.IO
         public static Frame CreateMessageFrame(UInt16 SID, UInt16 RID, byte[] payload)
         {
             Frame frame = new Frame();
-            frame.VER = ProtocolVersion;
+            frame.VER = PROTOCOLVERSION;
             frame.HOP = 0;
             frame.SID = SID;
             frame.RID = RID;
             frame.PAY = payload;
             frame.Broadcast = false;
-            frame.RoutingError = false;
             return frame;
         }
 
@@ -121,13 +117,12 @@ namespace STDLib.JBVProtocol.IO
         public static Frame CreateBroadcastFrame(UInt16 SID, byte[] payload)
         {
             Frame frame = new Frame();
-            frame.VER = ProtocolVersion;
+            frame.VER = PROTOCOLVERSION;
             frame.HOP = 0;
             frame.SID = SID;
             frame.RID = 0;
             frame.PAY = payload;
             frame.Broadcast = true;
-            frame.RoutingError = false;
             return frame;
         }
 

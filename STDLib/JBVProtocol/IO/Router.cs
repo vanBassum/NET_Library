@@ -61,7 +61,7 @@ namespace STDLib.JBVProtocol.IO
                 Frame frame = new Frame();
                 frame.SID = 0;
                 frame.Broadcast = true;
-                frame.RoutingError = true;
+                //frame.RoutingError = true;
                 frame.RID = 0;
                 frame.HOP = 0;
                 frame.PAY = BitConverter.GetBytes(r.id);
@@ -85,26 +85,27 @@ namespace STDLib.JBVProtocol.IO
             e.HOP++;
             if (e.Broadcast)
             {
-                if(e.RoutingError)
-                {
-                    //An invalid route
 
-                    UInt16 id = BitConverter.ToUInt16(e.PAY, 0);
-                    int removed = 0;
-                    lock (routingTable)
-                        removed = routingTable.RemoveAll(r => r.id == id);
-                    
-                    if(removed > 0)
-                    {
-                        //Resend the broadcast.
-                        foreach (Connection con in connections)
-                        {
-                            if (con != connection)
-                                con.SendFrame(e);
-                        }
-                    }
-                }
-                else
+                //if(e.RoutingError)
+                //{
+                //    //An invalid route
+                //
+                //    UInt16 id = BitConverter.ToUInt16(e.PAY, 0);
+                //    int removed = 0;
+                //    lock (routingTable)
+                //        removed = routingTable.RemoveAll(r => r.id == id);
+                //    
+                //    if(removed > 0)
+                //    {
+                //        //Resend the broadcast.
+                //        foreach (Connection con in connections)
+                //        {
+                //            if (con != connection)
+                //                con.SendFrame(e);
+                //        }
+                //    }
+                //}
+                //else
                 {
                     //Broadcasts are also used to build the routing table
                     Route route;
@@ -143,13 +144,13 @@ namespace STDLib.JBVProtocol.IO
             }
             else
             {
-                if(e.RoutingError)
-                {
-                    //This router has a route that is no longer available.
-                    UInt16 unreachableID = BitConverter.ToUInt16(e.PAY, 0);
-                    lock (routingTable)
-                        routingTable.RemoveAll(r => r.id == unreachableID);
-                }
+                //if(e.RoutingError)
+                //{
+                //    //This router has a route that is no longer available.
+                //    UInt16 unreachableID = BitConverter.ToUInt16(e.PAY, 0);
+                //    lock (routingTable)
+                //        routingTable.RemoveAll(r => r.id == unreachableID);
+                //}
 
                 //Try to route the package.
                 Route route;
@@ -167,7 +168,7 @@ namespace STDLib.JBVProtocol.IO
                     Frame reply = new Frame();
                     reply.SID = e.RID;
                     reply.Broadcast = false;
-                    reply.RoutingError = true;
+                    //reply.RoutingError = true;
                     //reply.FID = e.FID;
                     reply.RID = e.SID;
                     reply.HOP = 0;
