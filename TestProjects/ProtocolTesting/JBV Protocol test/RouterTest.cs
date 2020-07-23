@@ -59,8 +59,14 @@ namespace JBV_Protocol_test
 
 
             client1.SendBroadcast(txPayload);
-            //Stuff is done on another thread, so wait for the broadcast.
-            System.Threading.Thread.Sleep(1000);
+
+            //Stuff is done on another thread, so wait for the broadcasts.
+            for (int retry = 0; retry < 100; retry++)
+            {
+                if (recievedBroadcasts.Count() == 1)
+                    break;
+                System.Threading.Thread.Sleep(10);
+            }
 
 
             //No messages should have been recieved.
@@ -85,8 +91,14 @@ namespace JBV_Protocol_test
 
 
             client1.SendMessage(2, txPayload);
-            //Stuff is done on another thread, so wait for the broadcast.
-            System.Threading.Thread.Sleep(1000);
+
+            //Stuff is done on another thread, so wait for the broadcasts.
+            for (int retry = 0; retry < 100; retry++)
+            {
+                if (recievedMessages.Count() == 1)
+                    break;
+                System.Threading.Thread.Sleep(10);
+            }
 
 
             //No broadcasts should have been recieved.
