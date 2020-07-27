@@ -1,19 +1,19 @@
 ﻿using STDLib.Serializers;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace STDLib.Saveable
 {
-    public class SaveableSettings : Saveable
+    [Obsolete("This is now obsolete, use StaticSaveableSettings instead.")]
+    public class SaveableSettings : ISaveable
     {
         Serializer serializer;
+        
 
         public SaveableSettings()
         {
@@ -24,7 +24,6 @@ namespace STDLib.Saveable
         {
             this.serializer = serializer;
         }
-
 
         public void Save(string file)
         {

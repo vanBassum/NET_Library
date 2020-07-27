@@ -58,6 +58,4 @@ namespace STDLib.Misc
         }
     }
 
-    
-
 }
