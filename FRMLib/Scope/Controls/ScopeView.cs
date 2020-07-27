@@ -13,7 +13,6 @@ namespace FRMLib.Scope.Controls
     public partial class ScopeView : UserControl
     {
         public ScopeViewSettings Settings { get; set; } = new ScopeViewSettings();
-        
         private ScopeController dataSource;
         public ScopeController DataSource
         {
@@ -82,14 +81,33 @@ namespace FRMLib.Scope.Controls
 
             item = new ToolStripMenuItem("Zoom");
             item.Click += Zoom_Click;
-            //TODO: Only testing needed!
-            //menu.Items.Add(item);
+            menu.Items.Add(item);
 
+            item = new ToolStripMenuItem("Autoscale hor");
+            item.Click += AutoscaleHor_Click;
+            menu.Items.Add(item);
+
+            item = new ToolStripMenuItem("ClearData");
+            item.Click += ClearData_Click;
+            menu.Items.Add(item);
+
+
+        }
+
+        private void AutoscaleHor_Click(object sender, EventArgs e)
+        {
+            FitHorizontalInXDivs(Settings.HorizontalDivisions);
+        }
+
+        private void ClearData_Click(object sender, EventArgs e)
+        {
+            foreach (Trace t in dataSource.Traces)
+                t.Points.Clear();
         }
 
         private void AddMarker_Click(object sender, EventArgs e)
         {
-            dataSource.Markers.Add(/*dragMarker = */new Marker() { X = -Settings.HorOffset });
+            dataSource.Markers.Add(dragMarker = new Marker() { X = -Settings.HorOffset });
         }
 
         private void Zoom_Click(object sender, EventArgs e)
@@ -126,13 +144,18 @@ namespace FRMLib.Scope.Controls
             }
 
             Settings.HorOffset = -x1;
-            Settings.HorScale = x2 - x1;
+            Settings.HorScale = (x2 - x1) / Settings.HorizontalDivisions;
             DrawAll();
         }
 
         void GetMarkersAdjecentToX(double xPos, ref Marker left, ref Marker right)
         {
-            double x = (xPos * Settings.HorScale / thiswidth) - Settings.HorOffset;
+            //double pxPerUnits_hor = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale);
+            //double x = (float)(trace.Points[i].X + Settings.HorOffset) * pxPerUnits_hor;
+
+
+
+            double x = (xPos * Settings.HorScale * Settings.HorizontalDivisions / thiswidth) - Settings.HorOffset;
 
             int iLeft = -1;
             int iRight = -1;
@@ -175,14 +198,7 @@ namespace FRMLib.Scope.Controls
 
         private void ScopeView_Load(object sender, EventArgs e)
         {
-            if (!this.DesignMode)
-            {
-                var parent = this.Parent;
-                while (!(parent is Form)) parent = parent.Parent;
-                var form = parent as Form;
-                form.ResizeEnd += Form_ResizeEnd;
-            }
-
+            this.Resize += Form_ResizeEnd;
             Settings.PropertyChanged += (a, b) => this.InvokeIfRequired(() => DrawBackground());
             DrawAll();
 
@@ -362,9 +378,32 @@ namespace FRMLib.Scope.Controls
                 Settings.HorScale = (double)(10 * multiplier);
 
             Settings.HorOffset = -(double)(min.X);
-
-
         }
+
+        public void FitHorizontalInXDivs(int divs)
+        {
+            PointD min = PointD.Empty;
+            PointD max = PointD.Empty;
+
+            foreach (Trace t in DataSource.Traces)
+            {
+                min.KeepMinimum(t.Minimum);
+                max.KeepMaximum(t.Maximum);
+            }
+
+            double distance = max.X - min.X;
+            if (distance == 0)
+            {
+                Settings.HorScale = 1;
+                Settings.HorOffset = -min.X;
+                return;
+            }
+
+            Settings.HorScale = (double)distance / (double)divs;
+            Settings.HorOffset = -(double)(min.X);
+        }
+
+
 
         #endregion
 
@@ -470,12 +509,13 @@ namespace FRMLib.Scope.Controls
 
                             for (int i = 0; i < pointCnt; i += inc)
                             {
-
                                 double x = (float)(trace.Points[i].X + Settings.HorOffset) * pxPerUnits_hor;
                                 double y = thisheight / 2 - (trace.Points[i].Y + trace.Offset) * pxPerUnits_ver;// * trace.Scale;
-
+                                double stateY = thisheight / 2 - trace.Offset * pxPerUnits_ver;// * trace.Scale;
                                 p = new Point((int)x, (int)y);
 
+                                bool last = (i == (pointCnt - 1));
+                                bool extendEnd = trace.DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
 
                                 if (trace.DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
                                     g.DrawCross(pen, p, 3);
@@ -495,7 +535,6 @@ namespace FRMLib.Scope.Controls
                                     case Trace.DrawStyles.Lines:
                                         if (!pPrev.IsEmpty)
                                             g.DrawLine(pen, p, pPrev);
-
                                         break;
 
                                     case Trace.DrawStyles.NonInterpolatedLine:
@@ -504,6 +543,18 @@ namespace FRMLib.Scope.Controls
                                             Point between = new Point(p.X, pPrev.Y);
                                             g.DrawLine(pen, pPrev, between);
                                             g.DrawLine(pen, between, p);
+                                            if(last && extendEnd)
+                                                g.DrawLine(pen, p, new Point(thiswidth, p.Y));
+                                            
+                                        }
+                                        break;
+
+                                    case Trace.DrawStyles.State:
+                                        if (!pPrev.IsEmpty)
+                                        {
+                                            string text = trace.ToHumanReadable(trace.Points[i - 1].Y);
+                                            Rectangle rect = new Rectangle(pPrev.X, (int)stateY - 8, p.X - pPrev.X, 16);
+                                            g.DrawState(pen, rect, text, Settings.Font, true, true);
                                         }
                                         break;
 
@@ -565,6 +616,29 @@ namespace FRMLib.Scope.Controls
                         g.DrawString(ex.Message, Settings.Font, brush, new Point(0, markerNo * Settings.Font.Height));
                     }
                     markerNo++;
+                }
+
+                Func<double, int> scaleX = (x) => (int)((x + Settings.HorOffset) * pxPerUnits_hor);
+                
+                //Loop trought mathitems
+
+                foreach (MathItem mathItem in DataSource.MathItems)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
+                {
+                    try
+                    {
+                        if(mathItem.Trace != null)
+                        {
+                            double pxPerUnits_ver = thisheight / (Settings.VerticalDivisions * mathItem.Trace.Scale);
+                            Func<double, int> scaleY = (x) => (int)(thisheight / 2 - (x + mathItem.Trace.Offset) * pxPerUnits_ver);
+
+                            mathItem.Draw(g, scaleY, scaleX);
+                        }
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        g.DrawString(ex.Message, Settings.Font, Brushes.White, new Point(0, markerNo * Settings.Font.Height));
+                    }
                 }
             }
         }

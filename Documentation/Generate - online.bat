@@ -3,7 +3,7 @@
 set PATH=%PATH%;C:\docfx\
 
 :GenerateDoc
-docfx docfx.json 
+docfx\docfx docfx.json 
 
 :OpenBrowser
 start "" http://localhost:8081
@@ -13,8 +13,7 @@ echo *** To stop the server, press enter. ***
 echo ****************************************
 
 :StartServer
-docfx serve -p 8081 _site
-
+docfx\docfx serve -p 8081 _site
 cls
 echo ****************************************
 echo *** Press R to regenerate the site.  ***

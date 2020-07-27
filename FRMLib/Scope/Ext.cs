@@ -1,4 +1,5 @@
-﻿using System;
+﻿using STDLib.Misc;
+using System;
 
 namespace FRMLib.Scope
 {
@@ -16,6 +17,13 @@ namespace FRMLib.Scope
 
         public static string ToHumanReadable(this double number, int digits = 3)
         {
+            if (double.IsNaN(number))
+                return "NaN";
+            if (double.IsPositiveInfinity(number))
+                return "+Inf";
+            if (double.IsNegativeInfinity(number))
+                return "-Inf";
+
             string smallPrefix = "mµnpf";
             string largePrefix = "kMGT";
             bool negative = number < 0;
@@ -46,6 +54,12 @@ namespace FRMLib.Scope
             if (negative)
                 s = $"-{s}";
             return s;
+        }
+
+        public static void Add(this ThreadedBindingList<PointD> list, double x, double y)
+        {
+            PointD pt = new PointD(x, y);
+            list.Add(pt);
         }
     }
 
