@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -57,5 +56,4 @@ namespace STDLib.Misc
             return (T)fields[propertyName];
         }
     }
-
 }
