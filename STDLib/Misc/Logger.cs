@@ -8,7 +8,10 @@ namespace STDLib.Misc
     public class Logger
     {
         StreamWriter writer = null;
-        private static Logger instance = null;
+        private static Logger instance = new Logger();
+
+        private static Logger Instance { get { lock (instance) { return instance; }; } }
+
 
         Logger()
         {
@@ -18,19 +21,6 @@ namespace STDLib.Misc
         private void CurrentDomain_ProcessExit(object sender, EventArgs e)
         {
             CloseFileInt();
-        }
-
-        private static Logger Instance
-        {
-            get
-            {
-                if (instance == null)
-                    instance = new Logger();
-
-                lock (instance)
-                    return instance;
-
-            }
         }
 
         private void CloseFileInt()
