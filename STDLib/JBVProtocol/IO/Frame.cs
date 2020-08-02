@@ -38,6 +38,11 @@ namespace STDLib.JBVProtocol.IO
         public UInt16 RID { get; set; } = 0;
 
         /// <summary>
+        /// Length, Size of the payload in bytes.
+        /// </summary>
+        public UInt16 LEN { get { return (UInt16)PAY.Length; } }
+
+        /// <summary>
         /// Payload, The payload of the frame.
         /// </summary>
         public byte[] PAY { get; set; } = new byte[0];
@@ -53,6 +58,10 @@ namespace STDLib.JBVProtocol.IO
         /// </summary>
         public bool RoutingInfo { get { return optGet(1); } set { optSet(1, value); } }
 
+        /// <summary>
+        /// Occurs when the the message is to large for the recieving end to process.
+        /// </summary>
+        public bool Overflow { get { return optGet(2); } set { optSet(2, value); } }
 
 
         bool optGet(int bit)
@@ -80,7 +89,8 @@ namespace STDLib.JBVProtocol.IO
             HOP = raw[2];
             SID = BitConverter.ToUInt16(raw, 3);
             RID = BitConverter.ToUInt16(raw, 5);
-            PAY = raw.SubArray(7);
+            //LEN = BitConverter.ToUInt16(raw, 7);
+            PAY = raw.SubArray(9);
         }
 
         /// <summary>
@@ -96,6 +106,7 @@ namespace STDLib.JBVProtocol.IO
             raw.Add(HOP);
             raw.AddRange(BitConverter.GetBytes(SID));
             raw.AddRange(BitConverter.GetBytes(RID));
+            raw.AddRange(BitConverter.GetBytes(LEN));
             raw.AddRange(PAY);
             return raw.ToArray();
         }
