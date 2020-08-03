@@ -43,6 +43,8 @@ namespace STDLib.Saveable
 
         void _Save(string file)
         {
+            if (!Directory.Exists(Path.GetDirectoryName(file)))
+                Directory.CreateDirectory(Path.GetDirectoryName(file));
             using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
                 _Save(stream);
         }
