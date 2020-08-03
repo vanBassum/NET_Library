@@ -48,6 +48,8 @@ namespace STDLib.Misc
 
         public static void SetFile(string file, bool autoOpen = true)
         {
+            if (!Directory.Exists(Path.GetDirectoryName(file)))
+                Directory.CreateDirectory(Path.GetDirectoryName(file));
             Logger.file = file;
             Logger.autoOpen = autoOpen;
         }
