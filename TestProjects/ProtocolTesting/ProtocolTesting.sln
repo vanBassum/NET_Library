@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocolTesting", "Protocol
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "STDLib", "..\..\STDLib\STDLib.csproj", "{8E7BB250-6088-4E69-B072-1674958FE8E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JBV Protocol test", "JBV Protocol test\JBV Protocol test.csproj", "{065F0BA1-98C1-49C2-9C53-E59C768AF170}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JBV Protocol test", "JBV Protocol test\JBV Protocol test.csproj", "{065F0BA1-98C1-49C2-9C53-E59C768AF170}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FRMLib", "..\..\FRMLib\FRMLib.csproj", "{6062FC18-1C98-4F9A-BE4C-44171CBCB55E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{065F0BA1-98C1-49C2-9C53-E59C768AF170}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{065F0BA1-98C1-49C2-9C53-E59C768AF170}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{065F0BA1-98C1-49C2-9C53-E59C768AF170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6062FC18-1C98-4F9A-BE4C-44171CBCB55E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6062FC18-1C98-4F9A-BE4C-44171CBCB55E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6062FC18-1C98-4F9A-BE4C-44171CBCB55E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6062FC18-1C98-4F9A-BE4C-44171CBCB55E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
