@@ -10,7 +10,7 @@ namespace STDLib.Misc
     {
         StreamWriter writer = null;
         private static Logger instance = new Logger();
-
+        public static string DateTimeFormat { get { return "dd-MMM-yyyy HH:mm:ss.ffff"; } }
         private static Logger Instance { get { lock (instance) { return instance; }; } }
 
         private static string file;
@@ -97,7 +97,7 @@ namespace STDLib.Misc
                     if(!Logger.Instance.fileIsOpen)
                         OpenFile();
                 }
-                string timestamp = (DateTime.Now.Ticks / 10000).ToString();
+                string timestamp = DateTime.Now.ToString(DateTimeFormat);
 
                 Logger.Instance.writer.WriteLine($"{timestamp}, {memberName}, {Regex.Escape(message)}");
                 Console.WriteLine($"Log {memberName}: '{message}'");
