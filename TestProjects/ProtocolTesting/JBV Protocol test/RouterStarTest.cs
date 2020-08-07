@@ -152,5 +152,44 @@ namespace JBV_Protocol_test
             Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.Payload), "Payload was corrupted");
         }
 
+
+        [TestMethod]
+        public void TestMultipleMessage()
+        {
+            SetupConnections();
+
+
+            byte[] txPayload1 = Encoding.ASCII.GetBytes("Testmessage 1");
+            byte[] txPayload2 = Encoding.ASCII.GetBytes("Testmessage 1");
+            byte[] txPayload3 = Encoding.ASCII.GetBytes("Testmessage 1");
+
+
+
+
+            client1.SendMessage(2, txPayload1);
+            client1.SendMessage(2, txPayload2);
+            client1.SendMessage(2, txPayload3);
+
+            //Stuff is done on another thread, so wait for the broadcasts.
+            for (int retry = 0; retry < 100; retry++)
+            {
+                if (recievedMessages.Count() == 3)
+                    break;
+                System.Threading.Thread.Sleep(10);
+            }
+
+
+            //No broadcasts should have been recieved.
+            Assert.AreEqual(0, recievedBroadcasts.Count(), "Broadcasts where recieved while no broadcasts where send.");
+
+            //The sender should't have recieved the messages while the reciever should have.
+            Assert.AreEqual(3, recievedMessages.Count(), "There one message send and more or less message have been recieved.");
+
+            ///Message rxMessage = recievedMessages.FirstOrDefault();
+            ///Assert.IsNotNull(rxMessage, "Message not recieved.");
+            ///Assert.AreEqual(1, rxMessage.SID, "Wrong SID recieved.");
+            ///Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.Payload), "Payload was corrupted");
+        }
+
     }
 }

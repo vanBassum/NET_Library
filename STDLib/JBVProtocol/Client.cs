@@ -50,7 +50,7 @@ namespace STDLib.JBVProtocol
         /// </summary>
         /// <param name="RID">The ID of the receiving party.</param>
         /// <param name="payload">The data to be send</param>
-        public void SendMessage(byte RID, byte[] payload)
+        public void SendMessage(UInt16 RID, byte[] payload)
         {
             Frame frame = Frame.CreateMessageFrame(ID, RID, payload);
             connection.SendFrame(frame);
