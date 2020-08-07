@@ -619,29 +619,6 @@ namespace FRMLib.Scope.Controls
                     }
                     markerNo++;
                 }
-
-                Func<double, int> scaleX = (x) => (int)((x + Settings.HorOffset) * pxPerUnits_hor);
-                
-                //Loop trought mathitems
-
-                foreach (MathItem mathItem in DataSource.MathItems)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
-                {
-                    try
-                    {
-                        if(mathItem.Trace != null)
-                        {
-                            double pxPerUnits_ver = thisheight / (Settings.VerticalDivisions * mathItem.Trace.Scale);
-                            Func<double, int> scaleY = (x) => (int)(thisheight / 2 - (x + mathItem.Trace.Offset) * pxPerUnits_ver);
-
-                            mathItem.Draw(g, scaleY, scaleX);
-                        }
-                        
-                    }
-                    catch (Exception ex)
-                    {
-                        g.DrawString(ex.Message, Settings.Font, Brushes.White, new Point(0, markerNo * Settings.Font.Height));
-                    }
-                }
             }
         }
 

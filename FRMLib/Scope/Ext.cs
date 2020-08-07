@@ -56,11 +56,7 @@ namespace FRMLib.Scope
             return s;
         }
 
-        public static void Add(this ThreadedBindingList<PointD> list, double x, double y)
-        {
-            PointD pt = new PointD(x, y);
-            list.Add(pt);
-        }
+
     }
 
 }

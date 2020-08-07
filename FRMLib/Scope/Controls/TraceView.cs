@@ -13,6 +13,7 @@ namespace FRMLib.Scope.Controls
 {
     public partial class TraceView : UserControl
     {
+        DataGridViewComboBoxColumn functionColumn = new DataGridViewComboBoxColumn();
         DataGridView dataGridView1 = new DataGridView();
         private ScopeController dataSource;
         public ScopeController DataSource
@@ -39,50 +40,66 @@ namespace FRMLib.Scope.Controls
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
 
-
-            foreach (var pi in typeof(Trace).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
-            {
-                TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
-                DataGridViewColumn col;
-
-                if (pi.PropertyType == typeof(bool))
-                {
-                    col = new DataGridViewCheckBoxColumn();
-                }
-                else if (pi.PropertyType.IsEnum)
-                {
-                    if (pi.PropertyType.GetCustomAttributes<FlagsAttribute>().Any())
-                    {
-                        //https://www.codeproject.com/Articles/24614/How-to-Host-a-Color-Picker-Combobox-in-Windows-For
-                        DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
-                        ccol.DataSource = Enum.GetValues(pi.PropertyType);
-                        col = ccol;
-                    }
-                    else
-                    {
-                        DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
-                        ccol.DataSource = Enum.GetValues(pi.PropertyType);
-                        col = ccol;
-                    }
-                        
-                }
-                else
-                {
-                    col = new DataGridViewTextBoxColumn();
-                }
+            test(typeof(Trace));
 
 
-                dataGridView1.Columns.Add(col);
-                col.DataPropertyName = pi.Name;
-                col.Name = pi.Name;
-                col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
-                col.Width = attr.Width == 0 ? 100 : attr.Width;
-
-            }
             dataGridView1.CellFormatting += dataGridView1_CellFormatting;
         }
 
 
+        void test(Type type)
+        {
+            foreach (var pi in type.GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
+            {
+                TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
+                DataGridViewColumn col;
+
+                if (dataGridView1.Columns[pi.Name] == null)
+                {
+
+                    if (pi.PropertyType == typeof(bool))
+                    {
+                        col = new DataGridViewCheckBoxColumn();
+                    }
+                    else if (pi.PropertyType.IsEnum)
+                    {
+                        if (pi.PropertyType.GetCustomAttributes<FlagsAttribute>().Any())
+                        {
+                            //https://www.codeproject.com/Articles/24614/How-to-Host-a-Color-Picker-Combobox-in-Windows-For
+                            DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
+                            ccol.DataSource = Enum.GetValues(pi.PropertyType);
+                            col = ccol;
+                        }
+                        else
+                        {
+                            DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
+                            ccol.DataSource = Enum.GetValues(pi.PropertyType);
+                            col = ccol;
+                        }
+
+                    }
+                    else if (pi.Name == nameof(Trace.Function))
+                    {
+                        functionColumn.DataSource = Trace.TraceTypes;
+                        //functionColumn.DisplayMember = nameof(Trace.Function);
+                        //functionColumn.ValueMember = nameof(Trace.Function);
+                        col = functionColumn;
+                    }
+                    else
+                    {
+                        col = new DataGridViewTextBoxColumn();
+                    }
+
+
+
+                    dataGridView1.Columns.Add(col);
+                    col.DataPropertyName = pi.Name;
+                    col.Name = pi.Name;
+                    col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
+                    col.Width = attr.Width == 0 ? 100 : attr.Width;
+                }
+            }
+        }
 
         private void TraceView_Load(object sender, EventArgs e)
         {

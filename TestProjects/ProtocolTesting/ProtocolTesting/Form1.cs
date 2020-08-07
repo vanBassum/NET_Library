@@ -14,11 +14,15 @@ using FRMLib;
 using System.Runtime.CompilerServices;
 using STDLib.Saveable;
 using STDLib.Misc;
+using FRMLib.Scope;
+using FRMLib.Scope.Controls;
+using FRMLib.Scope.MathFunctions;
 
 namespace ProtocolTesting
 {
     public partial class Form1 : Form
     {
+        ScopeController scope = new ScopeController();
         public Form1()
         {
             InitializeComponent();
@@ -26,24 +30,36 @@ namespace ProtocolTesting
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            Settings.Load("Settings.json", true);
-            Logger.SetFile("Log.txt");
-            Logger.WriteLine("test");
+            scopeView1.DataSource = scope;
+            traceView1.DataSource = scope;
+
+            Trace t1 = new Trace();
+            t1.Name = "TestTrace";
+
+            for (int i = 0; i < 100; i++)
+                t1.Points.Add((double)i, Math.Sin(2 * Math.PI * i / 100));
+
+            scope.Traces.Add(t1);
+
+            Trace t2 = new Trace();
+            t2.Function = typeof(Invert);
+            t2.Pen = Palettes.Yellow;
+            scope.Traces.Add(t2);
+
+
+            /*
+            Trace t1 = new Trace();
+            t1.Name = "TestTrace";
+
+            for (int i = 0; i < 100; i++)
+                t1.Points.Add((double)i, Math.Sin(2 * Math.PI * i / 100));
+
+
+
+
+            scope.Traces.Add(t1);
+            */
         }
-    }
-
-
-    public class SubSettings
-    {
-        public int Someting { get; set; } = 7;
-    }
-
-
-    public class Settings : BaseSettings<Settings>
-    {
-        public static int SomeSetting { get { return GetPar(0); } set { SetPar(value); } }
-        public static string AnotherSetting { get { return GetPar("bla"); } set { SetPar(value); } }
-        public static SubSettings SubSet { get { return GetPar<SubSettings>(new SubSettings()); } set { SetPar(value); } }
     }
 
 
