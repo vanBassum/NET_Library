@@ -8,12 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Reflection;
+using STDLib.Misc;
 
 namespace FRMLib.Scope.Controls
 {
     public partial class TraceView : UserControl
     {
-        DataGridViewComboBoxColumn functionColumn = new DataGridViewComboBoxColumn();
         DataGridView dataGridView1 = new DataGridView();
         private ScopeController dataSource;
         public ScopeController DataSource
@@ -23,7 +23,18 @@ namespace FRMLib.Scope.Controls
             {
                 dataSource = value;
                 if (dataSource != null)
+                {
                     dataGridView1.DataSource = dataSource.Traces;
+                    IEnumerable<Type> exporters = typeof(Trace)
+                        .Assembly.GetTypes()
+                        .Where(t => t.IsSubclassOf(typeof(Trace)) && !t.IsAbstract)
+                        .Select(t => t);
+
+                    foreach (var v in exporters)
+                    {
+                        test(v);
+                    }
+                }
             }
         }
 
@@ -41,8 +52,6 @@ namespace FRMLib.Scope.Controls
             dataGridView1.AllowUserToDeleteRows = false;
 
             test(typeof(Trace));
-
-
             dataGridView1.CellFormatting += dataGridView1_CellFormatting;
         }
 
@@ -61,6 +70,15 @@ namespace FRMLib.Scope.Controls
                     {
                         col = new DataGridViewCheckBoxColumn();
                     }
+                    else if (pi.PropertyType == typeof(Trace))
+                    {
+                        DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
+
+                        ccol.DataSource = DataSource.Traces;
+                        ccol.DisplayMember = nameof(Trace.Name);
+                        ccol.ValueMember = nameof(Trace.Self);
+                        col = ccol;
+                    }
                     else if (pi.PropertyType.IsEnum)
                     {
                         if (pi.PropertyType.GetCustomAttributes<FlagsAttribute>().Any())
@@ -78,13 +96,14 @@ namespace FRMLib.Scope.Controls
                         }
 
                     }
-                    else if (pi.Name == nameof(Trace.Function))
+                    /*else if (pi.Name == nameof(Trace.Function))
                     {
                         functionColumn.DataSource = Trace.TraceTypes;
                         //functionColumn.DisplayMember = nameof(Trace.Function);
                         //functionColumn.ValueMember = nameof(Trace.Function);
                         col = functionColumn;
-                    }
+                    }*/
+                    
                     else
                     {
                         col = new DataGridViewTextBoxColumn();

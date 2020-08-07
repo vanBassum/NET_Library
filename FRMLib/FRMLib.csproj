@@ -45,8 +45,6 @@
   <ItemGroup>
     <Compile Include="Ext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scope\MathFunctions\BaseMath.cs" />
-    <Compile Include="Scope\MathFunctions\DataTrace.cs" />
     <Compile Include="Scope\Palettes.cs" />
     <Compile Include="Scope\MathFunctions\Invert.cs" />
     <Compile Include="Scope\Controls\GraphicsExt.cs" />

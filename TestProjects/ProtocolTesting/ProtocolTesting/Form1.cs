@@ -34,17 +34,30 @@ namespace ProtocolTesting
             traceView1.DataSource = scope;
 
             Trace t1 = new Trace();
-            t1.Name = "TestTrace";
+            t1.Name = "TestTrace1";
 
             for (int i = 0; i < 100; i++)
                 t1.Points.Add((double)i, Math.Sin(2 * Math.PI * i / 100));
 
             scope.Traces.Add(t1);
 
-            Trace t2 = new Trace();
-            t2.Function = typeof(Invert);
+
+            t1 = new Trace();
+            t1.Name = "TestTrace2";
+
+            for (int i = 0; i < 100; i++)
+                t1.Points.Add((double)i, Math.Sin(4 * Math.PI * i / 100));
+
+            scope.Traces.Add(t1);
+
+
+            Invert t2 = new Invert();
             t2.Pen = Palettes.Yellow;
+            t2.T1 = t1;
             scope.Traces.Add(t2);
+
+
+
 
 
             /*

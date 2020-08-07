@@ -4,23 +4,30 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using STDLib.Misc;
+using System.Xml.Schema;
 
 namespace FRMLib.Scope.MathFunctions
 {
-    public class Invert : BaseMath
+    public class Invert : Trace
     {
-        public Invert(ThreadedBindingList<PointD> points) : base(points)
-        {
-
+        [TraceViewAttribute]
+        public Trace T1 { get { return GetPar<Trace>(null); } set 
+            { 
+                SetPar(value); 
+                Recalculate(); 
+                value.Points.ListChanged += (a,b) => Recalculate(); 
+            } 
         }
 
-        public Trace T1 { get { return GetPar<Trace>(); } set { SetPar(value); value.PropertyChanged += (a, b) => Recalculate(); Recalculate(); } }
 
         public override void Recalculate()
         {
-            points.Clear();
-            //foreach (PointD pt in T1.Points)
-            //    points.Add(pt.X, -pt.Y);
+            if(T1 != null)
+            {
+                Points.Clear();
+                foreach (var pt in T1.Points)
+                    Points.Add(pt.X, -pt.Y);
+            }
         }
     }
 }

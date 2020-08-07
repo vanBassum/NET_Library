@@ -9,8 +9,6 @@ namespace FRMLib.Scope
 {
     public class Trace : PropertySensitive
     {
-        public static ThreadedBindingList<Type> TraceTypes { get; } = new ThreadedBindingList<Type> { typeof(DataTrace), typeof(Invert) };
-
         [TraceViewAttribute(Text = "", Width = 20)]
         public Pen Pen { get { return GetPar(Pens.Red); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 20, Text = "")]
@@ -35,16 +33,13 @@ namespace FRMLib.Scope
         public PointD Maximum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public Trace Self { get { return this; } }
 
-        private BaseMath func;
+        public virtual void Recalculate()
+        {
 
-        [TraceViewAttribute(Text = "Function", Width = 80)]
-        public Type Function { get { return func.GetType(); } set { func = (BaseMath)Activator.CreateInstance(value, Points); func.Recalculate(); } }
-
-
+        }
 
         public Trace()
         {
-            func = new DataTrace(Points);
             Points.ListChanged += Points_ListChanged;
         }
 
