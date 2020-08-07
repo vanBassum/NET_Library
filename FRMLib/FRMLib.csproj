@@ -80,9 +80,7 @@
     </Compile>
     <Compile Include="Scope\Ext.cs" />
     <Compile Include="Scope\Marker.cs" />
-    <Compile Include="Scope\PointD.cs" />
     <Compile Include="Scope\ScopeController.cs" />
-    <Compile Include="Scope\SizeD.cs" />
     <Compile Include="Scope\Trace.cs" />
   </ItemGroup>
   <ItemGroup>
