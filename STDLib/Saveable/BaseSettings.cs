@@ -1,88 +1,93 @@
 ﻿using STDLib.Serializers;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace STDLib.Saveable
 {
-    public class BaseSettings
+    /// <summary>
+    /// Used to create settings that are static and therefore accessable across the whole project.
+    /// </summary>
+    /// <typeparam name="T1">The type of the settings object.</typeparam>
+    public class BaseSettings<T1>
     {
-        private static BaseSettings instance;
-        private static BaseSettings Instance { get { lock (instance) { return instance; }; } }
+        private static Dictionary<string, object> fields = new Dictionary<string, object>();
+        private readonly static Serializer serializer = new JSON();
 
-        public static readonly string defaultSettingsFile = $"/data/{System.Reflection.Assembly.GetEntryAssembly().GetName().Name}/settings.json";
-
-        private Dictionary<string, object> fields = new Dictionary<string, object>();
-        Serializer serializer;
-
-        protected BaseSettings()
-        {
-            this.serializer = new JSON();
-            instance = (BaseSettings)Activator.CreateInstance(this.GetType());
-        }
-
-      
-        protected static void SetPar<T>(T value, [CallerMemberName] string propertyName = null)
-        {
-            BaseSettings.Instance._SetPar<T>(value, propertyName);
-        }
-
-        protected static T GetPar<T>(T defVal = default(T), [CallerMemberName] string propertyName = null)
-        {
-            return BaseSettings.Instance._GetPar<T>(defVal, propertyName);
-        }
-
-        public static void Load(string file)
-        {
-            if (File.Exists(file))
-                BaseSettings.Instance._Load(file);
-            else
-                GenerateSettings(file);
-        }
-
+        /// <summary>
+        /// Save the current state of the settings to a file.
+        /// </summary>
+        /// <param name="file">Path to file</param>
         public static void Save(string file)
         {
-            BaseSettings.Instance._Save(file);
-        }
-
-        public static void GenerateSettings(string file)
-        {
-            Instance._GenerateSettings(file);
-        }
-
-        virtual public void _GenerateSettings(string file)
-        {
-
-        }
-
-        void _Save(string file)
-        {
-            if (!Directory.Exists(Path.GetDirectoryName(file)))
-                Directory.CreateDirectory(Path.GetDirectoryName(file));
+            CreateDirIfNotExists(Path.GetDirectoryName(file));
             using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
-                _Save(stream);
+                Save(stream);
         }
 
-        void _Load(string file)
+        /// <summary>
+        /// Load the settings from a file.
+        /// </summary>
+        /// <param name="file">Path to file</param>
+        /// <param name="createIfNotExist">When true, a new file with default values will be created  when the file doens't exist. Otherwise this will throw an exception if the file doensn't exist.</param>
+        public static void Load(string file, bool createIfNotExist = false)
         {
-            using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
-                _Load(stream);
-
+            if (File.Exists(file))
+            {
+                using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
+                    Load(stream);
+            }
+            else
+            {
+                if(createIfNotExist)
+                    CreateDefaultSettings(file);
+                else
+                    throw new System.Exception($"File not found '{file}'");
+            }
         }
 
-        void _Save(Stream stream)
+        /// <summary>
+        /// Save the settings to a stream.
+        /// </summary>
+        /// <param name="stream"></param>
+        public static void Save(Stream stream)
         {
             serializer.Serialize(fields, stream);
         }
 
-        void _Load(Stream stream)
+        /// <summary>
+        /// Load the settings from a stream.
+        /// </summary>
+        /// <param name="stream"></param>
+        public static void  Load(Stream stream)
         {
             fields = serializer.Deserialize<Dictionary<string, object>>(stream);
         }
 
-        void _SetPar<T>(T value, [CallerMemberName] string propertyName = null)
+        /// <summary>
+        /// Create a file with the default settings.
+        /// </summary>
+        /// <param name="file">Path to file.</param>
+        public static void CreateDefaultSettings(string file)
+        {
+            var v = typeof(T1).GetProperties();
+
+            foreach (var pi in v)
+                pi.GetValue(null);
+
+            CreateDirIfNotExists(Path.GetDirectoryName(file));
+            using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
+                Save(stream);
+        }
+
+
+        /// <summary>
+        /// Set the value of a property.
+        /// </summary>
+        /// <typeparam name="T2">Type of the property to set.</typeparam>
+        /// <param name="value">Value of the property to set.</param>
+        /// <param name="propertyName">The name of the property to set.</param>
+        protected static void SetPar<T2>(T2 value, [CallerMemberName] string propertyName = null)
         {
             lock (fields)
             {
@@ -91,15 +96,34 @@ namespace STDLib.Saveable
 
         }
 
-        T _GetPar<T>(T defVal = default(T), [CallerMemberName] string propertyName = null)
+        /// <summary>
+        /// Get the value of a property.
+        /// </summary>
+        /// <typeparam name="T2">Type of the property to get.</typeparam>
+        /// <param name="defVal">The default value to use if the property has no value.</param>
+        /// <param name="propertyName">The name of the property to get.</param>
+        /// <returns></returns>
+        protected static T2 GetPar<T2>(T2 defVal = default(T2), [CallerMemberName] string propertyName = null)
         {
             lock (fields)
             {
                 if (!fields.ContainsKey(propertyName))
                     fields[propertyName] = defVal;
-                return (T)fields[propertyName];
+                return (T2)fields[propertyName];
+            }
+        }
+
+
+        private static void CreateDirIfNotExists(string dir)
+        {
+            if (dir != "")
+            {
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
             }
         }
     }
+
+
 }
 
