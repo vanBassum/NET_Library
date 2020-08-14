@@ -11,6 +11,7 @@ namespace STDLib.Saveable
     /// <typeparam name="T1">The type of the settings object.</typeparam>
     public class BaseSettings<T1>
     {
+        public static readonly string defaultSettingsFile = $"/data/{System.Reflection.Assembly.GetEntryAssembly().GetName().Name}/settings.json";
         private static Dictionary<string, object> fields = new Dictionary<string, object>();
         private readonly static Serializer serializer = new JSON();
 
@@ -59,9 +60,11 @@ namespace STDLib.Saveable
         /// Load the settings from a stream.
         /// </summary>
         /// <param name="stream"></param>
-        public static void  Load(Stream stream)
+        public static void Load(Stream stream)
         {
             fields = serializer.Deserialize<Dictionary<string, object>>(stream);
+            if (fields == null)
+                fields = new Dictionary<string, object>();
         }
 
         /// <summary>
