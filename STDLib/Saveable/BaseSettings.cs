@@ -11,7 +11,8 @@ namespace STDLib.Saveable
     /// <typeparam name="T1">The type of the settings object.</typeparam>
     public class BaseSettings<T1>
     {
-        public static readonly string defaultSettingsFile = $"/data/{System.Reflection.Assembly.GetEntryAssembly().GetName().Name}/settings.json";
+        public static readonly string defaultAppFolder = $"/data/{System.Reflection.Assembly.GetEntryAssembly().GetName().Name}";
+        public static readonly string defaultSettingsFile = Path.Combine(defaultAppFolder, "settings.json");
         private static Dictionary<string, object> fields = new Dictionary<string, object>();
         private readonly static Serializer serializer = new JSON();
 
