@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace STDLib.Saveable
 {
-    [Obsolete("This is now obsolete, use StaticSaveableSettings instead.")]
+    [Obsolete("This is now obsolete, use BaseSettings instead.")]
     public class SaveableSettings : ISaveable
     {
         Serializer serializer;

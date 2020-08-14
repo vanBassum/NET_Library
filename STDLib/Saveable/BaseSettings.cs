@@ -1,14 +1,18 @@
 ﻿using STDLib.Serializers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace STDLib.Saveable
 {
     public class BaseSettings
     {
-        private static BaseSettings instance = new BaseSettings();
+        private static BaseSettings instance;
         private static BaseSettings Instance { get { lock (instance) { return instance; }; } }
+
+        public static readonly string defaultSettingsFile = $"/data/{System.Reflection.Assembly.GetEntryAssembly().GetName().Name}/settings.json";
 
         private Dictionary<string, object> fields = new Dictionary<string, object>();
         Serializer serializer;
@@ -16,6 +20,7 @@ namespace STDLib.Saveable
         protected BaseSettings()
         {
             this.serializer = new JSON();
+            instance = (BaseSettings)Activator.CreateInstance(this.GetType());
         }
 
       
@@ -33,6 +38,8 @@ namespace STDLib.Saveable
         {
             if (File.Exists(file))
                 BaseSettings.Instance._Load(file);
+            else
+                GenerateSettings(file);
         }
 
         public static void Save(string file)
@@ -40,6 +47,15 @@ namespace STDLib.Saveable
             BaseSettings.Instance._Save(file);
         }
 
+        public static void GenerateSettings(string file)
+        {
+            Instance._GenerateSettings(file);
+        }
+
+        virtual public void _GenerateSettings(string file)
+        {
+
+        }
 
         void _Save(string file)
         {
