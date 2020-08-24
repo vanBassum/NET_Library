@@ -1,11 +1,12 @@
-﻿using System;
+﻿using STDLib.JBVProtocol.IO;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace STDLib.JBVProtocol.IO
+namespace STDLib.JBVProtocol
 {
     /// <summary>
     /// The router acts as a node in the network accepting multiple connections.
@@ -23,10 +24,10 @@ namespace STDLib.JBVProtocol.IO
         //Contains all information how to reroute data
         List<Route> routingTable = new List<Route>();
 
-        public UInt16 ID { get; set; } = 0;
+        public ushort ID { get; set; } = 0;
 
 
-        public Router(UInt16 id)
+        public Router(ushort id)
         {
             ID = id;
             routerTask = new Task(DoRouting);
@@ -39,13 +40,13 @@ namespace STDLib.JBVProtocol.IO
         /// <param name="connection"></param>
         public void AddConnection(Connection connection)
         {
-            lock(connections)
+            lock (connections)
                 connections.Add(connection);
             connection.OnFrameReceived += Connection_OnFrameReceived;
             connection.OnDisconnected += Connection_OnDisconnected;
         }
 
-        
+
 
         private void Connection_OnDisconnected(object sender, EventArgs e)
         {
@@ -61,7 +62,7 @@ namespace STDLib.JBVProtocol.IO
 
 
 
-        BlockingCollection<Tuple<Connection, Frame>> frameBuffer = new BlockingCollection<Tuple<Connection, Frame>> ();
+        BlockingCollection<Tuple<Connection, Frame>> frameBuffer = new BlockingCollection<Tuple<Connection, Frame>>();
         List<Frame> unknownRouteFrames = new List<Frame>();//Frames that coulnt be rerouted are stored here untill further notice.
 
         private void Connection_OnFrameReceived(object sender, Frame e)
@@ -73,7 +74,7 @@ namespace STDLib.JBVProtocol.IO
         private void DoRouting()
         {
             //@TODO: CancellationToken something something...
-            while(true)
+            while (true)
             {
                 Tuple<Connection, Frame> item = frameBuffer.Take();
                 Connection rxCon = item.Item1;
@@ -109,7 +110,7 @@ namespace STDLib.JBVProtocol.IO
             //First, check if we know this route already.
             Route rxRoute = routingTable.FirstOrDefault(r => r.id == rxFrame.SID);
 
-            if(rxRoute == null)
+            if (rxRoute == null)
             {
                 rxRoute = new Route();
                 rxRoute.con = rxCon;
@@ -146,7 +147,7 @@ namespace STDLib.JBVProtocol.IO
         {
             Route txRoute = routingTable.FirstOrDefault(r => r.id == rxFrame.RID);
 
-            if(txRoute == null)
+            if (txRoute == null)
             {
 
                 lock (unknownRouteFrames)
@@ -192,7 +193,7 @@ namespace STDLib.JBVProtocol.IO
             /// <summary>
             /// The ID of the client
             /// </summary>
-            public UInt16 id;
+            public ushort id;
 
             /// <summary>
             /// Number of hops the client is removed from this router
@@ -211,7 +212,6 @@ namespace STDLib.JBVProtocol.IO
 
 
     }
-
 
 
 }
