@@ -1,8 +1,6 @@
-﻿using System;
-using System.Drawing;
-
-namespace FRMLib.Scope
+﻿namespace FRMLib.Scope
 {
+
     public class PointD
     {
         public double X { get; set; } = double.NaN;
@@ -17,18 +15,11 @@ namespace FRMLib.Scope
         }
 
 
-        public double Distance(PointD p2)
-        {
-            return Math.Sqrt(Math.Pow(X - p2.X, 2) + Math.Pow(Y - p2.Y, 2));
-        }
-
-
         public void Scale(double offsetX, double scaleX, double offsetY, double scaleY)
         {
             X = offsetX + X * scaleX;
             Y = offsetY + Y * scaleY;
         }
-
 
         public void KeepMinimum(PointD pt)
         {
@@ -60,11 +51,17 @@ namespace FRMLib.Scope
 
 
 
+        public static implicit operator PointD(V2D s) => new PointD(s.X, s.Y);
+        public static implicit operator V2D(PointD s) => new V2D(s.X, s.Y);
 
-        public static implicit operator PointF(PointD d) => new PointF((float)d.X, (float)d.Y);
-        public static implicit operator PointD(Point d) => new PointD((float)d.X, (float)d.Y);
 
-        public static PointD Empty 
+        /*
+        public static explicit operator Point(PointD d) => new PointF((float)d.X, (float)d.Y);
+        public static explicit operator PointF(PointD d) => new PointF((float)d.X, (float)d.Y);
+        public static explicit operator PointD(Point d) => new PointD((float)d.X, (float)d.Y);
+        */
+
+        public static PointD Empty
         { 
             get
             {

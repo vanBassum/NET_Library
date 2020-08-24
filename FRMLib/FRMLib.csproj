@@ -82,6 +82,14 @@
     <Compile Include="Scope\Marker.cs" />
     <Compile Include="Scope\ScopeController.cs" />
     <Compile Include="Scope\Trace.cs" />
+    <Compile Include="TileImage\Controls\TileView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TileImage\Controls\TileView.Designer.cs">
+      <DependentUpon>TileView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TileImage\Tile.cs" />
+    <Compile Include="TileImage\TileSet.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\STDLib\STDLib.csproj">
@@ -95,6 +103,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Scope\Controls\TraceView.resx">
       <DependentUpon>TraceView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TileImage\Controls\TileView.resx">
+      <DependentUpon>TileView.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
