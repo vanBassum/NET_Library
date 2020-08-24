@@ -1,6 +1,9 @@
 ﻿using STDLib.Serializers;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace STDLib.Saveable
@@ -11,6 +14,8 @@ namespace STDLib.Saveable
     /// <typeparam name="T1">The type of the settings object.</typeparam>
     public class BaseSettings<T1>
     {
+        public static readonly string defaultAppFolder = $"/data/{System.Reflection.Assembly.GetEntryAssembly().GetName().Name}";
+        public static readonly string defaultSettingsFile = Path.Combine(defaultAppFolder, "settings.json");
         private static Dictionary<string, object> fields = new Dictionary<string, object>();
         private readonly static Serializer serializer = new JSON();
 
@@ -59,9 +64,11 @@ namespace STDLib.Saveable
         /// Load the settings from a stream.
         /// </summary>
         /// <param name="stream"></param>
-        public static void  Load(Stream stream)
+        public static void Load(Stream stream)
         {
             fields = serializer.Deserialize<Dictionary<string, object>>(stream);
+            if (fields == null)
+                fields = new Dictionary<string, object>();
         }
 
         /// <summary>
@@ -96,6 +103,8 @@ namespace STDLib.Saveable
 
         }
 
+
+
         /// <summary>
         /// Get the value of a property.
         /// </summary>
@@ -107,9 +116,25 @@ namespace STDLib.Saveable
         {
             lock (fields)
             {
-                if (!fields.ContainsKey(propertyName))
-                    fields[propertyName] = defVal;
-                return (T2)fields[propertyName];
+                T2 val = defVal;
+                try
+                {
+                    if (!fields.ContainsKey(propertyName))
+                        fields[propertyName] = defVal;
+                    
+                    if(val.GetType() == fields[propertyName].GetType())
+                        val = (T2)fields[propertyName];
+                    else
+                        val = (T2)Convert.ChangeType(fields[propertyName], typeof(T2));
+
+
+
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                return val;
             }
         }
 
@@ -122,8 +147,68 @@ namespace STDLib.Saveable
                     Directory.CreateDirectory(dir);
             }
         }
+
+        
     }
 
+
+    /*
+     * 
+     //https://github.com/dotnet/orleans/issues/1269
+        public static class JsonHelper
+        {
+            private static readonly Type[] _specialNumericTypes = { typeof(ulong), typeof(uint), typeof(ushort), typeof(sbyte) };
+
+            /// <summary>
+            /// Converts values that were deserialized from JSON with weak typing (e.g. into <see cref="object"/>) back into
+            /// their strong type, according to the specified target type.
+            /// </summary>
+            /// <param name="value">The value to convert.</param>
+            /// <param name="targetType">The type the value should be converted into.</param>
+            /// <returns>The converted value.</returns>
+            public static object ConvertWeaklyTypedValue(object value, Type targetType)
+            {
+                if (targetType == null)
+                    throw new ArgumentNullException(nameof(targetType));
+
+                if (value == null)
+                    return null;
+
+                if (targetType.IsInstanceOfType(value))
+                    return value;
+
+                var paramType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+                if (paramType.IsEnum)
+                {
+                    if (value is string)
+                        return Enum.Parse(paramType, (string)value);
+                    else
+                        return Enum.ToObject(paramType, value);
+                }
+
+                if (paramType == typeof(Guid))
+                {
+                    return Guid.Parse((string)value);
+                }
+
+                if (_specialNumericTypes.Contains(paramType))
+                {
+                    if (value is BigInteger)
+                        return (ulong)(BigInteger)value;
+                    else
+                        return Convert.ChangeType(value, paramType);
+                }
+
+                if (value is long)
+                {
+                    return Convert.ChangeType(value, paramType);
+                }
+
+                throw new ArgumentException($"Cannot convert a value of type {value.GetType()} to {targetType}.");
+            }
+        }
+     */
 
 }
 

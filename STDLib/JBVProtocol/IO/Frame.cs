@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace STDLib.JBVProtocol.IO
 {
-    
+
     /// <summary>
     /// The frame contains all information nessesary to get the frame to the right client.
     /// </summary>
@@ -63,6 +63,10 @@ namespace STDLib.JBVProtocol.IO
         /// </summary>
         public bool Overflow { get { return optGet(2); } set { optSet(2, value); } }
 
+        /// <summary>
+        /// When true, this package should be handled by the IDServer.
+        /// </summary>
+        public bool IDInfo { get { return optGet(3); } set { optSet(3, value); } }
 
         bool optGet(int bit)
         {

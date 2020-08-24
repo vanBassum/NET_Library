@@ -17,32 +17,41 @@ namespace STDLib.JBVProtocol
     public class Client
     {
         Connection connection;
+        Lease lease = new Lease();
 
         /// <summary>
         /// Our device id.
         /// </summary>
-        public UInt16 ID { get; set; } = 0;
+        public UInt16 ID { get { return lease.ID; } }
 
         /// <summary>
         /// Fires when a broadcast has been recieved.
         /// </summary>
-        public event EventHandler<Message> OnBroadcastRecieved;
+        public event EventHandler<Frame> OnBroadcastRecieved;
 
         /// <summary>
         /// Fires when a message has been recieved.
         /// </summary>
-        public event EventHandler<Message> OnMessageRecieved;
+        public event EventHandler<Frame> OnMessageRecieved;
 
 
-        public Client(UInt16 id)
+        public Client(UInt16 id = 0)
         {
-            this.ID = id;
+            lease.ID = id;
+            lease.Key = Guid.NewGuid();
         }
 
         public void SetConnection(Connection con)
         {
             connection = con;
             connection.OnFrameReceived += Connection_OnFrameReceived;
+        }
+
+        public void RequestLease()
+        {
+            Frame frame = Frame.CreateBroadcastFrame(ID, Encoding.ASCII.GetBytes(lease.Key.ToString()));
+            frame.IDInfo = true;
+            SendFrame(frame);
         }
 
         /// <summary>
@@ -53,7 +62,7 @@ namespace STDLib.JBVProtocol
         public void SendMessage(UInt16 RID, byte[] payload)
         {
             Frame frame = Frame.CreateMessageFrame(ID, RID, payload);
-            connection.SendFrame(frame);
+            SendFrame(frame);
         }
 
         /// <summary>
@@ -63,7 +72,27 @@ namespace STDLib.JBVProtocol
         public void SendBroadcast(byte[] payload)
         {
             Frame frame = Frame.CreateBroadcastFrame(ID, payload);
-            connection.SendFrame(frame);
+            SendFrame(frame);
+        }
+
+        private void SendFrame(Frame frame)
+        {
+            if (frame.IDInfo)
+            {
+                connection.SendFrame(frame);
+            }
+            else
+            {
+                if (lease.Expire != null)
+                {
+                    if (lease.Expire > DateTime.Now)
+                    {
+                        //We have a valid lease.
+                        connection.SendFrame(frame);
+                    }
+                }
+            }
+            throw new Exception("No valid lease");
         }
 
         private void Connection_OnFrameReceived(object sender, Frame e)
@@ -78,12 +107,16 @@ namespace STDLib.JBVProtocol
                     c.SendFrame(tx);
                 }
             }
+            else if(e.IDInfo)
+            {
+                lease = Lease.FromString(Encoding.ASCII.GetString(e.PAY));
+            }
             else
             {
                 if (e.Broadcast)
-                    OnBroadcastRecieved?.Invoke(this, new Message(e));
+                    OnBroadcastRecieved?.Invoke(this, e);
                 else
-                    OnMessageRecieved?.Invoke(this, new Message(e));
+                    OnMessageRecieved?.Invoke(this, e);
             }
         }       
     }
