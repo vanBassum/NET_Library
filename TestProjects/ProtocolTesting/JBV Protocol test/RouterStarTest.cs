@@ -12,8 +12,8 @@ namespace JBV_Protocol_test
     [TestClass]
     public class RouterStarTest
     {
-        List<Message> recievedBroadcasts = new List<Message>();
-        List<Message> recievedMessages = new List<Message>();
+        List<Frame> recievedBroadcasts = new List<Frame>();
+        List<Frame> recievedMessages = new List<Frame>();
         Router router;
         Client client1;
         Client client2;
@@ -72,14 +72,14 @@ namespace JBV_Protocol_test
             recievedMessages.Clear();
         }
 
-        private void OnMessageRecieved(object sender, Message e)
+        private void OnMessageRecieved(object sender, Frame e)
         {
             Client c = sender as Client;
-            Assert.AreEqual(c.ID, e.GetFrame().RID);
+            Assert.AreEqual(c.ID, e.RID);
             recievedMessages.Add(e);
         }
 
-        private void OnBroadcastRecieved(object sender, Message e)
+        private void OnBroadcastRecieved(object sender, Frame e)
         {
             recievedBroadcasts.Add(e);
         }
@@ -110,11 +110,11 @@ namespace JBV_Protocol_test
             //The sender should't have recieved the broadcast while the recievers should have.
             Assert.AreEqual(4, recievedBroadcasts.Count(), "Not the right amount of broadcasts recieved.");
 
-            foreach(Message rx in recievedBroadcasts)
+            foreach(Frame rx in recievedBroadcasts)
             {
                 //Check all broadcasts for payload and SID.
                 Assert.AreEqual(1, rx.SID, "Wrong SID recieved.");
-                Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rx.Payload), "Payload was corrupted");
+                Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rx.PAY), "Payload was corrupted");
             }
         }
 
@@ -146,10 +146,10 @@ namespace JBV_Protocol_test
             //The sender should't have recieved the broadcast while the reciever should have.
             Assert.AreEqual(1, recievedMessages.Count(), "There one message send and more or less message have been recieved.");
 
-            Message rxMessage = recievedMessages.FirstOrDefault();
+            Frame rxMessage = recievedMessages.FirstOrDefault();
             Assert.IsNotNull(rxMessage, "Message not recieved.");
             Assert.AreEqual(1, rxMessage.SID, "Wrong SID recieved.");
-            Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.Payload), "Payload was corrupted");
+            Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.PAY), "Payload was corrupted");
         }
 
 

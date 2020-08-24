@@ -91,8 +91,9 @@ namespace STDLib.JBVProtocol
                         connection.SendFrame(frame);
                     }
                 }
+                throw new Exception("No valid lease");
             }
-            throw new Exception("No valid lease");
+            
         }
 
         private void Connection_OnFrameReceived(object sender, Frame e)
@@ -109,7 +110,12 @@ namespace STDLib.JBVProtocol
             }
             else if(e.IDInfo)
             {
-                lease = Lease.FromString(Encoding.ASCII.GetString(e.PAY));
+                Lease l;
+                if (Lease.TryParse(Encoding.ASCII.GetString(e.PAY), out l))
+                {
+                    if(l.Key == lease.Key)
+                        lease = l;
+                }
             }
             else
             {

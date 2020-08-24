@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using STDLib.JBVProtocol;
 using STDLib.JBVProtocol.Connections;
+using STDLib.JBVProtocol.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,8 @@ namespace JBV_Protocol_test
     [TestClass]
     public class DirectComminucationTest
     {
-        List<Message> recievedBroadcasts = new List<Message>();
-        List<Message> recievedMessages = new List<Message>();
+        List<Frame> recievedBroadcasts = new List<Frame>();
+        List<Frame> recievedMessages = new List<Frame>();
         Client client1;
         Client client2;
         DummyConnection con1;
@@ -60,10 +61,10 @@ namespace JBV_Protocol_test
             //The sender should't have recieved the broadcast while the reciever should have.
             Assert.AreEqual(1, recievedBroadcasts.Count(), "There one broadcast send and more or less broadcasts have been recieved.");
 
-            Message rxBroadcast = recievedBroadcasts.FirstOrDefault();
+            Frame rxBroadcast = recievedBroadcasts.FirstOrDefault();
             Assert.IsNotNull(rxBroadcast, "Broadcast not recieved.");
             Assert.AreEqual(1, rxBroadcast.SID, "Wrong SID recieved.");
-            Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxBroadcast.Payload), "Payload was corrupted");
+            Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxBroadcast.PAY), "Payload was corrupted");
         }
 
         [TestMethod]
@@ -85,10 +86,10 @@ namespace JBV_Protocol_test
             //The sender should't have recieved the broadcast while the reciever should have.
             Assert.AreEqual(1, recievedMessages.Count(), "There one message send and more or less message have been recieved.");
 
-            Message rxMessage = recievedMessages.FirstOrDefault();
+            Frame rxMessage = recievedMessages.FirstOrDefault();
             Assert.IsNotNull(rxMessage, "Message not recieved.");
             Assert.AreEqual(1, rxMessage.SID, "Wrong SID recieved.");
-            Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.Payload), "Payload was corrupted");
+            Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.PAY), "Payload was corrupted");
         }
     }
 

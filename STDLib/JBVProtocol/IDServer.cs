@@ -118,6 +118,9 @@ namespace STDLib.JBVProtocol
                     else
                     {
                         //ID already taken.
+
+                        /* Specifically chosen not to do this. If a lease has expired some thread should request an extention. 
+                         * If not replied within x the lease should be removed from the list.
                         if(Leases[ind].Expire < DateTime.Now)
                         {
                             //Lease was expired, reclaim the id for the new client.
@@ -126,6 +129,7 @@ namespace STDLib.JBVProtocol
                             Leases[ind].Expire = DateTime.Now.AddHours(2);
                             SendAnswer(Leases[ind]);
                         }
+                        */
                         return false;
                     }
                 }

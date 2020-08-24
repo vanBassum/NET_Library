@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace STDLib.JBVProtocol
@@ -17,22 +18,54 @@ namespace STDLib.JBVProtocol
     /// </summary>
     public class Router
     {
+        Lease lease;
         private const byte MaxHop = 32;
         Task routerTask;
         //Contains all active connections to this router.
         List<Connection> connections = new List<Connection>();
         //Contains all information how to reroute data
         List<Route> routingTable = new List<Route>();
+        System.Timers.Timer leaseTimer = new System.Timers.Timer();
+        public ushort ID { get { return lease.ID; } }
 
-        public ushort ID { get; set; } = 0;
-
-
-        public Router(ushort id)
+        public Router(ushort id = 0)
         {
-            ID = id;
+            lease.ID = id;
+            lease.Key = Guid.NewGuid();
             routerTask = new Task(DoRouting);
             routerTask.Start();
+            leaseTimer.Interval = 10000;
+            leaseTimer.Start();
+            leaseTimer.Elapsed += LeaseTimer_Elapsed;
         }
+
+        private void LeaseTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            if(lease.Expire == null)
+            {
+                RequestLease();
+            }
+            else
+            {
+                if (lease.Expire > DateTime.Now)
+                {
+                    //Not expired
+                    TimeSpan expiresIn = lease.Expire.Value - DateTime.Now;
+                    if (expiresIn < TimeSpan.FromMinutes(5))
+                    {
+                        //Expires witin 5 minutes
+                        RequestLease();
+                    }
+                    else
+                    {
+                        leaseTimer.Interval = expiresIn.TotalMinutes - 4;
+                        //Next interval should be 4 minutes before expirering.
+                    }
+                }
+            }
+        }
+
+
 
         /// <summary>
         /// Add a connection to this router.
@@ -46,7 +79,16 @@ namespace STDLib.JBVProtocol
             connection.OnDisconnected += Connection_OnDisconnected;
         }
 
-
+        public void RequestLease()
+        {
+            Frame frame = Frame.CreateBroadcastFrame(ID, Encoding.ASCII.GetBytes(lease.Key.ToString()));
+            frame.IDInfo = true;
+            lock (connections)
+            {
+                foreach (Connection txCon in connections)
+                    txCon.SendFrame(frame);
+            }
+        }
 
         private void Connection_OnDisconnected(object sender, EventArgs e)
         {
@@ -68,7 +110,24 @@ namespace STDLib.JBVProtocol
         private void Connection_OnFrameReceived(object sender, Frame e)
         {
             if (sender is Connection con)
-                frameBuffer.Add(new Tuple<Connection, Frame>(con, e));
+            {
+                bool handleFrame = true;
+                if (e.IDInfo)
+                {
+                    Lease l;
+                    if (Lease.TryParse(Encoding.ASCII.GetString(e.PAY), out l))
+                    {
+                        if (l.Key == lease.Key)
+                        {
+                            lease = l;
+                            handleFrame = false;
+                        }
+                    }
+                }
+
+                if(handleFrame)
+                    frameBuffer.Add(new Tuple<Connection, Frame>(con, e));
+            }
         }
 
         private void DoRouting()

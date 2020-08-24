@@ -9,9 +9,9 @@ namespace STDLib.JBVProtocol.IO
         public DateTime? Expire { get; set; }
         public Guid? Key { get; set; }
 
-        public static Lease FromString(string raw)
+        public static bool TryParse(string raw, out Lease lease)
         {
-            Lease newLease = new Lease();
+            lease = new Lease();
 
             string[] split = raw.Split(',');
             if(split.Length == 3)
@@ -27,13 +27,13 @@ namespace STDLib.JBVProtocol.IO
 
                 if(suc)
                 {
-                    newLease.ID = id;
-                    newLease.Key = guid;
-                    newLease.Expire = exp;
-                    return newLease;
+                    lease.ID = id;
+                    lease.Key = guid;
+                    lease.Expire = exp;
+                    return true;
                 }
             }
-            throw new Exception("Couln't parse lease");
+            return false;
         }
 
         public override string ToString()
