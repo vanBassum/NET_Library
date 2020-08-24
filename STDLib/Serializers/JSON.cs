@@ -1,12 +1,7 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization.Formatters;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace STDLib.Serializers
 {
@@ -23,8 +18,7 @@ namespace STDLib.Serializers
                     TypeNameHandling = TypeNameHandling.Objects,
                     TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
                 });
-
-            }
+                            }
                 
         }
         public override void Serialize<T>(T obj, Stream stream)

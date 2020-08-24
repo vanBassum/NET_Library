@@ -117,5 +117,6 @@ namespace FRMLib.Scope.Controls
         public bool Show { get; set; } = true;
         public string Text { get; set; } = null;
         public int Width { get; set; } = 0;
+        public DataGridViewAutoSizeColumnMode AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
     }
 }

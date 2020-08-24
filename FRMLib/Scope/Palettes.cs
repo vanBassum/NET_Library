@@ -9,8 +9,50 @@ namespace FRMLib.Scope
 {
     public static class Palettes
     {
+        public static Pen Red { get { return new Pen(Color.FromArgb(unchecked((int)0xffe6194B))); } }
+        public static Pen Green { get { return new Pen(Color.FromArgb(unchecked((int)0xff3cb44b))); } }
+        public static Pen Yellow { get { return new Pen(Color.FromArgb(unchecked((int)0xffffe119))); } }
+        public static Pen Blue { get { return new Pen(Color.FromArgb(unchecked((int)0xff4363d8))); } }
+        public static Pen Orange { get { return new Pen(Color.FromArgb(unchecked((int)0xfff58231))); } }
+        public static Pen Purple { get { return new Pen(Color.FromArgb(unchecked((int)0xff911eb4))); } }
+        public static Pen Cyan { get { return new Pen(Color.FromArgb(unchecked((int)0xff42d4f4))); } }
+        public static Pen Magenta { get { return new Pen(Color.FromArgb(unchecked((int)0xfff032e6))); } }
+        public static Pen Lime { get { return new Pen(Color.FromArgb(unchecked((int)0xffbfef45))); } }
+        public static Pen Pink { get { return new Pen(Color.FromArgb(unchecked((int)0xfffabed4))); } }
+        public static Pen Teal { get { return new Pen(Color.FromArgb(unchecked((int)0xff469990))); } }
+        public static Pen Lavender { get { return new Pen(Color.FromArgb(unchecked((int)0xffdcbeff))); } }
+        public static Pen Brown { get { return new Pen(Color.FromArgb(unchecked((int)0xff9A6324))); } }
+        public static Pen Beige { get { return new Pen(Color.FromArgb(unchecked((int)0xfffffac8))); } }
+        public static Pen Maroon { get { return new Pen(Color.FromArgb(unchecked((int)0xff800000))); } }
+        public static Pen Mint { get { return new Pen(Color.FromArgb(unchecked((int)0xffaaffc3))); } }
+        public static Pen Olive { get { return new Pen(Color.FromArgb(unchecked((int)0xff808000))); } }
+        public static Pen Apricot { get { return new Pen(Color.FromArgb(unchecked((int)0xffffd8b1))); } }
+        public static Pen Navy { get { return new Pen(Color.FromArgb(unchecked((int)0xff000075))); } }
+        public static Pen Grey { get { return new Pen(Color.FromArgb(unchecked((int)0xffa9a9a9))); } }
+
         public static Pen[] DistinctivePallet { get; } = new Pen[]
         {
+            Red,
+            Green,
+            Yellow,
+            Blue,
+            Orange,
+            Purple,
+            Cyan,
+            Magenta,
+            Lime,
+            Pink,
+            Teal,
+            Lavender,
+            Brown,
+            Beige,
+            Maroon,
+            Mint,
+            Olive,
+            Apricot,
+            Navy,
+            Grey,
+            /*
              new Pen(Color.FromArgb(230, 25, 75)),
              new Pen(Color.FromArgb(60, 180, 75)),
              new Pen(Color.FromArgb(255, 225, 25)),
@@ -29,7 +71,7 @@ namespace FRMLib.Scope
              new Pen(Color.FromArgb(170, 255, 195)),
              new Pen(Color.FromArgb(128, 128, 0)),
              new Pen(Color.FromArgb(255, 215, 180)),
-             new Pen(Color.FromArgb(0, 0, 128))
+             new Pen(Color.FromArgb(0, 0, 128))*/
         };
 
 
