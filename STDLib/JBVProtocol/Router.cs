@@ -30,6 +30,7 @@ namespace STDLib.JBVProtocol
 
         public Router(ushort id = 0)
         {
+            lease = new Lease();
             lease.ID = id;
             lease.Key = Guid.NewGuid();
             routerTask = new Task(DoRouting);

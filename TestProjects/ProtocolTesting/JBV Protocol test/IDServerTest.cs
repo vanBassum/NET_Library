@@ -29,7 +29,9 @@ namespace JBV_Protocol_test
             DummyConnection.CoupleConnections(conB_1, conB_2);
             DummyConnection.CoupleConnections(conC_1, conC_2);
 
-            router = new Router(3);
+            idServ = new IDServer(conC_2);
+
+            router = new Router(1);
             router.AddConnection(conA_1);
             router.AddConnection(conB_1);
             router.AddConnection(conC_1);
@@ -40,7 +42,7 @@ namespace JBV_Protocol_test
             client2 = new Client(2);
             client2.SetConnection(conB_2);
 
-            idServ = new IDServer(conC_2);
+            
 
         }
 
@@ -48,11 +50,12 @@ namespace JBV_Protocol_test
         public void RequestLease_NewID()
         {
             SetupConnections();
+            router.RequestLease();
             client1.RequestLease();
             client2.RequestLease();
 
 
-            System.Threading.Thread.Sleep(100);
+            System.Threading.Thread.Sleep(1000);
 
 
 
