@@ -68,6 +68,11 @@ namespace STDLib.JBVProtocol.IO
         /// </summary>
         public bool IDInfo { get { return optGet(3); } set { optSet(3, value); } }
 
+        /// <summary>
+        /// When true, this package is used to indetify the the software. (Software ID)
+        /// </summary>
+        public bool SIDInfo { get { return optGet(4); } set { optSet(4, value); } }
+
         bool optGet(int bit)
         {
             return (OPT & (1 << bit)) > 0;

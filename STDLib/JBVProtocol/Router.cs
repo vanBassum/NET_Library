@@ -80,7 +80,7 @@ namespace STDLib.JBVProtocol
             connection.OnDisconnected += Connection_OnDisconnected;
         }
 
-        public void RequestLease()
+        private void RequestLease()
         {
             Frame frame = Frame.CreateBroadcastFrame(ID, Encoding.ASCII.GetBytes(lease.Key.ToString()));
             frame.IDInfo = true;

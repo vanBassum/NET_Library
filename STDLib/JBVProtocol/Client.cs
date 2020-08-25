@@ -10,7 +10,6 @@ using System.Xml;
 namespace STDLib.JBVProtocol
 {
 
-
     /// <summary>
     /// Manages connections with other devices and routes incomming and outgoing data to the right connection.
     /// </summary>
@@ -18,7 +17,8 @@ namespace STDLib.JBVProtocol
     {
         Connection connection;
         Lease lease = new Lease();
-
+        System.Timers.Timer leaseTimer = new System.Timers.Timer();
+        SoftwareID softwareId = SoftwareID.Unknown;
         /// <summary>
         /// Our device id.
         /// </summary>
@@ -35,24 +35,57 @@ namespace STDLib.JBVProtocol
         public event EventHandler<Frame> OnMessageRecieved;
 
 
-        public Client(UInt16 id = 0)
+        public Client(SoftwareID softID)
         {
-            lease.ID = id;
+            softwareId = softID;
             lease.Key = Guid.NewGuid();
+            leaseTimer.Interval = 10000;
+            leaseTimer.Start();
+            leaseTimer.Elapsed += LeaseTimer_Elapsed;
         }
 
-        public void SetConnection(Connection con)
+        private void LeaseTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            connection = con;
-            connection.OnFrameReceived += Connection_OnFrameReceived;
+            if (lease.Expire == null)
+            {
+                RequestLease();
+            }
+            else
+            {
+                if (lease.Expire > DateTime.Now)
+                {
+                    //Not expired
+                    TimeSpan expiresIn = lease.Expire.Value - DateTime.Now;
+                    if (expiresIn < TimeSpan.FromMinutes(5))
+                    {
+                        //Expires witin 5 minutes
+                        RequestLease();
+                    }
+                    else
+                    {
+                        leaseTimer.Interval = expiresIn.TotalMinutes - 4;
+                        //Next interval should be 4 minutes before expirering.
+                    }
+                }
+            }
         }
 
-        public void RequestLease()
+        private void RequestLease()
         {
             Frame frame = Frame.CreateBroadcastFrame(ID, Encoding.ASCII.GetBytes(lease.Key.ToString()));
             frame.IDInfo = true;
             SendFrame(frame);
         }
+
+
+        public void SetConnection(Connection con)
+        {
+            connection = con;
+            connection.OnFrameReceived += Connection_OnFrameReceived;
+            RequestLease();
+        }
+
+        
 
         /// <summary>
         /// Method to send a request frame
@@ -115,6 +148,31 @@ namespace STDLib.JBVProtocol
                 {
                     if(l.Key == lease.Key)
                         lease = l;
+                }
+            }
+            else if(e.SIDInfo)
+            {
+                //When a request for sid is received
+                if(e.LEN == 4)
+                {
+                    //Someone is asking for a device with a specific softwareid
+                    SoftwareID searchID = (SoftwareID)BitConverter.ToUInt32(e.PAY, 0);
+                    if(softwareId == searchID)
+                    {
+                        Frame reply = new Frame();
+                        reply.SIDInfo = true;
+                        reply.SID = lease.ID;
+                        reply.RID = e.SID;
+                        reply.PAY = BitConverter.GetBytes((UInt32)softwareId);
+                    }
+                }
+                else
+                {
+                    Frame reply = new Frame();
+                    reply.SIDInfo = true;
+                    reply.SID = lease.ID;
+                    reply.RID = e.SID;
+                    reply.PAY = BitConverter.GetBytes((UInt32)softwareId);
                 }
             }
             else

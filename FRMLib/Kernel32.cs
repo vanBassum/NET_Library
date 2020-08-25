@@ -32,7 +32,9 @@ namespace FRMLib
         {
             try
             {
-                process = Process.GetProcessesByName(processname)[0];
+                process = Process.GetProcessesByName(processname).FirstOrDefault();
+                if (process == null)
+                    return false;
                 processHandle = Kernel32.OpenProcess(Kernel32.PROCESS_WM_READ | Kernel32.PROCESS_WM_WRITE | Kernel32.PROCESS_WM_OPERATION, false, process.Id);
                 return true;
             }
