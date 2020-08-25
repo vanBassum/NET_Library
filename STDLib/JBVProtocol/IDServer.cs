@@ -138,6 +138,7 @@ namespace STDLib.JBVProtocol
 
         void SendAnswer(Lease newLease)
         {
+            Console.WriteLine("Lease " + newLease.ToString());
             Frame reply = new Frame();
             reply.Broadcast = true;
             reply.IDInfo = true;
