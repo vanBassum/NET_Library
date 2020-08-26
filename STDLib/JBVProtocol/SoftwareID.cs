@@ -8,5 +8,6 @@ namespace STDLib.JBVProtocol
         Router                      = 1,
         IDServer                    = 2,
         UniversalMapViewerClient    = 3,
+        UniversalMapViewerServer    = 4,
     }
 }
