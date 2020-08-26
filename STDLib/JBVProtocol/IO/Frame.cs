@@ -1,7 +1,9 @@
 ﻿using STDLib.Extentions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace STDLib.JBVProtocol.IO
 {
@@ -186,6 +188,21 @@ namespace STDLib.JBVProtocol.IO
             frame.PAY = new byte[0];
             frame.Broadcast = true;
             frame.RoutingInfo = true;
+            return frame;
+        }
+
+
+        public static Frame RequestSpecificSoftwareID(UInt16 SID, SoftwareID softID)
+        {
+            Frame frame = new Frame();
+            frame.VER = PROTOCOLVERSION;
+            frame.HOP = 0;
+            frame.SID = SID;
+            frame.RID = 0;
+            frame.PAY = new byte[] { 0 }.Concat(BitConverter.GetBytes((UInt32)softID)).ToArray();
+            frame.Broadcast = true;
+            frame.RoutingInfo = false;
+            frame.SIDInfo = true;
             return frame;
         }
     }

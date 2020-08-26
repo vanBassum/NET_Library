@@ -141,7 +141,8 @@ namespace STDLib.Ethernet
         public int SendDataSync(byte[] data)
         {
             if (globalSocket != null)
-                return globalSocket.Send(data);
+                if (globalSocket.Connected)
+                    return globalSocket.Send(data);
             return 0;
         }
 

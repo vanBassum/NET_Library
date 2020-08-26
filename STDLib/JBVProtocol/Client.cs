@@ -34,12 +34,13 @@ namespace STDLib.JBVProtocol
         /// </summary>
         public event EventHandler<Frame> OnMessageRecieved;
 
+        public event EventHandler<Frame> OnSoftwareIDRecieved;
 
         public Client(SoftwareID softID)
         {
             softwareId = softID;
             lease.Key = Guid.NewGuid();
-            leaseTimer.Interval = 10000;
+            leaseTimer.Interval = 100;
             leaseTimer.Start();
             leaseTimer.Elapsed += LeaseTimer_Elapsed;
         }
@@ -49,6 +50,10 @@ namespace STDLib.JBVProtocol
             if (lease.Expire == null)
             {
                 RequestLease();
+
+                leaseTimer.Interval *= 2;
+                if (leaseTimer.Interval > 10000)
+                    leaseTimer.Interval = 10000;
             }
             else
             {
@@ -108,6 +113,17 @@ namespace STDLib.JBVProtocol
             SendFrame(frame);
         }
 
+        /// <summary>
+        /// Sends broadcast with the request for a specific softwareID
+        /// </summary>
+        /// <param name="softId"></param>
+        public void RequestSoftwareID(SoftwareID softId)
+        {
+            Frame frame = Frame.RequestSpecificSoftwareID(ID, softId);
+            SendFrame(frame);
+        }
+
+
         private void SendFrame(Frame frame)
         {
             if (frame.IDInfo)
@@ -122,6 +138,7 @@ namespace STDLib.JBVProtocol
                     {
                         //We have a valid lease.
                         connection.SendFrame(frame);
+                        return;
                     }
                 }
                 throw new Exception("No valid lease");
@@ -152,27 +169,36 @@ namespace STDLib.JBVProtocol
             }
             else if(e.SIDInfo)
             {
-                //When a request for sid is received
-                if(e.LEN == 4)
+                if(e.PAY[0] == 0)
                 {
-                    //Someone is asking for a device with a specific softwareid
-                    SoftwareID searchID = (SoftwareID)BitConverter.ToUInt32(e.PAY, 0);
-                    if(softwareId == searchID)
+                    //When a request for sid is received
+                    if (e.LEN == 5)
+                    {
+                        //Someone is asking for a device with a specific softwareid
+                        SoftwareID searchID = (SoftwareID)BitConverter.ToUInt32(e.PAY, 1);
+                        if (softwareId == searchID)
+                        {
+                            Frame reply = new Frame();
+                            reply.SIDInfo = true;
+                            reply.SID = lease.ID;
+                            reply.RID = e.SID;
+                            reply.PAY = BitConverter.GetBytes((UInt32)softwareId);
+                            c.SendFrame(reply);
+                        }
+                    }
+                    else
                     {
                         Frame reply = new Frame();
                         reply.SIDInfo = true;
                         reply.SID = lease.ID;
                         reply.RID = e.SID;
                         reply.PAY = BitConverter.GetBytes((UInt32)softwareId);
+                        c.SendFrame(reply);
                     }
                 }
                 else
                 {
-                    Frame reply = new Frame();
-                    reply.SIDInfo = true;
-                    reply.SID = lease.ID;
-                    reply.RID = e.SID;
-                    reply.PAY = BitConverter.GetBytes((UInt32)softwareId);
+                    OnSoftwareIDRecieved?.Invoke(this, e);
                 }
             }
             else
