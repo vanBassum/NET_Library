@@ -35,7 +35,7 @@ namespace STDLib.JBVProtocol
             lease.Key = Guid.NewGuid();
             routerTask = new Task(DoRouting);
             routerTask.Start();
-            leaseTimer.Interval = 10000;
+            leaseTimer.Interval = 100;
             leaseTimer.Start();
             leaseTimer.Elapsed += LeaseTimer_Elapsed;
         }
@@ -45,6 +45,9 @@ namespace STDLib.JBVProtocol
             if(lease.Expire == null)
             {
                 RequestLease();
+                leaseTimer.Interval *= 2;
+                if (leaseTimer.Interval > 10000)
+                    leaseTimer.Interval = 10000;
             }
             else
             {
