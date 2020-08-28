@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace FRMLib.Scope
+namespace STDLib.Math
 {
     public class V2D
     {
@@ -10,7 +10,7 @@ namespace FRMLib.Scope
 
         public double Distance(PointD p2)
         {
-            return Math.Sqrt(Math.Pow(X - p2.X, 2) + Math.Pow(Y - p2.Y, 2));
+            return System.Math.Sqrt(System.Math.Pow(X - p2.X, 2) + System.Math.Pow(Y - p2.Y, 2));
         }
 
         public V2D()

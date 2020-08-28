@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace FRMLib.Scope
+namespace STDLib.Math
 {
     public class RectangleD
     {
@@ -11,6 +11,20 @@ namespace FRMLib.Scope
 
         public SizeD Size { get { return new SizeD(Width, Height); } set { Width = value.Width; Height = value.Height; } }
         public PointD Position { get { return new PointD(X, Y); } set { X = value.X; Y = value.Y; } }
+
+
+        public RectangleD()
+        {
+
+        }
+
+        public RectangleD(V2D pos, V2D size)
+        {
+            X = pos.X;
+            Y = pos.Y;
+            Width = size.X;
+            Height = size.Y;
+        }
 
 
         /// <summary>

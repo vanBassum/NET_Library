@@ -1,6 +1,7 @@
 ﻿using STDLib.JBVProtocol.IO;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Mail;
 using System.Text;
 using System.Threading;
@@ -13,7 +14,7 @@ namespace STDLib.JBVProtocol
     /// <summary>
     /// Manages connections with other devices and routes incomming and outgoing data to the right connection.
     /// </summary>
-    public class Client
+    public class JBVClient
     {
         Connection connection;
         Lease lease = new Lease();
@@ -34,9 +35,22 @@ namespace STDLib.JBVProtocol
         /// </summary>
         public event EventHandler<Frame> OnMessageRecieved;
 
+        /// <summary>
+        /// Fires when the lease is accepted
+        /// </summary>
+        public event EventHandler OnLeaseAccepted;
+
+        /// <summary>
+        /// Fires as result of <see cref="RequestSoftwareID"/>
+        /// </summary>
         public event EventHandler<Frame> OnSoftwareIDRecieved;
 
-        public Client(SoftwareID softID)
+        /// <summary>
+        /// Returns wether the client has a valid lease
+        /// </summary>
+        public bool HasLease { get { return lease.Expire > DateTime.Now; } }
+
+        public JBVClient(SoftwareID softID)
         {
             softwareId = softID;
             lease.Key = Guid.NewGuid();
@@ -50,10 +64,7 @@ namespace STDLib.JBVProtocol
             if (lease.Expire == null)
             {
                 RequestLease();
-
-                leaseTimer.Interval *= 2;
-                if (leaseTimer.Interval > 10000)
-                    leaseTimer.Interval = 10000;
+                leaseTimer.Interval = 1000;
             }
             else
             {
@@ -119,7 +130,7 @@ namespace STDLib.JBVProtocol
         /// <param name="softId"></param>
         public void RequestSoftwareID(SoftwareID softId)
         {
-            Frame frame = Frame.RequestSpecificSoftwareID(ID, softId);
+            Frame frame = Frame.RequestSpecificSoftwareID(ID, softId); //Pay = [0, sid]
             SendFrame(frame);
         }
 
@@ -163,8 +174,11 @@ namespace STDLib.JBVProtocol
                 Lease l;
                 if (Lease.TryParse(Encoding.ASCII.GetString(e.PAY), out l))
                 {
-                    if(l.Key == lease.Key)
+                    if (l.Key == lease.Key)
+                    {
                         lease = l;
+                        OnLeaseAccepted?.Invoke(this, null);
+                    }
                 }
             }
             else if(e.SIDInfo)
@@ -182,7 +196,7 @@ namespace STDLib.JBVProtocol
                             reply.SIDInfo = true;
                             reply.SID = lease.ID;
                             reply.RID = e.SID;
-                            reply.PAY = BitConverter.GetBytes((UInt32)softwareId);
+                            reply.PAY = new byte[] { 1 }.Concat(BitConverter.GetBytes((UInt32)softwareId)).ToArray();
                             c.SendFrame(reply);
                         }
                     }
@@ -196,7 +210,7 @@ namespace STDLib.JBVProtocol
                         c.SendFrame(reply);
                     }
                 }
-                else
+                else if (e.PAY[0] == 1)
                 {
                     OnSoftwareIDRecieved?.Invoke(this, e);
                 }

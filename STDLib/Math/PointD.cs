@@ -1,4 +1,4 @@
-﻿namespace FRMLib.Scope
+﻿namespace STDLib.Math
 {
 
     public class PointD
