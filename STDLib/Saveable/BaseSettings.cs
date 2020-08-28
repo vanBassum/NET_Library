@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace STDLib.Saveable
 {
@@ -14,41 +15,61 @@ namespace STDLib.Saveable
     /// <typeparam name="T1">The type of the settings object.</typeparam>
     public class BaseSettings<T1>
     {
-        public static readonly string defaultAppFolder = $"/data/{System.Reflection.Assembly.GetEntryAssembly().GetName().Name}";
-        public static readonly string defaultSettingsFile = Path.Combine(defaultAppFolder, "settings.json");
+        static readonly string defaultDataFolder = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? Path.Combine("/data", "vanBassum", System.Reflection.Assembly.GetEntryAssembly().GetName().Name) : "data";
         private static Dictionary<string, object> fields = new Dictionary<string, object>();
         private readonly static Serializer serializer = new JSON();
 
         /// <summary>
-        /// Save the current state of the settings to a file.
+        /// Depending on windows or linux.
         /// </summary>
-        /// <param name="file">Path to file</param>
-        public static void Save(string file)
+        public static string DataFolder { get { return GetPar<string>(defaultDataFolder); } set { SetPar(value); } }
+
+        /// <summary>
+        /// The file to store the settings to.
+        /// </summary>
+        public static string SettingsFile = Path.Combine(defaultDataFolder, "settings.json");
+
+        /// <summary>
+        /// Save the current state of the settings to <see cref="SettingsFile"/>.
+        /// </summary>
+        public static void Save()
         {
-            CreateDirIfNotExists(Path.GetDirectoryName(file));
-            using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
+            Directory.CreateDirectory(Path.GetDirectoryName(SettingsFile));
+            using (Stream stream = File.Open(SettingsFile, FileMode.Create, FileAccess.Write))
                 Save(stream);
         }
 
         /// <summary>
         /// Load the settings from a file.
         /// </summary>
-        /// <param name="file">Path to file</param>
+        /// Save the current state of the settings to <see cref="SettingsFile"/>.
         /// <param name="createIfNotExist">When true, a new file with default values will be created  when the file doens't exist. Otherwise this will throw an exception if the file doensn't exist.</param>
-        public static void Load(string file, bool createIfNotExist = false)
+        public static void Load(bool createIfNotExist = true)
         {
-            if (File.Exists(file))
+            if (File.Exists(SettingsFile))
             {
-                using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
+                using (Stream stream = File.Open(SettingsFile, FileMode.Open, FileAccess.Read))
                     Load(stream);
             }
             else
             {
                 if(createIfNotExist)
-                    CreateDefaultSettings(file);
+                    CreateDefaultSettings(SettingsFile);
                 else
-                    throw new System.Exception($"File not found '{file}'");
+                    throw new System.Exception($"File not found '{SettingsFile}'");
             }
+        }
+
+        private static void CreateDefaultSettings(string file)
+        {
+            var v = typeof(T1).GetProperties();
+
+            foreach (var pi in v)
+                pi.GetValue(null);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(file));
+            using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
+                Save(stream);
         }
 
         /// <summary>
@@ -72,23 +93,6 @@ namespace STDLib.Saveable
         }
 
         /// <summary>
-        /// Create a file with the default settings.
-        /// </summary>
-        /// <param name="file">Path to file.</param>
-        public static void CreateDefaultSettings(string file)
-        {
-            var v = typeof(T1).GetProperties();
-
-            foreach (var pi in v)
-                pi.GetValue(null);
-
-            CreateDirIfNotExists(Path.GetDirectoryName(file));
-            using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
-                Save(stream);
-        }
-
-
-        /// <summary>
         /// Set the value of a property.
         /// </summary>
         /// <typeparam name="T2">Type of the property to set.</typeparam>
@@ -102,8 +106,6 @@ namespace STDLib.Saveable
             }
 
         }
-
-
 
         /// <summary>
         /// Get the value of a property.
@@ -136,19 +138,7 @@ namespace STDLib.Saveable
                 }
                 return val;
             }
-        }
-
-
-        private static void CreateDirIfNotExists(string dir)
-        {
-            if (dir != "")
-            {
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
-            }
-        }
-
-        
+        }        
     }
 
 
