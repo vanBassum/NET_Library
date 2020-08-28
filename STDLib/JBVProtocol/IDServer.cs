@@ -13,43 +13,61 @@ namespace STDLib.JBVProtocol
         public UInt16 ID { get; } = 0;
         List<Lease> Leases { get; } = new List<Lease>();
         Connection connection;
-        
+        System.Timers.Timer leaseRefreshTimer = new System.Timers.Timer();
 
         public IDServer(Connection connection)
         {
             Leases.Add(new Lease { ID = ID, Key = null, Expire = null });
             this.connection = connection;
             connection.OnFrameReceived += Connection_OnFrameReceived;
+            leaseRefreshTimer.Elapsed += LeaseRefreshTimer_Elapsed;
+            leaseRefreshTimer.Interval = 1000;
+            leaseRefreshTimer.Start();
+        }
+
+        private void LeaseRefreshTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            lock(Leases)
+            {
+                for (int i = 0; i < Leases.Count; i++)
+                {
+                    Lease lease = Leases[i];
+                    if (lease.Expire < DateTime.Now)
+                    {
+                        Leases.RemoveAt(i);
+                        i--;
+                        Console.WriteLine($"Lease timeout: {lease}");
+                    }
+                }
+            }
         }
 
         private void Connection_OnFrameReceived(object sender, Frame e)
         {
             if (e.IDInfo)
             {
-                lock (Leases)
+                Guid guid;  //Guid.NewGuid()
+
+                if (Guid.TryParse(Encoding.ASCII.GetString(e.PAY), out guid))
                 {
-                    Guid guid;  //Guid.NewGuid()
+                    //Some client asked for an id.
 
-                    if (Guid.TryParse(Encoding.ASCII.GetString(e.PAY), out guid))
+                    if (e.SID == 0)
                     {
-                        //Some client asked for an id.
-
-                        if (e.SID == 0)
+                        //Create a new ID for the client.
+                        GiveClient_NewID(guid);
+                    }
+                    else
+                    {
+                        //The client asked for a specific id.
+                        if(!GiveClient_SpecificID(e.SID, guid))
                         {
-                            //Create a new ID for the client.
+                            //Id wasn't available.
                             GiveClient_NewID(guid);
-                        }
-                        else
-                        {
-                            //The client asked for a specific id.
-                            if(!GiveClient_SpecificID(e.SID, guid))
-                            {
-                                //Id wasn't available.
-                                GiveClient_NewID(guid);
-                            }
                         }
                     }
                 }
+                
             }
         }
 
@@ -138,7 +156,7 @@ namespace STDLib.JBVProtocol
 
         void SendAnswer(Lease newLease)
         {
-            Console.WriteLine("Lease " + newLease.ToString());
+            Console.WriteLine("Lease accepted " + newLease.ToString());
             Frame reply = new Frame();
             reply.Broadcast = true;
             reply.IDInfo = true;
