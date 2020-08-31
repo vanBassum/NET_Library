@@ -1,4 +1,5 @@
-﻿using STDLib.JBVProtocol.IO;
+﻿using STDLib.Commands;
+using STDLib.JBVProtocol.IO;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,7 +24,19 @@ namespace STDLib.JBVProtocol
             leaseRefreshTimer.Elapsed += LeaseRefreshTimer_Elapsed;
             leaseRefreshTimer.Interval = 1000;
             leaseRefreshTimer.Start();
+
+            Leases leases = new Leases(PrintLeases);
         }
+
+        void PrintLeases()
+        {
+            Console.WriteLine("Current leases:");
+            foreach(Lease l in Leases)
+            {
+                Console.WriteLine($" - {l}");
+            }
+        }
+
 
         private void LeaseRefreshTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
@@ -166,4 +179,20 @@ namespace STDLib.JBVProtocol
             connection.SendFrame(reply);
         }
     }
+
+    public class Leases : BaseCommand
+    {
+        Action exec;
+
+        public Leases(Action exec)
+        {
+            this.exec = exec;
+        }
+
+        public override void Execute()
+        {
+            exec.Invoke();
+        }
+    }
+
 }

@@ -38,7 +38,10 @@ namespace STDLib.JBVProtocol.IO
 
         public override string ToString()
         {
-            return $"{ID},{Key.Value.ToString()},{Expire.Value.ToString("dd-MMM-yyyy HH:mm:ss.ffff K")}";
+            if (Key != null && Expire != null)
+                return $"{ID}, {Key.Value.ToString()}, {Expire.Value.ToString("dd-MMM-yyyy HH:mm:ss.ffff K")}";
+            else
+                return $"{ID}, null, null";
         }
     }
     
