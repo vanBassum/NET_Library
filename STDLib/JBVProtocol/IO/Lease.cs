@@ -1,4 +1,6 @@
-﻿using System;
+﻿using STDLib.Extentions;
+using System;
+using System.Linq;
 
 namespace STDLib.JBVProtocol.IO
 {
@@ -6,9 +8,42 @@ namespace STDLib.JBVProtocol.IO
     public class Lease
     {
         public UInt16 ID { get; set; }
-        public DateTime? Expire { get; set; }
-        public Guid? Key { get; set; }
+        public DateTime Expire { get; set; }
+        public Guid Key { get; set; }
 
+
+
+
+        public Lease()
+        {
+
+        }
+
+        public Lease(byte[] data)
+        {
+            ID = BitConverter.ToUInt16(data, 0);
+            Key = new Guid(data.SubArray(2, 16));
+            Expire = new DateTime(BitConverter.ToInt64(data, 18) * 10000000);
+        }
+
+
+
+        public byte[] ToByteArray()
+        {
+            byte[] data = new byte[0];
+
+            data = data.Concat(BitConverter.GetBytes(ID)).ToArray();
+            data = data.Concat(Key.ToByteArray()).ToArray();
+            data = data.Concat(BitConverter.GetBytes(Expire.Ticks / 10000000)).ToArray();
+
+            return data;
+        }
+
+
+
+
+
+        /*
         public static bool TryParse(string raw, out Lease lease)
         {
             lease = new Lease();
@@ -22,7 +57,8 @@ namespace STDLib.JBVProtocol.IO
 
                 bool suc = true;
                 suc |= UInt16.TryParse(split[0], out id);
-                suc |= Guid.TryParse(split[1], out guid);
+                guid = new Guid(split[1]);
+                suc |= Guid.TryParse(, out guid);
                 suc |= DateTime.TryParse(split[2], out exp);
 
                 if(suc)
@@ -35,11 +71,11 @@ namespace STDLib.JBVProtocol.IO
             }
             return false;
         }
-
+        */
         public override string ToString()
         {
             if (Key != null && Expire != null)
-                return $"{ID}, {Key.Value.ToString()}, {Expire.Value.ToString("dd-MMM-yyyy HH:mm:ss.ffff K")}";
+                return $"{ID}, {Key.ToString()}, {Expire.ToString("dd-MMM-yyyy HH:mm:ss.ffff K")}";
             else
                 return $"{ID}, null, null";
         }

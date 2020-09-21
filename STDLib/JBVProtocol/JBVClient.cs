@@ -1,4 +1,5 @@
 ﻿using STDLib.JBVProtocol.IO;
+using STDLib.JBVProtocol.IO.CMD;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,7 +72,7 @@ namespace STDLib.JBVProtocol
                 if (lease.Expire > DateTime.Now)
                 {
                     //Not expired
-                    TimeSpan expiresIn = lease.Expire.Value - DateTime.Now;
+                    TimeSpan expiresIn = lease.Expire - DateTime.Now;
                     if (expiresIn < TimeSpan.FromMinutes(5))
                     {
                         //Expires witin 5 minutes
@@ -79,7 +80,7 @@ namespace STDLib.JBVProtocol
                     }
                     else
                     {
-                        leaseTimer.Interval = expiresIn.TotalMinutes - 4;
+                        leaseTimer.Interval = expiresIn.TotalMinutes - 4;   //TODO uum times 60000?
                         //Next interval should be 4 minutes before expirering.
                     }
                 }
@@ -88,8 +89,8 @@ namespace STDLib.JBVProtocol
 
         private void RequestLease()
         {
-            Frame frame = Frame.CreateBroadcastFrame(ID, Encoding.ASCII.GetBytes(lease.Key.ToString()));
-            frame.IDInfo = true;
+            CMD_RequestLease cmd = new CMD_RequestLease(lease.Key);
+            Frame frame = cmd.CreateCommandFrame(ID);
             SendFrame(frame);
         }
 
@@ -130,14 +131,15 @@ namespace STDLib.JBVProtocol
         /// <param name="softId"></param>
         public void RequestSoftwareID(SoftwareID softId)
         {
-            Frame frame = Frame.RequestSpecificSoftwareID(ID, softId); //Pay = [0, sid]
+            CMD_RequestSoftwareID cmd = new CMD_RequestSoftwareID(softId);
+            Frame frame = cmd.CreateCommandFrame(ID);
             SendFrame(frame);
         }
 
 
         private void SendFrame(Frame frame)
         {
-            if (frame.IDInfo)
+            if(frame.Command)   //Specifically when command is a request for a lease.
             {
                 connection.SendFrame(frame);
             }
@@ -154,65 +156,45 @@ namespace STDLib.JBVProtocol
                 }
                 throw new Exception("No valid lease");
             }
-            
         }
 
         private void Connection_OnFrameReceived(object sender, Frame e)
         {
             Connection c = sender as Connection;
 
-            if(e.RoutingInfo)
+            if (e.Command)
             {
-                if(e.RID == ID)
+                BaseCommand bcmd = BaseCommand.GetCommand(e.PAY);
+
+                switch (bcmd)
                 {
-                    Frame tx = Frame.CreateReplyToRequestID(ID);
-                    c.SendFrame(tx);
-                }
-            }
-            else if(e.IDInfo)
-            {
-                Lease l;
-                if (Lease.TryParse(Encoding.ASCII.GetString(e.PAY), out l))
-                {
-                    if (l.Key == lease.Key)
-                    {
-                        lease = l;
-                        OnLeaseAccepted?.Invoke(this, null);
-                    }
-                }
-            }
-            else if(e.SIDInfo)
-            {
-                if(e.PAY[0] == 0)
-                {
-                    //When a request for sid is received
-                    if (e.LEN == 5)
-                    {
-                        //Someone is asking for a device with a specific softwareid
-                        SoftwareID searchID = (SoftwareID)BitConverter.ToUInt32(e.PAY, 1);
-                        if (softwareId == searchID)
+                    case CMD_ReplyLease cmd:            //We have gotten a lease
+                        if (cmd.Lease.Key == lease.Key)
                         {
-                            Frame reply = new Frame();
-                            reply.SIDInfo = true;
-                            reply.SID = lease.ID;
-                            reply.RID = e.SID;
-                            reply.PAY = new byte[] { 1 }.Concat(BitConverter.GetBytes((UInt32)softwareId)).ToArray();
-                            c.SendFrame(reply);
+                            lease = cmd.Lease;
+                            OnLeaseAccepted?.Invoke(this, null);
                         }
-                    }
-                    else
-                    {
-                        Frame reply = new Frame();
-                        reply.SIDInfo = true;
-                        reply.SID = lease.ID;
-                        reply.RID = e.SID;
-                        reply.PAY = BitConverter.GetBytes((UInt32)softwareId);
-                        c.SendFrame(reply);
-                    }
-                }
-                else if (e.PAY[0] == 1)
-                {
-                    OnSoftwareIDRecieved?.Invoke(this, e);
+                        break;
+
+                    case CMD_RequestID cmd:             //Someone wants to know our ID
+                        if(cmd.RequestedID == ID)
+                        {
+                            CMD_ReplyID rcmd = new CMD_ReplyID(ID);
+                            c.SendFrame(rcmd.CreateCommandFrame(ID));
+                        }
+                        break;
+
+                    case CMD_RequestSoftwareID cmd:      //Someone wants to know if we have software id xxx
+                        if(cmd.Sid == softwareId)
+                        {
+                            CMD_ReplySoftwareID rcmd = new CMD_ReplySoftwareID(softwareId);
+                            c.SendFrame(rcmd.CreateCommandFrame(ID));
+                        }
+                        break;
+
+                    case CMD_ReplySoftwareID cmd:
+                        OnSoftwareIDRecieved?.Invoke(this, e);
+                        break;
                 }
             }
             else

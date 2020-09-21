@@ -1,8 +1,11 @@
 ﻿using STDLib.JBVProtocol.IO;
+using STDLib.JBVProtocol.IO.CMD;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,30 +45,27 @@ namespace STDLib.JBVProtocol
 
         private void LeaseTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            if(lease.Expire == null)
+            if (lease.Expire > DateTime.Now)
+            {
+                //Not expired
+                TimeSpan expiresIn = lease.Expire - DateTime.Now;
+                if (expiresIn < TimeSpan.FromMinutes(5))
+                {
+                    //Expires witin 5 minutes
+                    RequestLease();
+                }
+                else
+                {
+                    leaseTimer.Interval = expiresIn.TotalMinutes - 4;
+                    //Next interval should be 4 minutes before expirering.
+                }
+            }
+            else
             {
                 RequestLease();
                 leaseTimer.Interval *= 2;
                 if (leaseTimer.Interval > 10000)
                     leaseTimer.Interval = 10000;
-            }
-            else
-            {
-                if (lease.Expire > DateTime.Now)
-                {
-                    //Not expired
-                    TimeSpan expiresIn = lease.Expire.Value - DateTime.Now;
-                    if (expiresIn < TimeSpan.FromMinutes(5))
-                    {
-                        //Expires witin 5 minutes
-                        RequestLease();
-                    }
-                    else
-                    {
-                        leaseTimer.Interval = expiresIn.TotalMinutes - 4;
-                        //Next interval should be 4 minutes before expirering.
-                    }
-                }
             }
         }
 
@@ -85,8 +85,8 @@ namespace STDLib.JBVProtocol
 
         private void RequestLease()
         {
-            Frame frame = Frame.CreateBroadcastFrame(ID, Encoding.ASCII.GetBytes(lease.Key.ToString()));
-            frame.IDInfo = true;
+            CMD_RequestLease cmd = new CMD_RequestLease(lease.Key);
+            Frame frame = cmd.CreateCommandFrame(ID);
             lock (connections)
             {
                 foreach (Connection txCon in connections)
@@ -102,7 +102,7 @@ namespace STDLib.JBVProtocol
                     routingTable.RemoveAll(r => r.con == con);
             }
 
-            //@TODO: We don't inform the others. Its probably not nessesairy because the network will recover automatically.
+            //@TODO: We don't inform the others. Its probably not nessesary because the network will recover automatically.
         }
 
 
@@ -116,16 +116,22 @@ namespace STDLib.JBVProtocol
             if (sender is Connection con)
             {
                 bool handleFrame = true;
-                if (e.IDInfo)
+
+                if (e.Command)
                 {
-                    Lease l;
-                    if (Lease.TryParse(Encoding.ASCII.GetString(e.PAY), out l))
+                    BaseCommand bcmd = BaseCommand.GetCommand(e.PAY);
+
+                    switch (bcmd)
                     {
-                        if (l.Key == lease.Key)
-                        {
-                            lease = l;
-                            handleFrame = false;
-                        }
+                        case CMD_ReplyLease cmd:
+                            if(cmd.Lease.Key == lease.Key)
+                            {
+                                lease = cmd.Lease;
+                                handleFrame = false;
+                            }
+                            break;
+
+
                     }
                 }
 
@@ -146,7 +152,6 @@ namespace STDLib.JBVProtocol
                 rxFrame.HOP++;
                 if (rxFrame.HOP <= MaxHop)
                 {
-                    //@TODO: Maybe solve this by using a threadsafe collection???
                     lock (routingTable) //Do everything within the lock, we dont want the colletion to be changed by another process in the meanwhile.
                     {
                         if (rxFrame.Broadcast)
@@ -189,10 +194,6 @@ namespace STDLib.JBVProtocol
                 rxRoute.hops = rxFrame.HOP;
             }
 
-            if (rxFrame.RoutingInfo)
-                HandleRoutingInfo(rxCon, rxFrame, rxRoute);
-
-
             if (rxFrame.HOP == rxRoute.hops)
             {
                 //Resend the broadcast.
@@ -216,7 +217,8 @@ namespace STDLib.JBVProtocol
                 lock (unknownRouteFrames)
                     unknownRouteFrames.Add(rxFrame);
 
-                Frame txFrame = Frame.CreateRequestID(ID, rxFrame.RID);
+                CMD_RequestID cmd = new CMD_RequestID(rxFrame.RID);
+                Frame txFrame = cmd.CreateCommandFrame(ID);
 
                 lock (connections)
                 {
@@ -268,13 +270,8 @@ namespace STDLib.JBVProtocol
             /// </summary>
             public Connection con;
         }
-
-
-
-
-
-
     }
+    
 
 
 }
