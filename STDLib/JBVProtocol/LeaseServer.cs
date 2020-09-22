@@ -3,6 +3,7 @@ using STDLib.JBVProtocol.IO;
 using STDLib.JBVProtocol.IO.CMD;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using BaseCommand = STDLib.JBVProtocol.IO.CMD.BaseCommand;
 
@@ -78,37 +79,42 @@ namespace STDLib.JBVProtocol
         {
             lock(Leases)
             {
-                UInt16 id = 0;
-                for (id = 0; id<0xFFFF; id++)
+                //First check if the guid already exists in the list with leases.
+                //If so, extend the existing lease instead of creating a new one.
+
+                Lease lease = Leases.FirstOrDefault(l=>l.Key == guid);
+                if(lease != null)
                 {
-                    int ind = Leases.FindIndex(a => a.ID == id);
-                    if (ind == -1)
-                    {
-                        //Free id found.
-                        Lease lease = new Lease();
-                        lease.ID = id;
-                        lease.Key = guid;
-                        lease.Expire = DateTime.Now.AddHours(2);
-                        Leases.Add(lease);
-                        SendAnswer(lease);
-                        break;
-                    }
+                    lease.Expire = DateTime.Now.AddHours(2);
+                    SendAnswer(lease);
                 }
-                if(id == 0xFFFF)
+                else
                 {
-                    //TODO: No free id's
+                    UInt16 id = 0;
+                    for (id = 0; id < 0xFFFF; id++)
+                    {
+                        int ind = Leases.FindIndex(a => a.ID == id);
+                        if (ind == -1)
+                        {
+                            //Free id found.
+                            lease = new Lease();
+                            lease.ID = id;
+                            lease.Key = guid;
+                            lease.Expire = DateTime.Now.AddHours(2);
+                            Leases.Add(lease);
+                            SendAnswer(lease);
+                            break;
+                        }
+                    }
+                    if (id == 0xFFFF)
+                    {
+                        //TODO: No free id's
+                    }
+
                 }
             }
         }
 
-        void GiveClient_ExtendLease(int ind)
-        {
-            lock (Leases)
-            {
-                Leases[ind].Expire = DateTime.Now.AddHours(2);
-                SendAnswer(Leases[ind]);
-            }
-        }
 
         void SendAnswer(Lease newLease)
         {
