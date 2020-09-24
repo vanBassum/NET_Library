@@ -23,7 +23,9 @@ namespace STDLib.JBVProtocol.IO
         {
             ID = BitConverter.ToUInt16(data, 0);
             Key = new Guid(data.SubArray(2, 16));
-            Expire = new DateTime(BitConverter.ToInt64(data, 18) * 10000000);
+            long unixDateTime = BitConverter.ToInt64(data, 18);
+
+            Expire = DateTimeOffset.FromUnixTimeSeconds(unixDateTime).DateTime.ToLocalTime();
         }
 
 
@@ -32,9 +34,12 @@ namespace STDLib.JBVProtocol.IO
         {
             byte[] data = new byte[0];
 
+            DateTimeOffset dateTimeOffset = new DateTimeOffset(Expire);
+            long unixDateTime = dateTimeOffset.ToUnixTimeSeconds();
+
             data = data.Concat(BitConverter.GetBytes(ID)).ToArray();
             data = data.Concat(Key.ToByteArray()).ToArray();
-            data = data.Concat(BitConverter.GetBytes(Expire.Ticks / 10000000)).ToArray();
+            data = data.Concat(BitConverter.GetBytes(unixDateTime)).ToArray();
 
             return data;
         }

@@ -3,6 +3,7 @@ using STDLib.JBVProtocol.IO;
 using STDLib.JBVProtocol.IO.CMD;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using BaseCommand = STDLib.JBVProtocol.IO.CMD.BaseCommand;
@@ -14,6 +15,7 @@ namespace STDLib.JBVProtocol
     /// </summary>
     public partial class LeaseServer
     {
+        public int LeaseTimeout = 60 * 60 * 2;
         public UInt16 ID { get; } = 0;
         List<Lease> Leases { get; } = new List<Lease>();
         Connection connection;
@@ -28,7 +30,7 @@ namespace STDLib.JBVProtocol
             leaseRefreshTimer.Interval = 1000;
             leaseRefreshTimer.Start();
 
-            Leases leases = new Leases(PrintLeases);
+            STDLib.Commands.BaseCommand.Register("Leases", PrintLeases);
         }
 
         void PrintLeases()
@@ -85,7 +87,7 @@ namespace STDLib.JBVProtocol
                 Lease lease = Leases.FirstOrDefault(l=>l.Key == guid);
                 if(lease != null)
                 {
-                    lease.Expire = DateTime.Now.AddHours(2);
+                    lease.Expire = DateTime.Now.AddSeconds(LeaseTimeout);
                     SendAnswer(lease);
                 }
                 else
@@ -100,7 +102,7 @@ namespace STDLib.JBVProtocol
                             lease = new Lease();
                             lease.ID = id;
                             lease.Key = guid;
-                            lease.Expire = DateTime.Now.AddHours(2);
+                            lease.Expire = DateTime.Now.AddSeconds(LeaseTimeout);
                             Leases.Add(lease);
                             SendAnswer(lease);
                             break;
@@ -124,20 +126,4 @@ namespace STDLib.JBVProtocol
             connection.SendFrame(tx);
         }
     }
-    
-    public class Leases : Commands.BaseCommand
-    {
-        Action exec;
-
-        public Leases(Action exec)
-        {
-            this.exec = exec;
-        }
-
-        public override void Execute()
-        {
-            exec.Invoke();
-        }
-    }
-
 }

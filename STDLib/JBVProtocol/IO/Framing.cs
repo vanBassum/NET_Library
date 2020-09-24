@@ -16,17 +16,18 @@ namespace STDLib.JBVProtocol.IO
             EOF = (byte)'%',    //End of frame
             ESC = (byte)'\\',   //Escape character
             NOP = (byte)'*',    //Does nothing, used to fill remainder when a static ammount of data is required by the I/O.
+            SEP = (byte)'|',    //Seperation character.
         }
 
         bool startFound = false;
         bool esc = false;
         List<byte> dataBuffer = new List<byte>();
-
+        List<byte[]> resultBuffer = new List<byte[]>();
 
         /// <summary>
         /// Fires when a complete frame has been recieved.
         /// </summary>
-        public event EventHandler<byte[]> OnFrameCollected;
+        public event EventHandler<List<byte[]>> OnFrameCollected;
 
         /// <summary>
         /// Method to destuff incomming data. 
@@ -55,12 +56,18 @@ namespace STDLib.JBVProtocol.IO
                         case (byte)BS.SOF:
                             startFound = true;
                             dataBuffer.Clear();
+                            resultBuffer.Clear();
                             break;
                         case (byte)BS.EOF:
                             startFound = false;
-                            OnFrameCollected(this, dataBuffer.ToArray());
+                            resultBuffer.Add(dataBuffer.ToArray());
+                            OnFrameCollected(this, resultBuffer);
                             break;
                         case (byte)BS.NOP:
+                            break;
+                        case (byte)BS.SEP:
+                            resultBuffer.Add(dataBuffer.ToArray());
+                            dataBuffer = new List<byte>();
                             break;
                         default:
                             record = true;
@@ -73,28 +80,48 @@ namespace STDLib.JBVProtocol.IO
             } 
         }
 
+
         /// <summary>
         /// Method to stuff a frame into raw data.
         /// </summary>
-        /// <param name="frame"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        public byte[] Stuff(byte[] frame)
+        public byte[] Stuff(byte[] data)
         {
             List<byte> dataOut = new List<byte>();
-            dataOut.Add((byte) BS.SOF);
-            foreach(byte b in frame)
+            dataOut.Add((byte)BS.SOF);
+            foreach (byte b in data)
             {
-                if(Enum.IsDefined(typeof(BS), b))
+                if (Enum.IsDefined(typeof(BS), b))
                     dataOut.Add((byte)BS.ESC);
                 dataOut.Add(b);
             }
 
             dataOut.Add((byte)BS.EOF);
-            return dataOut.ToArray();           
+            return dataOut.ToArray();
         }
 
+        static public byte[] Stuff(List<byte[]> chunks)
+        {
+            List<byte> dataOut = new List<byte>();
+            dataOut.Add((byte)BS.SOF);
 
-        
+            foreach(byte[] chunk in chunks)
+            {
+                foreach (byte b in chunk)
+                {
+                    if (Enum.IsDefined(typeof(BS), b))
+                        dataOut.Add((byte)BS.ESC);
+                    dataOut.Add(b);
+                }
+                dataOut.Add((byte)BS.SEP);
+            }
+
+            dataOut.RemoveAt(dataOut.Count()-1);
+            dataOut.Add((byte)BS.EOF);
+            return dataOut.ToArray();
+        }
+
     }
 
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace STDLib.JBVProtocol.IO
 {
@@ -41,10 +42,10 @@ namespace STDLib.JBVProtocol.IO
 
         protected abstract void SendData(byte[] data);
 
-        private void Framing_OnFrameCollected(object sender, byte[] e)
+        private void Framing_OnFrameCollected(object sender, List<byte[]> e)
         {
             Frame frame = new Frame();
-            frame.Populate(e);
+            frame.Populate(e[0]);
             OnFrameReceived?.Invoke(this, frame);
         }
 

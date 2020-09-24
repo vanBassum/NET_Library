@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace STDLib.Commands
 {
@@ -10,7 +11,7 @@ namespace STDLib.Commands
     public abstract class BaseCommand
     {
         public static List<BaseCommand> Commands { get; } = new List<BaseCommand>();
-        public string CMD { get { return this.GetType().Name; } }
+        public virtual string CMD { get; set; }
         public virtual string Description { get { return "No description available"; } }
         protected static bool Work { get; set; } = true;
 
@@ -19,10 +20,22 @@ namespace STDLib.Commands
         public BaseCommand()
         {
             Commands.Add(this);
+            CMD = this.GetType().Name;
 
             if (LongestCmd < this.CMD.Length)
                 LongestCmd = this.CMD.Length;
         }
+
+        public BaseCommand(string cmd)
+        {
+            Commands.Add(this);
+            CMD = cmd;
+
+            if (LongestCmd < this.CMD.Length)
+                LongestCmd = this.CMD.Length;
+        }
+
+
 
         public abstract void Execute();
 
@@ -55,5 +68,24 @@ namespace STDLib.Commands
             Console.WriteLine("Bye");
         }
 
+        public static void Register(string cmd, Action action)
+        {
+            ActionCMD actionCMD = new ActionCMD(cmd, action);
+        }
+    }
+
+    public class ActionCMD : Commands.BaseCommand
+    {
+        Action exec;
+
+        public ActionCMD(string cmd, Action exec) : base(cmd)
+        {
+            this.exec = exec;
+        }
+
+        public override void Execute()
+        {
+            exec.Invoke();
+        }
     }
 }

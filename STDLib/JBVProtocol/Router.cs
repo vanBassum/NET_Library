@@ -140,6 +140,8 @@ namespace STDLib.JBVProtocol
             }
         }
 
+        
+
         private void DoRouting()
         {
             //@TODO: CancellationToken something something...
@@ -149,25 +151,57 @@ namespace STDLib.JBVProtocol
                 Connection rxCon = item.Item1;
                 Frame rxFrame = item.Item2;
 
-                rxFrame.HOP++;
-                if (rxFrame.HOP <= MaxHop)
+
+                if (rxFrame.SID == ID || rxFrame.Broadcast)
                 {
-                    lock (routingTable) //Do everything within the lock, we dont want the colletion to be changed by another process in the meanwhile.
+                    //Frame is addressed to us.
+                    if(!rxFrame.Command)
                     {
-                        if (rxFrame.Broadcast)
-                        {
-                            HandleBroadcast(rxCon, rxFrame);
-                        }
-                        else
-                        {
-                            HandleMessage(rxCon, rxFrame);
-                        }
+                        CMD cmd = CMD.FromFrame(rxFrame);
+                        HandleOwnFrame(cmd, rxCon);
                     }
                 }
-                else
+
+                if (rxFrame.SID != ID)
                 {
-                    //TODO: Should we do something here???
+                    rxFrame.HOP++;
+                    if (rxFrame.HOP <= MaxHop)
+                    {
+                        lock (routingTable) //Do everything within the lock, we dont want the colletion to be changed by another process in the meanwhile.
+                        {
+                            if (rxFrame.Broadcast)
+                            {
+                                HandleBroadcast(rxCon, rxFrame);
+                            }
+                            else
+                            {
+                                HandleMessage(rxCon, rxFrame);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //TODO: Should we do something here???
+                    }
                 }
+            }
+        }
+
+        void HandleOwnFrame(CMD cmd, Connection con)
+        {
+            switch(cmd)
+            {
+                case RequestSoftwareID rxcmd:
+                    if(rxcmd.SofwareID == SoftwareID.Unknown || rxcmd.SofwareID == SoftwareID.Router)
+                    {
+                        ReplySoftwareID txcmd = new ReplySoftwareID();
+                        txcmd.SoftwareID = SoftwareID.Router;
+                        Frame f = txcmd.GetFrame();
+                        f.SID = ID;
+                        f.RID = rxcmd.SID;
+                        con.SendFrame(f);
+                    }
+                    break;
             }
         }
 
@@ -232,19 +266,6 @@ namespace STDLib.JBVProtocol
             {
                 //route is known so send the frame to the next client.
                 txRoute.con.SendFrame(rxFrame);
-            }
-        }
-
-        void HandleRoutingInfo(Connection rxCon, Frame rxFrame, Route newRoute)
-        {
-            lock (unknownRouteFrames)
-            {
-                List<Frame> resolvedFrames = unknownRouteFrames.Where(f => f.RID == rxFrame.SID).ToList();
-                foreach (Frame f in resolvedFrames)
-                {
-                    newRoute.con.SendFrame(f);
-                    unknownRouteFrames.Remove(f);
-                }
             }
         }
 

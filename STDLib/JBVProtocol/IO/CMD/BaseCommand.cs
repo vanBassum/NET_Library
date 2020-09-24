@@ -13,8 +13,6 @@ namespace STDLib.JBVProtocol.IO.CMD
             {Commands.ReplyID           ,typeof(CMD_ReplyID)},
             {Commands.RequestLease      ,typeof(CMD_RequestLease)},
             {Commands.ReplyLease        ,typeof(CMD_ReplyLease)},
-            {Commands.RequestSoftwareID ,typeof(CMD_RequestSoftwareID)},
-            {Commands.ReplySoftwareID   ,typeof(CMD_ReplySoftwareID)},
         };
 
         public enum Commands : byte
@@ -24,8 +22,6 @@ namespace STDLib.JBVProtocol.IO.CMD
             ReplyID = 2,
             RequestLease = 3,           
             ReplyLease = 4,
-            RequestSoftwareID = 5,      
-            ReplySoftwareID = 6,
         }
 
         public abstract byte[] ToArray();
