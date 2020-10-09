@@ -514,7 +514,7 @@ namespace FRMLib.Scope.Controls
                                    select trace;
 
                 double lastX = double.NegativeInfinity;
-
+                double firstX = double.PositiveInfinity;
                 foreach (Trace t in DataSource.Traces)
                 {
                     PointD pt = t.Points.LastOrDefault();
@@ -522,12 +522,15 @@ namespace FRMLib.Scope.Controls
                     {
                         if (pt.X > lastX)
                             lastX = pt.X;
+                        if (pt.X < firstX)
+                            firstX = pt.X;
                     }
+
                 }
 
 
                 lastX = (float)(lastX + Settings.HorOffset) * pxPerUnits_hor;
-
+                firstX = (float)(firstX + Settings.HorOffset) * pxPerUnits_hor;
 
                 int traceNo = 0;
                 //Loop through plots
@@ -562,7 +565,9 @@ namespace FRMLib.Scope.Controls
                                 p = new Point((int)x, (int)y);
 
                                 bool last = (i == (pointCnt - 1));
+                                bool first = i == 0;
                                 bool extendEnd = trace.DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
+                                bool extendBegin = trace.DrawOption.HasFlag(Trace.DrawOptions.ExtendBegin);
 
                                 if (trace.DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
                                     g.DrawCross(pen, p, 3);
@@ -590,9 +595,9 @@ namespace FRMLib.Scope.Controls
                                             Point between = new Point(p.X, pPrev.Y);
                                             g.DrawLine(pen, pPrev, between);
                                             g.DrawLine(pen, between, p);
-                                            if(last && extendEnd)
+                                            if (last && extendEnd)
                                                 g.DrawLine(pen, p, new Point((int)lastX, p.Y));
-                                            
+
                                         }
                                         break;
 
@@ -600,13 +605,36 @@ namespace FRMLib.Scope.Controls
                                         if (!pPrev.IsEmpty)
                                         {
                                             string text = trace.ToHumanReadable(trace.Points[i - 1].Y);
-                                            Rectangle rect = new Rectangle(pPrev.X, (int)stateY - 8, p.X - pPrev.X, 16);
-                                            g.DrawState(pen, rect, text, Settings.Font, true, true);
+                                            
+                                            //g.DrawState(pen, rect, text, Settings.Font, true, true);
+
+                                            //if (last && first && extendBegin && extendEnd)
+                                            //{
+                                            //    Rectangle rect = new Rectangle((int)firstX, (int)stateY - 8, (int)lastX - (int)firstX, Settings.Font.Height);
+                                            //    g.DrawState(pen, rect, text, Settings.Font, false, false);
+                                            //}
+                                            //else if (last && extendEnd)
+                                            if (last && extendEnd)
+                                            {
+                                                Rectangle rect = new Rectangle(pPrev.X, (int)stateY - 8, (int)lastX - pPrev.X, Settings.Font.Height);
+                                                g.DrawState(pen, rect, text, Settings.Font, true, false);
+                                            }
+                                            //else if (first && extendBegin)
+                                            //{
+                                            //    Rectangle rect = new Rectangle((int)firstX, (int)stateY - 8,(int)firstX - p.X, Settings.Font.Height);
+                                            //    g.DrawState(pen, rect, text, Settings.Font, false, true);
+                                            //}
+                                            else
+                                            {
+                                                Rectangle rect = new Rectangle(pPrev.X, (int)stateY - 8, p.X - pPrev.X, Settings.Font.Height);
+                                                g.DrawState(pen, rect, text, Settings.Font, true, true);
+                                            }
+                                            
                                         }
                                         break;
 
                                     default:
-                                        g.DrawString($"Drawing of '{trace.DrawStyle}' is not supported yet.", Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height));
+                                        g.DrawString($"Drawing of '{trace.DrawStyle}' is not supported yet.", Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height + 1));
                                         i = pointCnt;
                                         break;
 
@@ -618,6 +646,16 @@ namespace FRMLib.Scope.Controls
                         catch (Exception ex)
                         {
                             g.DrawString(ex.Message, Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height));
+                        }
+
+
+                        foreach (Mark m in trace.Marks)
+                        {
+                            double x = (float)(m.X + Settings.HorOffset) * pxPerUnits_hor;
+                            double y = thisheight / 2 - (m.Y + trace.Offset) * pxPerUnits_ver;// * trace.Scale;
+
+                            g.DrawString(m.Text, Settings.Font, brush, (int)x, (int)y);
+                            g.DrawCross(pen, x, y, 3);
                         }
                     }
 
