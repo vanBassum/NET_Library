@@ -1,4 +1,5 @@
-﻿using STDLib.Misc;
+﻿using STDLib.Math;
+using STDLib.Misc;
 using System;
 
 namespace FRMLib.Scope

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using STDLib.Math;
 
 namespace FRMLib.Scope.Controls
 {
@@ -278,19 +279,21 @@ namespace FRMLib.Scope.Controls
                 double xMin = ((e.X - 4) / pxPerUnits_hor) - Settings.HorOffset;
                 double xMax = ((e.X + 4) / pxPerUnits_hor) - Settings.HorOffset;
 
-
-                Cursor cur = Cursors.Default;
-                hoverMarker = null;
-                for (int i = 0; i < DataSource.Markers.Count; i++)
+                if (DataSource != null)
                 {
-                    if (DataSource.Markers[i].X > xMin && DataSource.Markers[i].X < xMax)
+
+                    Cursor cur = Cursors.Default;
+                    hoverMarker = null;
+                    for (int i = 0; i < DataSource.Markers.Count; i++)
                     {
-                        cur = Cursors.VSplit;
-                        hoverMarker = DataSource.Markers[i];
+                        if (DataSource.Markers[i].X > xMin && DataSource.Markers[i].X < xMax)
+                        {
+                            cur = Cursors.VSplit;
+                            hoverMarker = DataSource.Markers[i];
+                        }
                     }
+                    Cursor.Current = cur;
                 }
-                Cursor.Current = cur;
-                
             }
         }
 

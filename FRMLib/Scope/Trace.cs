@@ -1,4 +1,5 @@
 ﻿using FRMLib.Scope.Controls;
+using STDLib.Math;
 using STDLib.Misc;
 using System;
 using System.Collections.Generic;
@@ -125,12 +126,12 @@ namespace FRMLib.Scope
                     return Points[i].Y;
 
                 case DrawStyles.Lines:
-                    if (i >= 0 & i + 1 < Points.Count)
+                    if (i > 0 & i < Points.Count)
                     {
-                        double x1 = Points[i].X;
-                        double x2 = Points[i + 1].X;
-                        double y1 = Points[i].Y;
-                        double y2 = Points[i + 1].Y;
+                        double x1 = Points[i - 1].X;
+                        double x2 = Points[i].X;
+                        double y1 = Points[i - 1].Y;
+                        double y2 = Points[i].Y;
                         double a = (y2 - y1) / (x2 - x1);
                         double b = y2 - a * x2;
                         double y = a * x + b;

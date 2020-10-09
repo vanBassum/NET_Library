@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace STDLib.Saveable
 {
-    public class SaveableBindingList<T> : BindingList<T>, Saveable
+    public class SaveableBindingList<T> : BindingList<T>, ISaveable
     {
         Serializer serializer;
         string file = null;

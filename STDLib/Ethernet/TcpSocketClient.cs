@@ -33,6 +33,10 @@ namespace STDLib.Ethernet
         /// </summary>
         public bool IsConnected { get { return globalSocket == null ? false : globalSocket.Connected; } }
 
+        /// <summary>
+        /// True when connecting.
+        /// </summary>
+        public bool IsConnecting { get; private set; } = false;
 
         //--------------------------------------------------------------------------------
         //                          Constructor and destructor
@@ -68,6 +72,7 @@ namespace STDLib.Ethernet
         //--------------------------------------------------------------------------------
         public async Task<bool> ConnectAsync(string host, CancellationTokenSource cts = null)
         {
+            IsConnecting = true;
             TaskCompletionSource<Socket> taskCompletionSource = new TaskCompletionSource<Socket>();
             IPEndPoint ep = DNSExt.Parse(host);
 
@@ -97,6 +102,7 @@ namespace STDLib.Ethernet
                 cts.Cancel();
             }
 
+            IsConnecting = false;
             return result;
         }
 
@@ -140,7 +146,10 @@ namespace STDLib.Ethernet
         /// <returns>Number of bytes that where send.</returns>
         public int SendDataSync(byte[] data)
         {
-            return globalSocket.Send(data);
+            if (globalSocket != null)
+                if (globalSocket.Connected)
+                    return globalSocket.Send(data);
+            return 0;
         }
 
 

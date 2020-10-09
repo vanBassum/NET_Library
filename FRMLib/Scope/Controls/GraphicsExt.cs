@@ -1,9 +1,75 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 
 namespace FRMLib.Scope.Controls
 {
     public static class GraphicsExt
     {
+        /*
+        public static void DrawArrow(this Graphics g, Pen p, Point pt, double dir, int size)
+        {
+            DrawCross(g, p, pt.X, pt.Y, size);
+        }
+        */
+
+        public static void DrawArrow(this Graphics g, Pen p, Point pt, double xDir, double yDir, float size)
+        {
+
+            PointF[] fig = new PointF[] {
+                new PointF(0, 0),
+                new PointF(-1, 1),
+                new PointF(2, 0),
+                new PointF(-1, -1),
+                new PointF(0,0 ),
+            };
+
+            g.DrawFigure(p, pt, fig, xDir, yDir, size, true);
+        }
+
+        /// <summary>
+        /// Orient the image to the right
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="p"></param>
+        /// <param name="pts"></param>
+        /// <param name="xDir"></param>
+        /// <param name="yDir"></param>
+        /// <param name="size"></param>
+        static void DrawFigure(this Graphics g, Pen p, PointF pos, PointF[] fig, double xDir, double yDir, float size, bool solid = false)
+        {
+            for (int i = 0; i < fig.Length; i++)
+            {
+                fig[i].X *= size;
+                fig[i].Y *= size;
+
+                fig[i] = RotatePoint(fig[i], new PointF(0, 0), xDir, yDir);
+
+                fig[i].X += pos.X;
+                fig[i].Y += pos.Y;
+            }
+
+            if (solid)
+                g.FillPolygon(new SolidBrush(p.Color), fig);
+            else
+                g.DrawLines(p, fig);
+        }
+
+
+        static Point RotatePoint(PointF pointToRotate, PointF centerPoint, double xDir, double yDir)
+        {
+            return new Point
+            {
+                X =
+                    (int)
+                    (xDir * (pointToRotate.X - centerPoint.X) -
+                    yDir * (pointToRotate.Y - centerPoint.Y) + centerPoint.X),
+                Y =
+                    (int)
+                    (yDir * (pointToRotate.X - centerPoint.X) +
+                    xDir * (pointToRotate.Y - centerPoint.Y) + centerPoint.Y)
+            };
+        }
+
         public static void DrawCross(this Graphics g, Pen p, Point pt, int size)
         {
             DrawCross(g, p, pt.X, pt.Y, size);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using STDLib.Math;
+using System;
 using System.ComponentModel;
 using System.Threading;
 
@@ -61,6 +62,14 @@ namespace STDLib.Misc
                         i--;
                     }
             }
+        }
+    }
+
+    public static class Ext
+    { 
+        public static void Add(this ThreadedBindingList<PointD> list, double x, double y)
+        {
+            list.Add(new PointD(x, y));
         }
     }
 }

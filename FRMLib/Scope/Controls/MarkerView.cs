@@ -62,6 +62,7 @@ namespace FRMLib.Scope.Controls
                 col.Name = pi.Name;
                 col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
                 col.Width = attr.Width == 0 ? 100 : attr.Width;
+                col.AutoSizeMode = attr.AutoSizeMode;
             }
 
             if(dataSource != null)
@@ -74,9 +75,10 @@ namespace FRMLib.Scope.Controls
                     col.Tag = t;
                     col.Name = t.Name;
                     col.HeaderText = t.Name;
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
                 }
             }
-            dataGridView.AutoResizeColumns();
+            //dataGridView.AutoResizeColumns();
         }
 
         private void Markers_ListChanged(object sender, ListChangedEventArgs e)
