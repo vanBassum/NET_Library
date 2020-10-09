@@ -207,10 +207,40 @@ namespace FRMLib.Scope.Controls
             pictureBox3.MouseMove += picBox_MouseMove;
             pictureBox3.MouseDown += picBox_MouseDown;
             pictureBox3.MouseUp += picBox_MouseUp;
+            pictureBox3.MouseWheel += PictureBox3_MouseWheel;
             
             //pictureBox1.Resize += PictureBox1_Resize;
         }
 
+        private void PictureBox3_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if(e.Delta != 0)
+            {
+
+                double scroll = (double)(e.Delta);
+                double A = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale);
+                double B = Settings.HorOffset;
+                double percent = (double)e.X / (double)thiswidth;   //Relative mouse position.
+                double x1px = percent * scroll;
+                double x2px = thiswidth - (1-percent) * scroll;
+
+                //Find the actual value of x1 and x2
+                double x1 = x1px / A - B;
+                double x2 = x2px / A - B;
+                double distance = x2 - x1;
+                if (distance == 0)
+                {
+                    Settings.HorScale = 1;
+                    Settings.HorOffset = -x1;
+                    return;
+                }
+
+                Settings.HorScale = (double)distance / (double)Settings.HorizontalDivisions;
+                Settings.HorOffset = -(double)(x1);
+
+                DrawAll();
+            }
+        }
 
         private void picBox_MouseUp(object sender, MouseEventArgs e)
         {
@@ -480,6 +510,20 @@ namespace FRMLib.Scope.Controls
                                    orderby trace.Layer descending
                                    select trace;
 
+                double lastX = double.NegativeInfinity;
+
+                foreach (Trace t in DataSource.Traces)
+                {
+                    PointD pt = t.Points.LastOrDefault();
+                    if (pt != null)
+                    {
+                        if (pt.X > lastX)
+                            lastX = pt.X;
+                    }
+                }
+
+
+                lastX = (float)(lastX + Settings.HorOffset) * pxPerUnits_hor;
 
 
                 int traceNo = 0;
@@ -544,7 +588,7 @@ namespace FRMLib.Scope.Controls
                                             g.DrawLine(pen, pPrev, between);
                                             g.DrawLine(pen, between, p);
                                             if(last && extendEnd)
-                                                g.DrawLine(pen, p, new Point(thiswidth, p.Y));
+                                                g.DrawLine(pen, p, new Point((int)lastX, p.Y));
                                             
                                         }
                                         break;
