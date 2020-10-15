@@ -32,6 +32,7 @@ namespace FRMLib.Scope.Controls
 
         private ContextMenuStrip menu;
         private Point lastClick = Point.Empty;
+        private double horOffsetLastClick = 0;
         private Marker dragMarker = null;
         private Marker hoverMarker = null;
         int columns;
@@ -238,8 +239,6 @@ namespace FRMLib.Scope.Controls
 
                 Settings.HorScale = (double)distance / (double)Settings.HorizontalDivisions;
                 Settings.HorOffset = -(double)(x1);
-
-                DrawAll();
             }
         }
 
@@ -251,11 +250,13 @@ namespace FRMLib.Scope.Controls
         private void picBox_MouseDown(object sender, MouseEventArgs e)
         {
             dragMarker = hoverMarker;
+            lastClick = e.Location;
+            horOffsetLastClick = Settings.HorOffset;
         }
 
         private void picBox_MouseClick(object sender, MouseEventArgs e)
         {
-            lastClick = e.Location;
+            
             if (e.Button == MouseButtons.Right)
             {
                 if (dragMarker != null)
@@ -264,35 +265,48 @@ namespace FRMLib.Scope.Controls
                     menu.Show(this, e.Location);
             }
         }
+
         private void picBox_MouseMove(object sender, MouseEventArgs e)
         {
 
             double pxPerUnits_hor = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale);
             if (dragMarker != null)
             {
+                //Drag a marker.
                 double x = (e.X / pxPerUnits_hor) - Settings.HorOffset;
                 dragMarker.X = x;
                 DrawForeground();
             }
             else
             {
-                double xMin = ((e.X - 4) / pxPerUnits_hor) - Settings.HorOffset;
-                double xMax = ((e.X + 4) / pxPerUnits_hor) - Settings.HorOffset;
-
-                if (DataSource != null)
+                if(e.Button.HasFlag(MouseButtons.Left))
                 {
+                    //Drag all.
+                    double xDif = e.X - lastClick.X;
+                    double A = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale);
+                    Settings.HorOffset = xDif / A + horOffsetLastClick;
+                }
+                else
+                {
+                    //Detect markers.
+                    double xMin = ((e.X - 4) / pxPerUnits_hor) - Settings.HorOffset;
+                    double xMax = ((e.X + 4) / pxPerUnits_hor) - Settings.HorOffset;
 
-                    Cursor cur = Cursors.Default;
-                    hoverMarker = null;
-                    for (int i = 0; i < DataSource.Markers.Count; i++)
+                    if (DataSource != null)
                     {
-                        if (DataSource.Markers[i].X > xMin && DataSource.Markers[i].X < xMax)
+
+                        Cursor cur = Cursors.Default;
+                        hoverMarker = null;
+                        for (int i = 0; i < DataSource.Markers.Count; i++)
                         {
-                            cur = Cursors.VSplit;
-                            hoverMarker = DataSource.Markers[i];
+                            if (DataSource.Markers[i].X > xMin && DataSource.Markers[i].X < xMax)
+                            {
+                                cur = Cursors.VSplit;
+                                hoverMarker = DataSource.Markers[i];
+                            }
                         }
+                        Cursor.Current = cur;
                     }
-                    Cursor.Current = cur;
                 }
             }
         }
