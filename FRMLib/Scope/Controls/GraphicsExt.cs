@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace FRMLib.Scope.Controls
 {
@@ -118,10 +119,20 @@ namespace FRMLib.Scope.Controls
                 int spaceEnd = closeEnd ? closeBegin ? bracketWidth : bracketWidth/2 : 0;
                 int midY = rect.Y + rect.Height / 2;
 
+                double top = rect.Y;
+                int div = 6;
+                double space = (double)rect.Height / (double)div;
+                int wibber = rect.Height / 4;
+
                 if (closeBegin)
                 {
                     g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y);
                     g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y + rect.Height);
+                }
+                else
+                {
+                    for(int i=0; i < div; i++)
+                        g.DrawLine(p, rect.X - (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X - (((i % 2) == 0) ? wibber : 0),  (int)(top + space * (i + 1)));
                 }
 
                 if (closeEnd)
@@ -129,6 +140,13 @@ namespace FRMLib.Scope.Controls
                     g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y);
                     g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
                 }
+                else
+                {
+                    for (int i = 0; i < div; i++)
+                        g.DrawLine(p, rect.X + rect.Width + (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X + rect.Width + (((i % 2) == 0) ? wibber : 0), (int)(top + space * (i + 1)));
+                }
+
+
                 g.DrawLine(p, rect.X + spaceBegin, rect.Y, rect.X + rect.Width - spaceEnd, rect.Y);
                 g.DrawLine(p, rect.X + spaceBegin, rect.Y + rect.Height, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
                 Rectangle textRect = new Rectangle(rect.X + spaceBegin, rect.Y, rect.Width - spaceBegin - spaceEnd, rect.Height);

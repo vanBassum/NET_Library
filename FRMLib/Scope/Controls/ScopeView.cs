@@ -32,6 +32,7 @@ namespace FRMLib.Scope.Controls
 
         private ContextMenuStrip menu;
         private Point lastClick = Point.Empty;
+        private Point lastClickDown = Point.Empty;
         private double horOffsetLastClick = 0;
         private Marker dragMarker = null;
         private Marker hoverMarker = null;
@@ -245,18 +246,19 @@ namespace FRMLib.Scope.Controls
         private void picBox_MouseUp(object sender, MouseEventArgs e)
         {
             dragMarker = null;
+            lastClickDown = Point.Empty;
         }
 
         private void picBox_MouseDown(object sender, MouseEventArgs e)
         {
             dragMarker = hoverMarker;
-            lastClick = e.Location;
+            lastClickDown = e.Location;
             horOffsetLastClick = Settings.HorOffset;
         }
 
         private void picBox_MouseClick(object sender, MouseEventArgs e)
         {
-            
+            lastClick = e.Location;
             if (e.Button == MouseButtons.Right)
             {
                 if (dragMarker != null)
@@ -282,9 +284,12 @@ namespace FRMLib.Scope.Controls
                 if(e.Button.HasFlag(MouseButtons.Left))
                 {
                     //Drag all.
-                    double xDif = e.X - lastClick.X;
-                    double A = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale);
-                    Settings.HorOffset = xDif / A + horOffsetLastClick;
+                    if (!lastClickDown.IsEmpty)
+                    {
+                        double xDif = e.X - lastClickDown.X;
+                        double A = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale);
+                        Settings.HorOffset = xDif / A + horOffsetLastClick;
+                    }
                 }
                 else
                 {
@@ -527,6 +532,7 @@ namespace FRMLib.Scope.Controls
                                    orderby trace.Layer descending
                                    select trace;
 
+                
                 double lastX = double.NegativeInfinity;
                 double firstX = double.PositiveInfinity;
                 foreach (Trace t in DataSource.Traces)
@@ -536,16 +542,19 @@ namespace FRMLib.Scope.Controls
                     {
                         if (pt.X > lastX)
                             lastX = pt.X;
+                    }
+
+                    pt = t.Points.FirstOrDefault();
+                    if (pt != null)
+                    {
                         if (pt.X < firstX)
                             firstX = pt.X;
                     }
-
                 }
-
-
+                    
                 lastX = (float)(lastX + Settings.HorOffset) * pxPerUnits_hor;
                 firstX = (float)(firstX + Settings.HorOffset) * pxPerUnits_hor;
-
+                
                 int traceNo = 0;
                 //Loop through plots
                 foreach (Trace trace in sortedTraces)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
@@ -616,35 +625,36 @@ namespace FRMLib.Scope.Controls
                                         break;
 
                                     case Trace.DrawStyles.State:
-                                        if (!pPrev.IsEmpty)
-                                        {
-                                            string text = trace.ToHumanReadable(trace.Points[i - 1].Y);
-                                            
-                                            //g.DrawState(pen, rect, text, Settings.Font, true, true);
+                                        string text = trace.ToHumanReadable(trace.Points[i].Y);
 
-                                            //if (last && first && extendBegin && extendEnd)
-                                            //{
-                                            //    Rectangle rect = new Rectangle((int)firstX, (int)stateY - 8, (int)lastX - (int)firstX, Settings.Font.Height);
-                                            //    g.DrawState(pen, rect, text, Settings.Font, false, false);
-                                            //}
-                                            //else if (last && extendEnd)
-                                            if (last && extendEnd)
-                                            {
-                                                Rectangle rect = new Rectangle(pPrev.X, (int)stateY - 8, (int)lastX - pPrev.X, Settings.Font.Height);
-                                                g.DrawState(pen, rect, text, Settings.Font, true, false);
-                                            }
-                                            //else if (first && extendBegin)
-                                            //{
-                                            //    Rectangle rect = new Rectangle((int)firstX, (int)stateY - 8,(int)firstX - p.X, Settings.Font.Height);
-                                            //    g.DrawState(pen, rect, text, Settings.Font, false, true);
-                                            //}
-                                            else
-                                            {
-                                                Rectangle rect = new Rectangle(pPrev.X, (int)stateY - 8, p.X - pPrev.X, Settings.Font.Height);
-                                                g.DrawState(pen, rect, text, Settings.Font, true, true);
-                                            }
-                                            
+                                        //1, 2, 3
+
+
+                                        double start = x;
+                                        double end = x;
+
+                                        if (!last)
+                                            end = (trace.Points[i + 1].X + Settings.HorOffset) * pxPerUnits_hor;
+
+                                        if (first && extendBegin)
+                                        {
+                                            start = firstX;
+                                            double strlen = g.MeasureString(text, Settings.Font).Width + 5;
+                                            if (end - start < strlen)
+                                                start = end - strlen;
                                         }
+
+                                        if (last && extendEnd)
+                                        {
+                                            end = lastX;
+                                            double strlen = g.MeasureString(text, Settings.Font).Width + 5;
+                                            if (end - start < strlen)
+                                                end = start + strlen;
+                                        }
+
+                                        Rectangle rect = new Rectangle((int)start, (int)stateY - 8, (int)(end - start), Settings.Font.Height);
+                                        g.DrawState(pen, rect, text, Settings.Font, !(first && extendBegin), !(last && extendEnd));
+
                                         break;
 
                                     default:
@@ -656,6 +666,15 @@ namespace FRMLib.Scope.Controls
 
                                 pPrev = p;
                             }
+
+                            foreach (Mark m in trace.Marks)
+                            {
+                                double x = (float)(m.X + Settings.HorOffset) * pxPerUnits_hor;
+                                double y = thisheight / 2 - (m.Y + trace.Offset) * pxPerUnits_ver;// * trace.Scale;
+
+                                g.DrawString(m.Text, Settings.Font, brush, (int)x, (int)y);
+                                g.DrawCross(pen, x, y, 3);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -663,14 +682,7 @@ namespace FRMLib.Scope.Controls
                         }
 
 
-                        foreach (Mark m in trace.Marks)
-                        {
-                            double x = (float)(m.X + Settings.HorOffset) * pxPerUnits_hor;
-                            double y = thisheight / 2 - (m.Y + trace.Offset) * pxPerUnits_ver;// * trace.Scale;
-
-                            g.DrawString(m.Text, Settings.Font, brush, (int)x, (int)y);
-                            g.DrawCross(pen, x, y, 3);
-                        }
+                        
                     }
 
                     traceNo++;
