@@ -4,6 +4,8 @@ using System.Windows.Forms;
 
 namespace FRMLib.Scope.Controls
 {
+
+
     public static class GraphicsExt
     {
         /*
@@ -96,6 +98,18 @@ namespace FRMLib.Scope.Controls
         public static void Drawpoint(this Graphics g, Brush brush, Point pt, int size)
         {
             Drawpoint(g, brush, pt.X, pt.Y, size);
+        }
+
+
+        public static void DrawLine(this Graphics g, Pen p, Point p1, Point p2, bool extendBegin, bool extendEnd)
+        {
+            g.DrawLine(p, p1, p2);
+
+            if (extendBegin)
+                g.DrawArrow(p, p2, -1, 0, 3);
+
+            if (extendEnd)
+                g.DrawArrow(p, p1, 1, 0, 3);
         }
 
         public static void DrawState(this Graphics g, Pen p, Rectangle rect, string text, Font font, bool closeBegin = true, bool closeEnd = true)
