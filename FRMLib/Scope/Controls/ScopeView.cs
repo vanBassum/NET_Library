@@ -87,8 +87,12 @@ namespace FRMLib.Scope.Controls
             item.Click += AutoscaleHor_Click;
             menu.Items.Add(item);
 
-            item = new ToolStripMenuItem("ClearData");
+            item = new ToolStripMenuItem("Clear data");
             item.Click += ClearData_Click;
+            menu.Items.Add(item);
+
+            item = new ToolStripMenuItem("Add math");
+            item.Click += AddMath_Click;
             menu.Items.Add(item);
 
 
@@ -103,6 +107,22 @@ namespace FRMLib.Scope.Controls
         {
             foreach (Trace t in dataSource.Traces)
                 t.Points.Clear();
+        }
+
+        private void AddMath_Click(object sender, EventArgs e)
+        {
+            Marker left = null;
+            Marker right = null;
+
+            GetMarkersAdjecentToX(lastClick.X, ref left, ref right);
+
+
+            MathItem mi = new MathItem();
+            mi.Marker1 = left;
+            mi.Marker2 = right;
+            dataSource.MathItems.Add(mi);
+            
+
         }
 
         private void AddMarker_Click(object sender, EventArgs e)
