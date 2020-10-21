@@ -1,9 +1,78 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace FRMLib.Scope.Controls
 {
+
+
     public static class GraphicsExt
     {
+        /*
+        public static void DrawArrow(this Graphics g, Pen p, Point pt, double dir, int size)
+        {
+            DrawCross(g, p, pt.X, pt.Y, size);
+        }
+        */
+
+        public static void DrawArrow(this Graphics g, Pen p, Point pt, double xDir, double yDir, float size)
+        {
+
+            PointF[] fig = new PointF[] {
+                new PointF(0, 0),
+                new PointF(-1, 1),
+                new PointF(2, 0),
+                new PointF(-1, -1),
+                new PointF(0,0 ),
+            };
+
+            g.DrawFigure(p, pt, fig, xDir, yDir, size, true);
+        }
+
+        /// <summary>
+        /// Orient the image to the right
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="p"></param>
+        /// <param name="pts"></param>
+        /// <param name="xDir"></param>
+        /// <param name="yDir"></param>
+        /// <param name="size"></param>
+        static void DrawFigure(this Graphics g, Pen p, PointF pos, PointF[] fig, double xDir, double yDir, float size, bool solid = false)
+        {
+            for (int i = 0; i < fig.Length; i++)
+            {
+                fig[i].X *= size;
+                fig[i].Y *= size;
+
+                fig[i] = RotatePoint(fig[i], new PointF(0, 0), xDir, yDir);
+
+                fig[i].X += pos.X;
+                fig[i].Y += pos.Y;
+            }
+
+            if (solid)
+                g.FillPolygon(new SolidBrush(p.Color), fig);
+            else
+                g.DrawLines(p, fig);
+        }
+
+
+        static Point RotatePoint(PointF pointToRotate, PointF centerPoint, double xDir, double yDir)
+        {
+            return new Point
+            {
+                X =
+                    (int)
+                    (xDir * (pointToRotate.X - centerPoint.X) -
+                    yDir * (pointToRotate.Y - centerPoint.Y) + centerPoint.X),
+                Y =
+                    (int)
+                    (yDir * (pointToRotate.X - centerPoint.X) +
+                    xDir * (pointToRotate.Y - centerPoint.Y) + centerPoint.Y)
+            };
+        }
+
         public static void DrawCross(this Graphics g, Pen p, Point pt, int size)
         {
             DrawCross(g, p, pt.X, pt.Y, size);
@@ -31,6 +100,18 @@ namespace FRMLib.Scope.Controls
             Drawpoint(g, brush, pt.X, pt.Y, size);
         }
 
+
+        public static void DrawLine(this Graphics g, Pen p, Point p1, Point p2, bool extendBegin, bool extendEnd)
+        {
+            g.DrawLine(p, p1, p2);
+
+            if (extendBegin)
+                g.DrawArrow(p, p2, -1, 0, 3);
+
+            if (extendEnd)
+                g.DrawArrow(p, p1, 1, 0, 3);
+        }
+
         public static void DrawState(this Graphics g, Pen p, Rectangle rect, string text, Font font, bool closeBegin = true, bool closeEnd = true)
         {
             if (false)
@@ -52,10 +133,20 @@ namespace FRMLib.Scope.Controls
                 int spaceEnd = closeEnd ? closeBegin ? bracketWidth : bracketWidth/2 : 0;
                 int midY = rect.Y + rect.Height / 2;
 
+                double top = rect.Y;
+                int div = 6;
+                double space = (double)rect.Height / (double)div;
+                int wibber = rect.Height / 4;
+
                 if (closeBegin)
                 {
                     g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y);
                     g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y + rect.Height);
+                }
+                else
+                {
+                    for(int i=0; i < div; i++)
+                        g.DrawLine(p, rect.X - (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X - (((i % 2) == 0) ? wibber : 0),  (int)(top + space * (i + 1)));
                 }
 
                 if (closeEnd)
@@ -63,6 +154,13 @@ namespace FRMLib.Scope.Controls
                     g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y);
                     g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
                 }
+                else
+                {
+                    for (int i = 0; i < div; i++)
+                        g.DrawLine(p, rect.X + rect.Width + (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X + rect.Width + (((i % 2) == 0) ? wibber : 0), (int)(top + space * (i + 1)));
+                }
+
+
                 g.DrawLine(p, rect.X + spaceBegin, rect.Y, rect.X + rect.Width - spaceEnd, rect.Y);
                 g.DrawLine(p, rect.X + spaceBegin, rect.Y + rect.Height, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
                 Rectangle textRect = new Rectangle(rect.X + spaceBegin, rect.Y, rect.Width - spaceBegin - spaceEnd, rect.Height);

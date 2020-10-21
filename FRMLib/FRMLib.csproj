@@ -44,7 +44,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ext.cs" />
+    <Compile Include="Kernel32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scope\Mark.cs" />
     <Compile Include="Scope\MathFunctions\LinearRegression.cs" />
     <Compile Include="Scope\Palettes.cs" />
     <Compile Include="Scope\MathFunctions\AVG.cs" />

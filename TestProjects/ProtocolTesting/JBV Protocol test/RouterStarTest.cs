@@ -12,8 +12,8 @@ namespace JBV_Protocol_test
     [TestClass]
     public class RouterStarTest
     {
-        List<Message> recievedBroadcasts = new List<Message>();
-        List<Message> recievedMessages = new List<Message>();
+        List<Frame> recievedBroadcasts = new List<Frame>();
+        List<Frame> recievedMessages = new List<Frame>();
         Router router;
         Client client1;
         Client client2;
@@ -72,14 +72,14 @@ namespace JBV_Protocol_test
             recievedMessages.Clear();
         }
 
-        private void OnMessageRecieved(object sender, Message e)
+        private void OnMessageRecieved(object sender, Frame e)
         {
             Client c = sender as Client;
-            Assert.AreEqual(c.ID, e.GetFrame().RID);
+            Assert.AreEqual(c.ID, e.RID);
             recievedMessages.Add(e);
         }
 
-        private void OnBroadcastRecieved(object sender, Message e)
+        private void OnBroadcastRecieved(object sender, Frame e)
         {
             recievedBroadcasts.Add(e);
         }
@@ -110,11 +110,11 @@ namespace JBV_Protocol_test
             //The sender should't have recieved the broadcast while the recievers should have.
             Assert.AreEqual(4, recievedBroadcasts.Count(), "Not the right amount of broadcasts recieved.");
 
-            foreach(Message rx in recievedBroadcasts)
+            foreach(Frame rx in recievedBroadcasts)
             {
                 //Check all broadcasts for payload and SID.
                 Assert.AreEqual(1, rx.SID, "Wrong SID recieved.");
-                Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rx.Payload), "Payload was corrupted");
+                Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rx.PAY), "Payload was corrupted");
             }
         }
 
@@ -146,10 +146,49 @@ namespace JBV_Protocol_test
             //The sender should't have recieved the broadcast while the reciever should have.
             Assert.AreEqual(1, recievedMessages.Count(), "There one message send and more or less message have been recieved.");
 
-            Message rxMessage = recievedMessages.FirstOrDefault();
+            Frame rxMessage = recievedMessages.FirstOrDefault();
             Assert.IsNotNull(rxMessage, "Message not recieved.");
             Assert.AreEqual(1, rxMessage.SID, "Wrong SID recieved.");
-            Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.Payload), "Payload was corrupted");
+            Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.PAY), "Payload was corrupted");
+        }
+
+
+        [TestMethod]
+        public void TestMultipleMessage()
+        {
+            SetupConnections();
+
+
+            byte[] txPayload1 = Encoding.ASCII.GetBytes("Testmessage 1");
+            byte[] txPayload2 = Encoding.ASCII.GetBytes("Testmessage 1");
+            byte[] txPayload3 = Encoding.ASCII.GetBytes("Testmessage 1");
+
+
+
+
+            client1.SendMessage(2, txPayload1);
+            client1.SendMessage(2, txPayload2);
+            client1.SendMessage(2, txPayload3);
+
+            //Stuff is done on another thread, so wait for the broadcasts.
+            for (int retry = 0; retry < 100; retry++)
+            {
+                if (recievedMessages.Count() == 3)
+                    break;
+                System.Threading.Thread.Sleep(10);
+            }
+
+
+            //No broadcasts should have been recieved.
+            Assert.AreEqual(0, recievedBroadcasts.Count(), "Broadcasts where recieved while no broadcasts where send.");
+
+            //The sender should't have recieved the messages while the reciever should have.
+            Assert.AreEqual(3, recievedMessages.Count(), "There one message send and more or less message have been recieved.");
+
+            ///Message rxMessage = recievedMessages.FirstOrDefault();
+            ///Assert.IsNotNull(rxMessage, "Message not recieved.");
+            ///Assert.AreEqual(1, rxMessage.SID, "Wrong SID recieved.");
+            ///Assert.AreEqual(testMessage, Encoding.ASCII.GetString(rxMessage.Payload), "Payload was corrupted");
         }
 
     }

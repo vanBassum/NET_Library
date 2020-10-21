@@ -1,4 +1,4 @@
-﻿using FRMLib.Scope;
+﻿using STDLib.Math;
 using System;
 using System.ComponentModel;
 using System.Threading;

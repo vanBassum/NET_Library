@@ -1,4 +1,5 @@
 ﻿using FRMLib.Scope.Controls;
+using STDLib.Math;
 using System;
 using System.Drawing;
 
