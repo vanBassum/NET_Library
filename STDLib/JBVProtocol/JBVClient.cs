@@ -29,23 +29,15 @@ namespace STDLib.JBVProtocol
         /// <summary>
         /// Fires when a request command has been recieved.
         /// </summary>
-        public event EventHandler<CMD> OnRequestRecieved;
-
-        /// <summary>
-        /// Fires when a reply command has been recieved.
-        /// </summary>
-        public event EventHandler<CMD> OnReplyRecieved;
+        public event EventHandler<CMD> OnCommand;
 
         /// <summary>
         /// Returns wether the client has a valid lease
         /// </summary>
         public bool HasLease { get { return lease.Expire > DateTime.Now; } }
 
-        public SoftwareID SoftwareID { get; set; } = SoftwareID.Unknown;
-
-        public JBVClient(SoftwareID softwareID)
+        public JBVClient()
         {
-            SoftwareID = softwareID;
             lease.Key = Guid.NewGuid();
             leaseTimer.Interval = 100;
             leaseTimer.Start();
@@ -94,14 +86,13 @@ namespace STDLib.JBVProtocol
             RequestLease();
         }
 
-        public void Send(CMD cmd)
+        public void Send(CMD cmd, UInt16 RID)
         {
-            Frame tx = cmd.GetFrame();
+            Frame tx = cmd.ToFrame();
             tx.SID = ID;
+            tx.RID = RID;
             SendFrame(tx);
         }
-
-        
 
         private void SendFrame(Frame frame)
         {
@@ -126,6 +117,7 @@ namespace STDLib.JBVProtocol
 
         private void Connection_OnFrameReceived(object sender, Frame e)
         {
+
             Connection c = sender as Connection;
 
             if (e.Command)
@@ -138,15 +130,18 @@ namespace STDLib.JBVProtocol
                         if (cmd.Lease.Key == lease.Key)
                             lease = cmd.Lease;
                         break;
+
+                    default:
+                        throw new NotImplementedException("Not implemented");
                 }
             }
             else
             {
                 CMD cmd = CMD.FromFrame(e);
-                if (cmd.IsRequest)
-                    OnRequestRecieved?.Invoke(this, cmd);
-                else 
-                    OnReplyRecieved?.Invoke(this, cmd);
+                if (cmd != null)
+                {
+                    OnCommand?.Invoke(this, cmd);
+                }
             }
         }
     }

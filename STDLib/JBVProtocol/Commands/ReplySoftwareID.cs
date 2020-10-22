@@ -13,30 +13,8 @@ namespace STDLib.JBVProtocol
         /// The software id of the client
         /// </summary>
         public SoftwareID SoftwareID { get; set; }
+        protected override byte[] Data { get => BitConverter.GetBytes((UInt32)SoftwareID); set => SoftwareID = (SoftwareID)BitConverter.ToUInt32(value, 0); }
 
-        public UInt16 RID { get; set; }
-
-        public override Frame GetFrame()
-        {
-            List<byte[]> data = new List<byte[]>
-            {
-                BitConverter.GetBytes(CMDID),
-                BitConverter.GetBytes((UInt32)SoftwareID),
-            };
-
-            Frame frame = new Frame();
-            frame.HOP = 0;
-            frame.SID = 0;
-            frame.RID = RID;
-            frame.PAY = Framing.Stuff(data);
-            frame.Broadcast = false;
-            frame.Command = false;
-            return frame;
-        }
-
-        public override void Populate(List<byte[]> arg)
-        {
-            SoftwareID = (SoftwareID)BitConverter.ToUInt32(arg[1], 0);
-        }
+        public override bool IsBroadcast => false;
     }
 }

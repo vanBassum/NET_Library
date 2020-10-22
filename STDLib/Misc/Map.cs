@@ -42,6 +42,29 @@ namespace STDLib.Misc
         public Indexer<T1, T2> Forward { get; private set; }
         public Indexer<T2, T1> Reverse { get; private set; }
 
+        public bool TryForward(T1 t1, out T2 t2)
+        {
+            if(_forward.ContainsKey(t1))
+            {
+                t2 = Forward[t1];
+                return true;
+            }
+            t2 = default;
+            return false;
+        }
+
+        public bool TryReverse(T2 t2, out T1 t1)
+        {
+            if (_reverse.ContainsKey(t2))
+            {
+                t1 = Reverse[t2];
+                return true;
+            }
+            t1 = default;
+            return false;
+        }
+
+
 
         public IEnumerator<KeyValuePair<T1, T2>> GetEnumerator()
         {

@@ -13,27 +13,9 @@ namespace STDLib.JBVProtocol
         /// When <see cref="SoftwareID.Unknown"/> all clients will respond with their SID.
         /// Otherwise only the clients with matching SID will respond.
         /// </summary>
-        public SoftwareID SofwareID { get; set; }
+        public SoftwareID SoftwareID { get; set; }
+        protected override byte[] Data { get => BitConverter.GetBytes((UInt32)SoftwareID); set => SoftwareID = (SoftwareID)BitConverter.ToUInt32(value, 0); }
 
-        public override Frame GetFrame()
-        {
-            List<byte[]> data = new List<byte[]>
-            {
-                BitConverter.GetBytes(CMDID),
-                BitConverter.GetBytes((UInt32)SofwareID),
-            };
-
-            Frame frame = new Frame();
-            frame.RID = 0;
-            frame.PAY = Framing.Stuff(data);
-            frame.Broadcast = true;
-            frame.Command = false;
-            return frame;
-        }
-
-        public override void Populate(List<byte[]> arg)
-        {
-            SofwareID = (SoftwareID)BitConverter.ToUInt32(arg[1], 0);
-        }
+        public override bool IsBroadcast => true;
     }
 }

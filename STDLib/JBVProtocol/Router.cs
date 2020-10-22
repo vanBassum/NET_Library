@@ -152,17 +152,27 @@ namespace STDLib.JBVProtocol
                 Frame rxFrame = item.Item2;
 
 
-                if (rxFrame.SID == ID || rxFrame.Broadcast)
+                if (rxFrame.RID == ID || rxFrame.Broadcast)
                 {
                     //Frame is addressed to us.
                     if(!rxFrame.Command)
                     {
                         CMD cmd = CMD.FromFrame(rxFrame);
-                        HandleOwnFrame(cmd, rxCon);
+                        if (cmd != null)
+                        {
+                            CMD txCmd = HandleOwnFrame(cmd, rxCon);
+                            if (txCmd != null)
+                            {
+                                Frame txFrame = txCmd.ToFrame();
+                                txFrame.SID = ID;
+                                txFrame.RID = rxFrame.SID;
+                                rxCon.SendFrame(txFrame);
+                            }
+                        }
                     }
                 }
 
-                if (rxFrame.SID != ID)
+                if (rxFrame.RID != ID)
                 {
                     rxFrame.HOP++;
                     if (rxFrame.HOP <= MaxHop)
@@ -184,25 +194,26 @@ namespace STDLib.JBVProtocol
                         //TODO: Should we do something here???
                     }
                 }
+                Console.Write("A");
             }
         }
 
-        void HandleOwnFrame(CMD cmd, Connection con)
+        CMD HandleOwnFrame(CMD cmd, Connection con)
         {
             switch(cmd)
             {
                 case RequestSoftwareID rxcmd:
-                    if(rxcmd.SofwareID == SoftwareID.Unknown || rxcmd.SofwareID == SoftwareID.Router)
+                    if(rxcmd.SoftwareID == SoftwareID.Unknown || rxcmd.SoftwareID == SoftwareID.Router)
                     {
                         ReplySoftwareID txcmd = new ReplySoftwareID();
                         txcmd.SoftwareID = SoftwareID.Router;
-                        Frame f = txcmd.GetFrame();
-                        f.SID = ID;
-                        f.RID = rxcmd.SID;
-                        con.SendFrame(f);
+                        return txcmd;
                     }
                     break;
+                default:
+                    throw new NotImplementedException("Command not suported");
             }
+            return null;
         }
 
 

@@ -22,6 +22,7 @@ namespace STDLib.JBVProtocol.IO.CMD
 
         public override void FromArray(byte[] data)
         {
+            //TODO: Check length
             Key = new Guid(data.SubArray(1, 16));
         }
 

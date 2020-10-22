@@ -15,19 +15,17 @@ namespace STDLib.JBVProtocol.IO
             SOF = (byte)'&',    //Start of frame
             EOF = (byte)'%',    //End of frame
             ESC = (byte)'\\',   //Escape character
-            NOP = (byte)'*',    //Does nothing, used to fill remainder when a static ammount of data is required by the I/O.
-            SEP = (byte)'|',    //Seperation character.
+            NOP = (byte)'*',    //Does nothing, used to fill remainder when a static amount of data is required by the I/O.
         }
 
         bool startFound = false;
         bool esc = false;
         List<byte> dataBuffer = new List<byte>();
-        List<byte[]> resultBuffer = new List<byte[]>();
 
         /// <summary>
         /// Fires when a complete frame has been recieved.
         /// </summary>
-        public event EventHandler<List<byte[]>> OnFrameCollected;
+        public event EventHandler<byte[]> OnFrameCollected;
 
         /// <summary>
         /// Method to destuff incomming data. 
@@ -56,18 +54,12 @@ namespace STDLib.JBVProtocol.IO
                         case (byte)BS.SOF:
                             startFound = true;
                             dataBuffer.Clear();
-                            resultBuffer.Clear();
                             break;
                         case (byte)BS.EOF:
                             startFound = false;
-                            resultBuffer.Add(dataBuffer.ToArray());
-                            OnFrameCollected(this, resultBuffer);
+                            OnFrameCollected(this, dataBuffer.ToArray());
                             break;
                         case (byte)BS.NOP:
-                            break;
-                        case (byte)BS.SEP:
-                            resultBuffer.Add(dataBuffer.ToArray());
-                            dataBuffer = new List<byte>();
                             break;
                         default:
                             record = true;
@@ -100,29 +92,5 @@ namespace STDLib.JBVProtocol.IO
             dataOut.Add((byte)BS.EOF);
             return dataOut.ToArray();
         }
-
-        static public byte[] Stuff(List<byte[]> chunks)
-        {
-            List<byte> dataOut = new List<byte>();
-            dataOut.Add((byte)BS.SOF);
-
-            foreach(byte[] chunk in chunks)
-            {
-                foreach (byte b in chunk)
-                {
-                    if (Enum.IsDefined(typeof(BS), b))
-                        dataOut.Add((byte)BS.ESC);
-                    dataOut.Add(b);
-                }
-                dataOut.Add((byte)BS.SEP);
-            }
-
-            dataOut.RemoveAt(dataOut.Count()-1);
-            dataOut.Add((byte)BS.EOF);
-            return dataOut.ToArray();
-        }
-
     }
-
-
 }
