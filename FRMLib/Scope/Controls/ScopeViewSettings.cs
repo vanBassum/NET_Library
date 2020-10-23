@@ -29,7 +29,7 @@ namespace FRMLib.Scope.Controls
         /// </summary>
         public double HorScale { get { return GetPar<double>(10); } set { SetPar(value); } }
 
-        public Font Font { get { return GetPar(new Font("Ariel", 10.0f)); } set { SetPar(value); } }
+        public Font Font { get { return GetPar(new Font("Ariel", 8.0f)); } set { SetPar(value); } }
 
     }
 

@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace FRMLib.Scope.Controls
 {
+
+
     public static class GraphicsExt
     {
         /*
@@ -97,6 +100,18 @@ namespace FRMLib.Scope.Controls
             Drawpoint(g, brush, pt.X, pt.Y, size);
         }
 
+
+        public static void DrawLine(this Graphics g, Pen p, Point p1, Point p2, bool extendBegin, bool extendEnd)
+        {
+            g.DrawLine(p, p1, p2);
+
+            if (extendBegin)
+                g.DrawArrow(p, p2, -1, 0, 3);
+
+            if (extendEnd)
+                g.DrawArrow(p, p1, 1, 0, 3);
+        }
+
         public static void DrawState(this Graphics g, Pen p, Rectangle rect, string text, Font font, bool closeBegin = true, bool closeEnd = true)
         {
             if (false)
@@ -118,10 +133,20 @@ namespace FRMLib.Scope.Controls
                 int spaceEnd = closeEnd ? closeBegin ? bracketWidth : bracketWidth/2 : 0;
                 int midY = rect.Y + rect.Height / 2;
 
+                double top = rect.Y;
+                int div = 6;
+                double space = (double)rect.Height / (double)div;
+                int wibber = rect.Height / 4;
+
                 if (closeBegin)
                 {
                     g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y);
                     g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y + rect.Height);
+                }
+                else
+                {
+                    for(int i=0; i < div; i++)
+                        g.DrawLine(p, rect.X - (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X - (((i % 2) == 0) ? wibber : 0),  (int)(top + space * (i + 1)));
                 }
 
                 if (closeEnd)
@@ -129,6 +154,13 @@ namespace FRMLib.Scope.Controls
                     g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y);
                     g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
                 }
+                else
+                {
+                    for (int i = 0; i < div; i++)
+                        g.DrawLine(p, rect.X + rect.Width + (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X + rect.Width + (((i % 2) == 0) ? wibber : 0), (int)(top + space * (i + 1)));
+                }
+
+
                 g.DrawLine(p, rect.X + spaceBegin, rect.Y, rect.X + rect.Width - spaceEnd, rect.Y);
                 g.DrawLine(p, rect.X + spaceBegin, rect.Y + rect.Height, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
                 Rectangle textRect = new Rectangle(rect.X + spaceBegin, rect.Y, rect.Width - spaceBegin - spaceEnd, rect.Height);

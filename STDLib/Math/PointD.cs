@@ -1,4 +1,6 @@
-﻿namespace STDLib.Math
+﻿using System.Drawing;
+
+namespace STDLib.Math
 {
 
     public class PointD
@@ -53,7 +55,7 @@
 
         public static implicit operator PointD(V2D s) => new PointD(s.X, s.Y);
         public static implicit operator V2D(PointD s) => new V2D(s.X, s.Y);
-
+        public static explicit operator Point(PointD d) => new Point((int)d.X, (int)d.Y);
 
         /*
         public static explicit operator Point(PointD d) => new PointF((float)d.X, (float)d.Y);
