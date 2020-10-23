@@ -1,148 +1,140 @@
-﻿using STDLib.JBVProtocol.IO;
-using STDLib.JBVProtocol.IO.CMD;
+﻿using STDLib.JBVProtocol.Commands;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
+
+
 
 namespace STDLib.JBVProtocol
 {
-
-    /// <summary>
-    /// Manages connections with other devices and routes incomming and outgoing data to the right connection.
-    /// </summary>
     public class JBVClient
     {
-        Connection connection;
+        public event EventHandler<Command> CommandRecieved;
+        SoftwareID softwareID = SoftwareID.Unknown;
         Lease lease = new Lease();
-        System.Timers.Timer leaseTimer = new System.Timers.Timer();
-        /// <summary>
-        /// Our device id.
-        /// </summary>
-        public UInt16 ID { get { return lease.ID; } }
+        IConnection connection;
+        Task task;
+        Framing framing;
+        BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
 
-        /// <summary>
-        /// Fires when a request command has been recieved.
-        /// </summary>
-        public event EventHandler<CMD> OnCommand;
-
-        /// <summary>
-        /// Returns wether the client has a valid lease
-        /// </summary>
-        public bool HasLease { get { return lease.Expire > DateTime.Now; } }
-
-        public JBVClient()
+        public JBVClient(SoftwareID softId)
         {
-            lease.Key = Guid.NewGuid();
-            leaseTimer.Interval = 100;
-            leaseTimer.Start();
-            leaseTimer.Elapsed += LeaseTimer_Elapsed;
+            softwareID = softId;
+            framing = new Framing();
+            framing.OnFrameCollected += (sender, frame) => pendingFrames.Add(frame);
+
+            task = new Task(Work);
+            task.Start();
         }
 
-        private void LeaseTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        public void SetConnection(IConnection con)
         {
-            if (lease.Expire == null)
+            connection = con;
+            con.OnDataRecieved += (sender, data) =>
             {
-                RequestLease();
-                leaseTimer.Interval = 1000;
-            }
-            else
+                framing.Unstuff(data);
+            };
+
+
+        }
+
+        void Work()
+        {
+            AutoResetEvent leaseExpire = new AutoResetEvent(false);
+
+            while (true)
             {
-                if (lease.Expire > DateTime.Now)
+                if (lease.ExpiresIn.TotalMinutes < 5 )
                 {
-                    //Not expired
-                    TimeSpan expiresIn = lease.Expire - DateTime.Now;
-                    if (expiresIn < TimeSpan.FromMinutes(5))
+                    RequestLease();
+                }
+
+                Frame frame;
+
+                while(pendingFrames.TryTake(out frame, 10000))
+                {
+                    Command gcmd = Command.Create(frame);
+                    if (gcmd == null)
                     {
-                        //Expires witin 5 minutes
-                        RequestLease();
+                        Logger.LOGE($"Command not found '{frame.CommandID}'");
                     }
                     else
                     {
-                        leaseTimer.Interval = expiresIn.TotalMinutes - 4;   //TODO uum times 60000?
-                        //Next interval should be 4 minutes before expirering.
+                        switch(gcmd)
+                        {
+                            case RequestID cmd:
+                                if (cmd.ID == lease.ID)
+                                {
+                                    ReplyID();
+                                }
+                                break;
+                            case ReplyLease cmd:
+                                if (cmd.Lease.Key == lease.Key)
+                                {
+                                    lease = cmd.Lease;
+                                    Logger.LOGI($"Lease acquired");
+                                }
+                                break;
+                            case RequestSID cmd:
+                                if(cmd.SID == SoftwareID.Unknown || cmd.SID == softwareID)
+                                {
+                                    ReplySID(cmd);
+                                }
+                                break;
+
+                            default:
+                                CommandRecieved?.Invoke(this, gcmd);
+                                break;
+                        }
                     }
                 }
             }
         }
 
-        private void RequestLease()
+        void RequestLease()
         {
-            CMD_RequestLease cmd = new CMD_RequestLease(lease.Key);
-            Frame frame = cmd.CreateCommandFrame(ID);
+            Logger.LOGI("RequestLease");
+            RequestLease cmd = new RequestLease();
+            cmd.Key = lease.Key;
+            SendCMD(cmd);
+        }
+
+        void ReplyID()
+        {
+            ReplyID cmd = new ReplyID();
+            cmd.ID = lease.ID;
+            SendCMD(cmd);
+        }
+
+        void ReplySID(Command rxCmd)
+        {
+            ReplySID cmd = new ReplySID();
+            cmd.RxID = rxCmd.TxID;
+            cmd.SID = softwareID;
+            SendCMD(cmd);
+        }
+
+        public void SendCMD(Command cmd)
+        {
+            Frame frame = cmd.GetFrame();
             SendFrame(frame);
         }
 
-
-        public void SetConnection(Connection con)
+        public void SendFrame(Frame frame)
         {
-            connection = con;
-            connection.OnFrameReceived += Connection_OnFrameReceived;
-            RequestLease();
-        }
-
-        public void Send(CMD cmd, UInt16 RID)
-        {
-            Frame tx = cmd.ToFrame();
-            tx.SID = ID;
-            tx.RID = RID;
-            SendFrame(tx);
-        }
-
-        private void SendFrame(Frame frame)
-        {
-            if(frame.Command)   //Specifically when command is a request for a lease.
+            if (lease.IsValid || frame.Options.HasFlag(Frame.OPT.Broadcast))
             {
-                connection.SendFrame(frame);
-            }
-            else
-            {
-                if (lease.Expire != null)
-                {
-                    if (lease.Expire > DateTime.Now)
-                    {
-                        //We have a valid lease.
-                        connection.SendFrame(frame);
-                        return;
-                    }
-                }
-                throw new Exception("No valid lease");
+                frame.TxID = lease.ID;
+                if (connection != null)
+                    connection.SendData(framing.Stuff(frame));
+                else
+                    Logger.LOGE("No connection");
             }
         }
 
-        private void Connection_OnFrameReceived(object sender, Frame e)
-        {
-
-            Connection c = sender as Connection;
-
-            if (e.Command)
-            {
-                BaseCommand bcmd = BaseCommand.GetCommand(e.PAY);
-
-                switch (bcmd)
-                {
-                    case CMD_ReplyLease cmd:            //We have gotten a lease
-                        if (cmd.Lease.Key == lease.Key)
-                            lease = cmd.Lease;
-                        break;
-
-                    default:
-                        throw new NotImplementedException("Not implemented");
-                }
-            }
-            else
-            {
-                CMD cmd = CMD.FromFrame(e);
-                if (cmd != null)
-                {
-                    OnCommand?.Invoke(this, cmd);
-                }
-            }
-        }
     }
 }
+
+

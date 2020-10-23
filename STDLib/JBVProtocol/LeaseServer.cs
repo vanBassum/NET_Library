@@ -1,129 +1,144 @@
-﻿using STDLib.Commands;
-using STDLib.JBVProtocol.IO;
-using STDLib.JBVProtocol.IO.CMD;
+﻿using STDLib.JBVProtocol.Commands;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+using System.Collections.Concurrent;
 using System.Linq;
-using System.Text;
-using BaseCommand = STDLib.JBVProtocol.IO.CMD.BaseCommand;
+using System.Threading.Tasks;
+
 
 namespace STDLib.JBVProtocol
 {
-    /// <summary>
-    /// The ID server manages the ids of all devices connected.
-    /// </summary>
-    public partial class LeaseServer
+    public class LeaseServer
     {
-        public int LeaseTimeout = 60 * 60 * 2;
-        public UInt16 ID { get; } = 0;
-        List<Lease> Leases { get; } = new List<Lease>();
-        Connection connection;
-        System.Timers.Timer leaseRefreshTimer = new System.Timers.Timer();
+        SoftwareID softwareID = SoftwareID.LeaseServer;
+        Lease lease = new Lease();
+        ConcurrentDictionary<Guid, Lease> leases = new ConcurrentDictionary<Guid, Lease>();
+        Framing framing = new Framing();
+        IConnection connection;
+        Task task;
+        BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
 
-        public LeaseServer(Connection connection)
+        public LeaseServer()
         {
-            Leases.Add(new Lease { ID = ID, Key = Guid.NewGuid(), Expire = DateTime.MaxValue });
-            this.connection = connection;
-            connection.OnFrameReceived += Connection_OnFrameReceived;
-            leaseRefreshTimer.Elapsed += LeaseRefreshTimer_Elapsed;
-            leaseRefreshTimer.Interval = 1000;
-            leaseRefreshTimer.Start();
+            lease.ID = 0;                       //The leaseserver is always at id 0.
+            lease.Expire = DateTime.MaxValue;   //The leaseserver's lease never expires.
+            leases[lease.Key] = lease;
 
-            STDLib.Commands.BaseCommand.Register("Leases", PrintLeases);
+            framing.OnFrameCollected += (sender, frame) => pendingFrames.Add(frame);
+
+            task = new Task(Work);
+            task.Start();
         }
 
-        void PrintLeases()
+        public void SetConnection(IConnection con)
         {
-            Console.WriteLine("Current leases:");
-            foreach(Lease l in Leases)
-            {
-                Console.WriteLine($" - {l}");
-            }
+            connection = con;
+            connection.OnDataRecieved += (sender, data) => framing.Unstuff(data);
         }
 
-
-        private void LeaseRefreshTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        void Work()
         {
-            lock(Leases)
+            while(true)
             {
-                for (int i = 0; i < Leases.Count; i++)
+                Frame frame = pendingFrames.Take();
+                if(frame != null)
                 {
-                    Lease lease = Leases[i];
-                    if (lease.Expire < DateTime.Now)
+                    Command gcmd = Command.Create(frame);
+                    if (gcmd == null)
                     {
-                        Leases.RemoveAt(i);
-                        i--;
-                        Console.WriteLine($"Lease timeout: {lease}");
+                        Logger.LOGE($"Command not found '{frame.CommandID}'");
                     }
-                }
-            }
-        }
-
-        private void Connection_OnFrameReceived(object sender, Frame e)
-        {
-
-            if(e.Command)
-            {
-                BaseCommand bcmd = BaseCommand.GetCommand(e.PAY);
-
-                switch (bcmd)
-                {
-                    case CMD_RequestLease cmd:  //Some client asked for an id.
-                        GiveClient_NewID(cmd.Key);
-                        break;
-                }
-            }
-        }
-
-
-        void GiveClient_NewID(Guid guid)
-        {
-            lock(Leases)
-            {
-                //First check if the guid already exists in the list with leases.
-                //If so, extend the existing lease instead of creating a new one.
-
-                Lease lease = Leases.FirstOrDefault(l=>l.Key == guid);
-                if(lease != null)
-                {
-                    lease.Expire = DateTime.Now.AddSeconds(LeaseTimeout);
-                    SendAnswer(lease);
-                }
-                else
-                {
-                    UInt16 id = 0;
-                    for (id = 0; id < 0xFFFF; id++)
+                    else
                     {
-                        int ind = Leases.FindIndex(a => a.ID == id);
-                        if (ind == -1)
+                        switch (gcmd)
                         {
-                            //Free id found.
-                            lease = new Lease();
-                            lease.ID = id;
-                            lease.Key = guid;
-                            lease.Expire = DateTime.Now.AddSeconds(LeaseTimeout);
-                            Leases.Add(lease);
-                            SendAnswer(lease);
-                            break;
+                            case RequestLease cmd:
+                                HandleRequestLease(cmd);
+                                break;
+                            case RequestID cmd:
+                                if (cmd.ID == lease.ID)
+                                    ReplyID();
+                                break;
+                            case RequestSID cmd:
+                                if (cmd.SID == SoftwareID.Unknown || cmd.SID == softwareID)
+                                    ReplySID(cmd);
+                                break;
+                            case ReplyLease cmd:
+                                break;
+                            default:
+                                Logger.LOGW($"Command not assigned '{gcmd.CommandID}'");
+                                break;
                         }
                     }
-                    if (id == 0xFFFF)
-                    {
-                        //TODO: No free id's
-                    }
-
                 }
             }
         }
 
 
-        void SendAnswer(Lease newLease)
+        public void HandleRequestLease(RequestLease cmd)
         {
-            Console.WriteLine("Lease accepted " + newLease.ToString());
-            CMD_ReplyLease cmd = new CMD_ReplyLease(newLease);
-            Frame tx = cmd.CreateCommandFrame(ID);
-            connection.SendFrame(tx);
+            Lease lease = null;
+            if(leases.TryGetValue(cmd.Key, out lease))
+            {
+                //Extend lease
+                lease.Expire = DateTime.Now.AddMinutes(10);
+            }
+            else
+            {
+                lease = new Lease();
+                lease.Expire = DateTime.Now.AddMinutes(10);
+                lease.Key = cmd.Key;
+
+                //TODO: Reuse expired leases.
+                //TODO: Optimize this!
+                UInt16 id = 0;
+                while (leases.Any(a => a.Value.ID == id))
+                    id++;
+                lease.ID = id;
+
+                leases[lease.Key] = lease;
+            }
+            ReplyLease(lease);
+            Logger.LOGI($"New lease accepted {lease.ToString()}");
         }
+
+
+        void ReplyLease(Lease lease)
+        {
+            ReplyLease cmd = new ReplyLease();
+            cmd.Lease = lease;
+            SendCMD(cmd);
+        }
+
+        void ReplyID()
+        {
+            ReplyID cmd = new ReplyID();
+            cmd.ID = lease.ID;
+            SendCMD(cmd);
+        }
+
+        void ReplySID(Command rxCmd)
+        {
+            ReplySID cmd = new ReplySID();
+            cmd.RxID = rxCmd.TxID;
+            cmd.SID = softwareID;
+            SendCMD(cmd);
+        }
+
+        public void SendCMD(Command cmd)
+        {
+            Frame frame = cmd.GetFrame();
+            SendFrame(frame);
+        }
+
+        public void SendFrame(Frame frame)
+        {
+            frame.TxID = lease.ID;
+            if (connection != null)
+                connection.SendData(framing.Stuff(frame));
+            else
+                Logger.LOGE("No connection");
+        }
+
     }
+
 }
