@@ -23,7 +23,18 @@ namespace STDLib.JBVProtocol
         Task routerTask;
         List<Con> connections = new List<Con>();
         ConcurrentDictionary<UInt16, Route> routingTable = new ConcurrentDictionary<UInt16, Route>();
-        BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
+        BlockingCollection<PendingFrame> pendingFrames = new BlockingCollection<PendingFrame>();
+
+        class PendingFrame
+        {
+            public Frame Frame { get; set; }
+            public int RetryCount { get; set; } = 0;
+
+            public PendingFrame(Frame frame)
+            {
+                Frame = frame;
+            }
+        }
 
 
         public Router()
@@ -77,7 +88,7 @@ namespace STDLib.JBVProtocol
                 //    pendingFrames.Add(frame);
                 //}
 
-                pendingFrames.Add(frame);
+                pendingFrames.Add(new PendingFrame(frame));
             }
         }
 
@@ -115,11 +126,14 @@ namespace STDLib.JBVProtocol
                 //    RequestLease();
                 //}
                 
-                Frame frame;
+                PendingFrame frame;
 
                 while (pendingFrames.TryTake(out frame, 1000))
                 {
-                    SendFrame(frame);
+                    if (frame.RetryCount < 3)
+                        SendFrame(frame.Frame, frame.RetryCount);
+                    else
+                        Logger.LOGE($"Dropped frame, RetryCount = '{frame.RetryCount}'");
                 }
             }
         }
@@ -145,7 +159,7 @@ namespace STDLib.JBVProtocol
             SendFrame(frame);
         }
 
-        void SendFrame(Frame frame)
+        void SendFrame(Frame frame, int retries = 0)
         {
             if (frame.Options.HasFlag(Frame.OPT.Broadcast))
             {
@@ -164,7 +178,7 @@ namespace STDLib.JBVProtocol
                 {
                     //Unknown route.
                     RequestID(frame.RxID);
-                    DoDelayed(() => pendingFrames.Add(frame), 1000); //Retry in 1 second.
+                    DoDelayed(() => pendingFrames.Add(new PendingFrame(frame) { RetryCount = retries + 1 }), 1000) ; //Retry in 1 second.
                 }
             }
         }
