@@ -133,7 +133,22 @@ namespace STDLib.JBVProtocol
                     if (frame.RetryCount < 3)
                         SendFrame(frame.Frame, frame.RetryCount);
                     else
-                        Logger.LOGE($"Dropped frame, RetryCount = '{frame.RetryCount}'");
+                    {
+                        Command cmd = Command.Create(frame.Frame);
+                        if(cmd is RoutingInvalid)
+                        {
+                            Logger.LOGE($"Dropped RoutingInvalid frame, RetryCount = '{frame.RetryCount}'");
+                        }
+                        else
+                        {
+                            Logger.LOGE($"Dropped frame, RetryCount = '{frame.RetryCount}'");
+
+                            RoutingInvalid cmd2 = new RoutingInvalid();
+                            cmd2.RxID = frame.Frame.TxID;
+                            cmd2.Sequence = cmd.Sequence;
+                            pendingFrames.Add(new PendingFrame(cmd2.GetFrame()));
+                        }
+                    }
                 }
             }
         }

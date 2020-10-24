@@ -9,6 +9,32 @@ using System.Threading.Tasks;
 
 namespace STDLib.JBVProtocol
 {
+    public class Sequencer
+    {
+        HashSet<UInt16> pendingSequences = new HashSet<ushort>();
+        UInt16 nextSeq = 0;
+
+        public UInt16 RequestSequenceID()
+        {
+            lock (pendingSequences)
+            {
+                while (pendingSequences.Contains(nextSeq++)) ;
+                pendingSequences.Add(nextSeq);
+            }
+            return nextSeq;
+        }
+
+        public void FreeSequenceID(UInt16 seqId)
+        {
+            lock (pendingSequences)
+            {
+                pendingSequences.Remove(seqId);
+            }
+        }
+    }
+
+
+
     public class JBVClient
     {
         public event EventHandler<Command> CommandRecieved;
@@ -18,7 +44,7 @@ namespace STDLib.JBVProtocol
         Task task;
         Framing framing;
         BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
-
+ 
         public JBVClient(SoftwareID softId)
         {
             softwareID = softId;
@@ -132,6 +158,35 @@ namespace STDLib.JBVProtocol
                 else
                     Logger.LOGE("No connection");
             }
+        }
+
+
+        Sequencer sequencer = new Sequencer();
+
+        public async Task<Command> SendRequest(Command txCmd, CancellationToken? ct = null)
+        {
+            UInt16 sequence = sequencer.RequestSequenceID();
+
+            TaskCompletionSource<Command> tcs = new TaskCompletionSource<Command>();
+            ct?.Register(()=> 
+            {
+                sequencer.FreeSequenceID(sequence);
+                tcs.TrySetResult(null);
+            });
+
+            CommandRecieved += (sender, rxCmd) =>
+            {
+                if(rxCmd.Sequence == sequence)
+                {
+                    sequencer.FreeSequenceID(sequence);
+                    tcs.TrySetResult(rxCmd);
+                }
+            };
+
+            txCmd.Sequence = sequence;
+            SendCMD(txCmd);
+
+            return await tcs.Task;
         }
 
     }

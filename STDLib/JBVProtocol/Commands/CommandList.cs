@@ -3,8 +3,10 @@
 namespace STDLib.JBVProtocol.Commands
 {
     public enum CommandList : UInt32
-    { 
-        
+    {
+
+        /// <summary> Is send back to the sender when the router couln't find a path to the reciever id. </summary>
+        RoutingInvalid = 0xFFFFFFF4,
 
         /// <summary> Send to the <see cref="LeaseServer"/> to request a <see cref="Lease"/>. </summary>
         RequestLease = 0xFFFFFFF5,

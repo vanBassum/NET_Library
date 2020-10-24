@@ -15,7 +15,7 @@ namespace STDLib.JBVProtocol.Commands
         public abstract UInt32 CommandID { get; }
         public UInt16 TxID { get { return frame.TxID; } set { frame.TxID = value; } }
         public UInt16 RxID { get { return frame.RxID; } set { frame.RxID = value; } }
-
+        public UInt16 Sequence { get { return frame.Sequence; } set { frame.Sequence = value; } }
 
         public abstract byte[] ToArray();
         public abstract void Populate(byte[] data);
