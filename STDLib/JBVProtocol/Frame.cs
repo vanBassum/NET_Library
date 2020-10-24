@@ -1,5 +1,5 @@
 ﻿using System;
-
+using STDLib.JBVProtocol.Commands;
 
 
 namespace STDLib.JBVProtocol
@@ -10,7 +10,7 @@ namespace STDLib.JBVProtocol
         public byte Hops { get; set; } = 0;
         public UInt16 TxID { get; set; } = 0;
         public UInt16 RxID { get; set; } = 0;
-        public virtual UInt32 CommandID { get; set; } = 0;
+        public virtual UInt32 CommandID { get; set; } = (UInt32)CommandList.INVALID;
         public UInt16 DataLength { get; set; } = 0;
         public byte[] Data { get; set; }
         public int TotalLength { get { return DataLength + 2 + 4 + 2 + 2 + 1 + 1; } }
@@ -58,10 +58,10 @@ namespace STDLib.JBVProtocol
                     case 3: TxID = (UInt16)ReplaceByte(0, TxID, value); break;
                     case 4: RxID = (UInt16)ReplaceByte(8, RxID, value); break;
                     case 5: RxID = (UInt16)ReplaceByte(0, RxID, value); break;
-                    case 6: CommandID = (UInt16)ReplaceByte(24, (int)CommandID, value); break;
-                    case 7: CommandID = (UInt16)ReplaceByte(16, (int)CommandID, value); break;
-                    case 8: CommandID = (UInt16)ReplaceByte(08, (int)CommandID, value); break;
-                    case 9: CommandID = (UInt16)ReplaceByte(00, (int)CommandID, value); break;
+                    case 6: CommandID = (UInt32)ReplaceByte(24, (int)CommandID, value); break;
+                    case 7: CommandID = (UInt32)ReplaceByte(16, (int)CommandID, value); break;
+                    case 8: CommandID = (UInt32)ReplaceByte(08, (int)CommandID, value); break;
+                    case 9: CommandID = (UInt32)ReplaceByte(00, (int)CommandID, value); break;
                     case 10: DataLength = (UInt16)ReplaceByte(8, DataLength, value); break;
                     case 11: DataLength = (UInt16)ReplaceByte(0, DataLength, value); break;
                     default:

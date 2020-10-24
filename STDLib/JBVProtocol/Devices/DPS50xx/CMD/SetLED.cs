@@ -6,7 +6,7 @@ namespace STDLib.JBVProtocol.DSP50xx.CMD
     public class SetLED : Command
     {
         protected override bool IsBroadcast => false;
-        public override UInt32 CommandID => 10;
+        public override UInt32 CommandID => 1;
 
         public bool Led { get; set; } = false;
 

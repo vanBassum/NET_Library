@@ -5,7 +5,7 @@ namespace STDLib.JBVProtocol.Commands
     public class RequestID : Command
     {
         protected override bool IsBroadcast => true;
-        public override UInt32 CommandID => (UInt32)Commands.RequestID;
+        public override UInt32 CommandID => (UInt32)CommandList.RequestID;
         public UInt16 ID { get; set; }
 
         public override void Populate(byte[] data)

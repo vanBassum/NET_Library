@@ -5,7 +5,7 @@ namespace STDLib.JBVProtocol.Commands
     public class RequestSID : Command
     {
         protected override bool IsBroadcast => true;
-        public override UInt32 CommandID => (UInt32)Commands.RequestSID;
+        public override UInt32 CommandID => (UInt32)CommandList.RequestSID;
         /// <summary>
         /// Make <see cref="SoftwareID.Unknown"/> to request all SID's otherwise only devices with matching SID will reply
         /// </summary>

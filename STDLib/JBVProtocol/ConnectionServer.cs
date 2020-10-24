@@ -23,7 +23,7 @@ namespace STDLib.JBVProtocol
         {
             Command.InitList();
 
-            Client = new JBVClient(SoftwareID.TestApp);
+            Client = new JBVClient(SoftwareID.ConnectionServer);
             router = new Router();
             leaseServer = new LeaseServer();
 
