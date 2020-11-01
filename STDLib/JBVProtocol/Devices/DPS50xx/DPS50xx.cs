@@ -1,6 +1,6 @@
 ﻿using STDLib.JBVProtocol.Commands;
 using STDLib.JBVProtocol.Devices;
-using STDLib.JBVProtocol.DSP50xx.CMD;
+using STDLib.JBVProtocol.CMD;
 using System.Threading;
 using System.Threading.Tasks;
 

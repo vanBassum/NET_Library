@@ -1,7 +1,7 @@
 ﻿using STDLib.JBVProtocol.Commands;
 using System;
 
-namespace STDLib.JBVProtocol.DSP50xx.CMD
+namespace STDLib.JBVProtocol.CMD
 {
     public class SetLED : Command
     {
@@ -20,5 +20,4 @@ namespace STDLib.JBVProtocol.DSP50xx.CMD
             return new byte[] { (byte)(Led ? 1 : 0) };
         }
     }
-
 }

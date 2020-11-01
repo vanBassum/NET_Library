@@ -38,6 +38,7 @@ namespace STDLib.JBVProtocol
     public class JBVClient
     {
         public event EventHandler<Command> CommandRecieved;
+        public event EventHandler<Lease> LeaseRecieved;
         SoftwareID softwareID = SoftwareID.Unknown;
         Lease lease = new Lease();
         IConnection connection;
@@ -79,7 +80,7 @@ namespace STDLib.JBVProtocol
 
                 Frame frame;
 
-                while(pendingFrames.TryTake(out frame, 10000))
+                while(pendingFrames.TryTake(out frame, 1000))
                 {
                     Command gcmd = Command.Create(frame);
                     if (gcmd == null)
@@ -101,6 +102,7 @@ namespace STDLib.JBVProtocol
                                 {
                                     lease = cmd.Lease;
                                     Logger.LOGI($"Lease acquired");
+                                    LeaseRecieved?.Invoke(this, lease);
                                 }
                                 break;
                             case RequestSID cmd:

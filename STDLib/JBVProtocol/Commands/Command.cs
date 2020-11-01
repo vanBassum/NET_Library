@@ -9,6 +9,7 @@ namespace STDLib.JBVProtocol.Commands
 
     public abstract class Command
     {
+        static bool isInitialized = false;
         Frame frame = new Frame();
         static Dictionary<UInt32, Type> CommandList = new Dictionary<uint, Type>() { };
         protected abstract bool IsBroadcast { get; }
@@ -33,11 +34,13 @@ namespace STDLib.JBVProtocol.Commands
 
         public static Command Create(UInt32 commandId)
         {
+            if (!isInitialized) InitList();
             return (Command)Activator.CreateInstance(CommandList[commandId]);
         }
 
         public static Command Create(Frame frame)
         {
+            if (!isInitialized) InitList();
             Command cmd = null;
             Type type;
 
@@ -71,6 +74,7 @@ namespace STDLib.JBVProtocol.Commands
                     Logger.LOGI($"Command added '{t.Name}'");
                 }
             }
+            isInitialized = true;
         }
     }
 

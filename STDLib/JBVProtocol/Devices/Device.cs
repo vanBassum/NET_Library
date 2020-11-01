@@ -59,5 +59,9 @@ namespace STDLib.JBVProtocol.Devices
             return assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
         }
 
+        public override string ToString()
+        {
+            return this.GetType().Name;
+        }
     }
 }

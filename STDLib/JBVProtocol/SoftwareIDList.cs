@@ -13,5 +13,7 @@ namespace STDLib.JBVProtocol
         DPS50xx = 5,
         TestApp = 6,    //This id can be used when testing stuff. Its a device that doens't really exists.
         ConnectionServer = 7,
+        DebugTool = 8,
+        FunctionGenerator = 9,
     }
 }
