@@ -1,14 +1,11 @@
-﻿using STDLib.JBVProtocol.IO;
-using STDLib.JBVProtocol.IO.CMD;
+﻿using STDLib.JBVProtocol;
+using STDLib.JBVProtocol.Commands;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 
 namespace STDLib.JBVProtocol
 {
@@ -21,257 +18,215 @@ namespace STDLib.JBVProtocol
     /// </summary>
     public class Router
     {
-        Lease lease;
+        //Lease lease = new Lease();
         private const byte MaxHop = 32;
         Task routerTask;
-        //Contains all active connections to this router.
-        List<Connection> connections = new List<Connection>();
-        //Contains all information how to reroute data
-        List<Route> routingTable = new List<Route>();
-        System.Timers.Timer leaseTimer = new System.Timers.Timer();
-        public ushort ID { get { return lease.ID; } }
+        List<Con> connections = new List<Con>();
+        ConcurrentDictionary<UInt16, Route> routingTable = new ConcurrentDictionary<UInt16, Route>();
+        BlockingCollection<PendingFrame> pendingFrames = new BlockingCollection<PendingFrame>();
 
-        public Router(ushort id = 0)
+        class PendingFrame
         {
-            lease = new Lease();
-            lease.ID = id;
-            lease.Key = Guid.NewGuid();
+            public Frame Frame { get; set; }
+            public int RetryCount { get; set; } = 0;
+
+            public PendingFrame(Frame frame)
+            {
+                Frame = frame;
+            }
+        }
+
+
+        public Router()
+        {
             routerTask = new Task(DoRouting);
             routerTask.Start();
-            leaseTimer.Interval = 100;
-            leaseTimer.Start();
-            leaseTimer.Elapsed += LeaseTimer_Elapsed;
         }
 
-        private void LeaseTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        public void AddConnection(IConnection connection)
         {
-            if (lease.Expire > DateTime.Now)
+            Con con = new Con(connection);
+            con.OnFrameRecieved += Con_OnFrameRecieved;
+            connections.Add(con);
+        }
+
+        private void Con_OnFrameRecieved(object sender, Frame frame)
+        {
+            frame.Hops++;
+            //Routingtable update
+            if (sender is Con connection)
             {
-                //Not expired
-                TimeSpan expiresIn = lease.Expire - DateTime.Now;
-                if (expiresIn < TimeSpan.FromMinutes(5))
+                Route route = null;
+
+                if (!routingTable.TryGetValue(frame.TxID, out route))
+                    routingTable[frame.TxID] = route = new Route { Connection = connection, Hops = frame.Hops };
+
+                if (frame.Hops < route.Hops) 
                 {
-                    //Expires witin 5 minutes
-                    RequestLease();
-                }
-                else
-                {
-                    leaseTimer.Interval = expiresIn.TotalMinutes - 4;
-                    //Next interval should be 4 minutes before expirering.
-                }
-            }
-            else
-            {
-                RequestLease();
-                leaseTimer.Interval *= 2;
-                if (leaseTimer.Interval > 10000)
-                    leaseTimer.Interval = 10000;
-            }
-        }
-
-
-
-        /// <summary>
-        /// Add a connection to this router.
-        /// </summary>
-        /// <param name="connection"></param>
-        public void AddConnection(Connection connection)
-        {
-            lock (connections)
-                connections.Add(connection);
-            connection.OnFrameReceived += Connection_OnFrameReceived;
-            connection.OnDisconnected += Connection_OnDisconnected;
-        }
-
-        private void RequestLease()
-        {
-            CMD_RequestLease cmd = new CMD_RequestLease(lease.Key);
-            Frame frame = cmd.CreateCommandFrame(ID);
-            lock (connections)
-            {
-                foreach (Connection txCon in connections)
-                    txCon.SendFrame(frame);
-            }
-        }
-
-        private void Connection_OnDisconnected(object sender, EventArgs e)
-        {
-            if (sender is Connection con)
-            {
-                lock (routingTable)
-                    routingTable.RemoveAll(r => r.con == con);
-            }
-
-            //@TODO: We don't inform the others. Its probably not nessesary because the network will recover automatically.
-        }
-
-
-
-
-        BlockingCollection<Tuple<Connection, Frame>> frameBuffer = new BlockingCollection<Tuple<Connection, Frame>>();
-        List<Frame> unknownRouteFrames = new List<Frame>();//Frames that coulnt be rerouted are stored here untill further notice.
-
-        private void Connection_OnFrameReceived(object sender, Frame e)
-        {
-            if (sender is Connection con)
-            {
-                bool handleFrame = true;
-
-                if (e.Command)
-                {
-                    BaseCommand bcmd = BaseCommand.GetCommand(e.PAY);
-
-                    switch (bcmd)
-                    {
-                        case CMD_ReplyLease cmd:
-                            if(cmd.Lease.Key == lease.Key)
-                            {
-                                lease = cmd.Lease;
-                                handleFrame = false;
-                            }
-                            break;
-
-
-                    }
+                    //Faster route found, update routinginfo.
+                    route.Connection = connection;
+                    route.Hops = frame.Hops;
                 }
 
-                if(handleFrame)
-                    frameBuffer.Add(new Tuple<Connection, Frame>(con, e));
+                //if (frame.RxID == lease.ID)
+                //{
+                //    //Package only for us, dont resend!
+                //    HandleFrame(frame);
+                //}
+                //else if (frame.Options.HasFlag(Frame.OPT.Broadcast))
+                //{
+                //    //Package also for us, do resend!
+                //    if(frame.Hops == route.Hops)
+                //    {
+                //        HandleFrame(frame);
+                //        pendingFrames.Add(frame);
+                //    }
+                //}
+                //else
+                //{
+                //    //Package not for us, do resend!
+                //    pendingFrames.Add(frame);
+                //}
+
+                pendingFrames.Add(new PendingFrame(frame));
             }
         }
+
+        //void HandleFrame(Frame frame)
+        //{
+        //    //This frame should be handled by us.
+        //    Command gcmd = Command.Create(frame);
+        //    if (gcmd != null)
+        //    {
+        //        switch (gcmd)
+        //        {
+        //            case ReplyLease cmd:
+        //                if (cmd.Lease.Key == lease.Key)
+        //                {
+        //                    lease = cmd.Lease;
+        //                    Logger.LOGI($"Lease acquired");
+        //                }
+        //                break;
+        //            default:
+        //                Logger.LOGW($"Command not handled cmdid = '{gcmd.CommandID}'");
+        //                break;
+        //        }
+        //    }
+        //    else
+        //        Logger.LOGE($"Couln't convert frame to command cmdid = '{frame.CommandID}'");
+        //}
 
         private void DoRouting()
         {
-            //@TODO: CancellationToken something something...
             while (true)
             {
-                Tuple<Connection, Frame> item = frameBuffer.Take();
-                Connection rxCon = item.Item1;
-                Frame rxFrame = item.Item2;
 
-                rxFrame.HOP++;
-                if (rxFrame.HOP <= MaxHop)
+                //if (lease.ExpiresIn.TotalMinutes < 5)
+                //{
+                //    RequestLease();
+                //}
+                
+                PendingFrame frame;
+
+                while (pendingFrames.TryTake(out frame, 1000))
                 {
-                    lock (routingTable) //Do everything within the lock, we dont want the colletion to be changed by another process in the meanwhile.
+                    if (frame.RetryCount < 3)
+                        SendFrame(frame.Frame, frame.RetryCount);
+                    else
                     {
-                        if (rxFrame.Broadcast)
+                        Command cmd = Command.Create(frame.Frame);
+                        if(cmd is RoutingInvalid)
                         {
-                            HandleBroadcast(rxCon, rxFrame);
+                            Logger.LOGE($"Dropped RoutingInvalid frame, RetryCount = '{frame.RetryCount}'");
                         }
                         else
                         {
-                            HandleMessage(rxCon, rxFrame);
+                            Logger.LOGE($"Dropped frame, RetryCount = '{frame.RetryCount}'");
+
+                            RoutingInvalid cmd2 = new RoutingInvalid();
+                            cmd2.RxID = frame.Frame.TxID;
+                            cmd2.Sequence = cmd.Sequence;
+                            pendingFrames.Add(new PendingFrame(cmd2.GetFrame()));
                         }
                     }
                 }
-                else
-                {
-                    //TODO: Should we do something here???
-                }
             }
         }
 
 
+        //void RequestLease()
+        //{
+        //    Logger.LOGI("RequestLease");
+        //    RequestLease cmd = new RequestLease();
+        //    cmd.Key = lease.Key;
+        //    Frame frame = cmd.GetFrame();
+        //    frame.RxID = 0;
+        //    SendFrame(frame);
+        //}
 
-        void HandleBroadcast(Connection rxCon, Frame rxFrame)
+        void RequestID(UInt16 id)
         {
-            //First, check if we know this route already.
-            Route rxRoute = routingTable.FirstOrDefault(r => r.id == rxFrame.SID);
-
-            if (rxRoute == null)
-            {
-                rxRoute = new Route();
-                rxRoute.con = rxCon;
-                rxRoute.hops = rxFrame.HOP;
-                rxRoute.id = rxFrame.SID;
-                routingTable.Add(rxRoute);
-            }
-
-            if (rxFrame.HOP < rxRoute.hops)
-            {
-                //A better shorter route was found, update the route.
-                rxRoute.con = rxCon;
-                rxRoute.hops = rxFrame.HOP;
-            }
-
-            if (rxFrame.HOP == rxRoute.hops)
-            {
-                //Resend the broadcast.
-                lock (connections)
-                {
-                    foreach (Connection txCon in connections.Where(r => r != rxCon))
-                        txCon.SendFrame(rxFrame);
-                }
-            }
-
-            //if (rxFrame.HOP > rxRoute.hops) => let the frame die.
+            Logger.LOGI("RequestID");
+            RequestID cmd = new RequestID();
+            cmd.ID = id;
+            Frame frame = cmd.GetFrame();
+            frame.RxID = 0;
+            SendFrame(frame);
         }
 
-        void HandleMessage(Connection rxCon, Frame rxFrame)
+        void SendFrame(Frame frame, int retries = 0)
         {
-            Route txRoute = routingTable.FirstOrDefault(r => r.id == rxFrame.RID);
-
-            if (txRoute == null)
+            if (frame.Options.HasFlag(Frame.OPT.Broadcast))
             {
-
-                lock (unknownRouteFrames)
-                    unknownRouteFrames.Add(rxFrame);
-
-                CMD_RequestID cmd = new CMD_RequestID(rxFrame.RID);
-                Frame txFrame = cmd.CreateCommandFrame(ID);
-
-                lock (connections)
+                //Send to all known connections.
+                foreach (Con con in connections)
                 {
-                    foreach (Connection txCon in connections.Where(r => r != rxCon))
-                        txCon.SendFrame(txFrame);
+                    con.SendFrame(frame);
                 }
-
-                //@TODO Implement a timeout for the frames in the waitinglist 'unknownRouteFrames'
             }
             else
             {
-                //route is known so send the frame to the next client.
-                txRoute.con.SendFrame(rxFrame);
-            }
-        }
-
-        void HandleRoutingInfo(Connection rxCon, Frame rxFrame, Route newRoute)
-        {
-            lock (unknownRouteFrames)
-            {
-                List<Frame> resolvedFrames = unknownRouteFrames.Where(f => f.RID == rxFrame.SID).ToList();
-                foreach (Frame f in resolvedFrames)
+                Route route = null;
+                if (routingTable.TryGetValue(frame.RxID, out route))
+                    route.Connection.SendFrame(frame);
+                else
                 {
-                    newRoute.con.SendFrame(f);
-                    unknownRouteFrames.Remove(f);
+                    //Unknown route.
+                    RequestID(frame.RxID);
+                    DoDelayed(() => pendingFrames.Add(new PendingFrame(frame) { RetryCount = retries + 1 }), 1000) ; //Retry in 1 second.
                 }
             }
         }
 
+        void DoDelayed(Action action, int delay)
+        {
+            new Task(() => { Thread.Sleep(delay); action.Invoke(); }).Start();
+        }
 
 
-        /// <summary>
-        /// Entry in the routing table, it contains information how to access a client within a certain ammount of hops.
-        /// </summary>
+        public class Con
+        {
+            public event EventHandler<Frame> OnFrameRecieved;
+            IConnection Connection { get; set; }
+            Framing Framing { get; set; } = new Framing();
+
+            public Con(IConnection con)
+            {
+                Connection = con;
+                Framing.OnFrameCollected += (a,b) => OnFrameRecieved?.Invoke(this, b);
+                con.OnDataRecieved += (a, b) => Framing.Unstuff(b);
+            }
+
+            public void SendFrame(Frame frame)
+            {
+                Connection.SendData(Framing.Stuff(frame));
+            }
+        }
+
         public class Route
         {
-            /// <summary>
-            /// The ID of the client
-            /// </summary>
-            public ushort id;
-
-            /// <summary>
-            /// Number of hops the client is removed from this router
-            /// </summary>
-            public byte hops;
-
-            /// <summary>
-            /// The connection to route the frame to.
-            /// </summary>
-            public Connection con;
+            public byte Hops { get; set; }
+            public Con Connection { get; set; }
         }
     }
-    
-
-
 }

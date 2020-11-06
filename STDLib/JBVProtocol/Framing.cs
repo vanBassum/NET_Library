@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace STDLib.JBVProtocol.IO
+
+
+namespace STDLib.JBVProtocol
 {
-
-    /// <summary>
-    /// Framing implements a bytestuffing algorithm that converts an incomming bytestream into complete frames and vice-versa.
-    /// </summary>
     public class Framing
     {
         enum BS : byte
@@ -15,18 +12,18 @@ namespace STDLib.JBVProtocol.IO
             SOF = (byte)'&',    //Start of frame
             EOF = (byte)'%',    //End of frame
             ESC = (byte)'\\',   //Escape character
-            NOP = (byte)'*',    //Does nothing, used to fill remainder when a static ammount of data is required by the I/O.
+            NOP = (byte)'*',    //Does nothing, used to fill remainder when a static amount of data is required by the I/O.
         }
 
         bool startFound = false;
         bool esc = false;
-        List<byte> dataBuffer = new List<byte>();
-
+        Frame frame;
+        int wrptr = 0;
 
         /// <summary>
         /// Fires when a complete frame has been recieved.
         /// </summary>
-        public event EventHandler<byte[]> OnFrameCollected;
+        public event EventHandler<Frame> OnFrameCollected;
 
         /// <summary>
         /// Method to destuff incomming data. 
@@ -54,11 +51,12 @@ namespace STDLib.JBVProtocol.IO
                             break;
                         case (byte)BS.SOF:
                             startFound = true;
-                            dataBuffer.Clear();
+                            wrptr = 0;
+                            frame = new Frame();
                             break;
                         case (byte)BS.EOF:
                             startFound = false;
-                            OnFrameCollected(this, dataBuffer.ToArray());
+                            OnFrameCollected(this, frame);
                             break;
                         case (byte)BS.NOP:
                             break;
@@ -69,33 +67,33 @@ namespace STDLib.JBVProtocol.IO
                 }
 
                 if (record && startFound)
-                    dataBuffer.Add(data[i]);
-            } 
+                {
+                    frame[wrptr++] = data[i];
+                }
+            }
         }
+
 
         /// <summary>
         /// Method to stuff a frame into raw data.
         /// </summary>
-        /// <param name="frame"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        public byte[] Stuff(byte[] frame)
+        public byte[] Stuff(Frame frame)
         {
             List<byte> dataOut = new List<byte>();
-            dataOut.Add((byte) BS.SOF);
-            foreach(byte b in frame)
+            dataOut.Add((byte)BS.SOF);
+            for(int i=0; i<frame.TotalLength; i++)
             {
-                if(Enum.IsDefined(typeof(BS), b))
+                byte b = frame[i];
+                if (Enum.IsDefined(typeof(BS), b))
                     dataOut.Add((byte)BS.ESC);
                 dataOut.Add(b);
             }
 
             dataOut.Add((byte)BS.EOF);
-            return dataOut.ToArray();           
+            return dataOut.ToArray();
         }
-
-
-        
     }
-
 
 }

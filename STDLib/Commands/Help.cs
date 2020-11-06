@@ -5,7 +5,7 @@ namespace STDLib.Commands
     public class Help : BaseCommand
     {
         public override string Description => "Lists all available commands";
-        public override void Execute()
+        public override void Execute(string[] args)
         {
             Console.WriteLine($"Available commands:");
 
