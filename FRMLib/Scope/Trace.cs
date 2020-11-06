@@ -25,7 +25,7 @@ namespace FRMLib.Scope
         //[TraceViewAttribute(Width = 40)]
         public int Layer { get { return GetPar(10); } set { SetPar(value); } }
         public ThreadedBindingList<PointD> Points { get; } = new ThreadedBindingList<PointD>();
-        public ThreadedBindingList<Mark> Marks { get; } = new ThreadedBindingList<Mark>();
+        //public ThreadedBindingList<Mark> Marks { get; } = new ThreadedBindingList<Mark>();
         //[TraceViewAttribute(Width = 80)]
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
         // [TraceViewAttribute]
@@ -64,7 +64,7 @@ namespace FRMLib.Scope
         }
 
 
-        public IEnumerable<PointD> GetPointsBetweenMarkers(Marker marker1, Marker marker2)
+        public IEnumerable<PointD> GetPointsBetweenMarkers(Cursor marker1, Cursor marker2)
         {
             double x1 = 0;
             double x2 = 0;

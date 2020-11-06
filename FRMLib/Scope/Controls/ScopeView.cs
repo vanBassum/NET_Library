@@ -25,7 +25,7 @@ namespace FRMLib.Scope.Controls
                 if (dataSource != null)
                 {
                     dataSource.Traces.ListChanged += Traces_ListChanged;
-                    dataSource.Markers.ListChanged += Markers_ListChanged;
+                    dataSource.Cursors.ListChanged += Markers_ListChanged;
                 }
             }
         }
@@ -35,8 +35,8 @@ namespace FRMLib.Scope.Controls
         private Point lastClick = Point.Empty;
         private Point lastClickDown = Point.Empty;
         private double horOffsetLastClick = 0;
-        private Marker dragMarker = null;
-        private Marker hoverMarker = null;
+        private Cursor dragMarker = null;
+        private Cursor hoverMarker = null;
         int columns;
         int hPxPerSub;
         int thiswidth;
@@ -91,8 +91,8 @@ namespace FRMLib.Scope.Controls
             item.Click += AutoscaleHor_Click;
             menu.Items.Add(item);
 
-            item = new ToolStripMenuItem("ClearData");
-            item.Click += ClearData_Click;
+            item = new ToolStripMenuItem("Clear");
+            item.Click += Clear_Click;
             menu.Items.Add(item);
         }
 
@@ -101,24 +101,23 @@ namespace FRMLib.Scope.Controls
             FitHorizontalInXDivs(Settings.HorizontalDivisions);
         }
 
-        private void ClearData_Click(object sender, EventArgs e)
+        private void Clear_Click(object sender, EventArgs e)
         {
-            foreach (Trace t in dataSource.Traces)
-                t.Points.Clear();
+            dataSource.Clear();
         }
 
         private void AddMarker_Click(object sender, EventArgs e)
         {
-            dataSource.Markers.Add(dragMarker = new Marker() { X = -Settings.HorOffset });
+            dataSource.Cursors.Add(dragMarker = new Cursor() { X = -Settings.HorOffset });
         }
 
         private void Zoom_Click(object sender, EventArgs e)
         {
-            if (DataSource.Markers.Count == 0)
+            if (DataSource.Cursors.Count == 0)
                 return;
 
-            Marker left = null;
-            Marker right = null;
+            Cursor left = null;
+            Cursor right = null;
 
             GetMarkersAdjecentToX(lastClick.X, ref left, ref right);
 
@@ -150,7 +149,7 @@ namespace FRMLib.Scope.Controls
             DrawAll();
         }
 
-        void GetMarkersAdjecentToX(double xPos, ref Marker left, ref Marker right)
+        void GetMarkersAdjecentToX(double xPos, ref Cursor left, ref Cursor right)
         {
             //double pxPerUnits_hor = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale);
             //double x = (float)(trace.Points[i].X + Settings.HorOffset) * pxPerUnits_hor;
@@ -162,26 +161,26 @@ namespace FRMLib.Scope.Controls
             int iLeft = -1;
             int iRight = -1;
 
-            for (int i = 0; i < DataSource.Markers.Count; i++)
+            for (int i = 0; i < DataSource.Cursors.Count; i++)
             {
-                if (DataSource.Markers[i].X < x)
+                if (DataSource.Cursors[i].X < x)
                 {
                     if (iLeft == -1)
                         iLeft = i;
                     else
                     {
-                        if (DataSource.Markers[i].X > DataSource.Markers[iLeft].X)
+                        if (DataSource.Cursors[i].X > DataSource.Cursors[iLeft].X)
                             iLeft = i;
                     }
                 }
 
-                if (DataSource.Markers[i].X > x)
+                if (DataSource.Cursors[i].X > x)
                 {
                     if (iRight == -1)
                         iRight = i;
                     else
                     {
-                        if (DataSource.Markers[i].X < DataSource.Markers[iRight].X)
+                        if (DataSource.Cursors[i].X < DataSource.Cursors[iRight].X)
                             iRight = i;
                     }
                 }
@@ -190,12 +189,12 @@ namespace FRMLib.Scope.Controls
             if (iLeft == -1)
                 left = null;
             else
-                left = DataSource.Markers[iLeft];
+                left = DataSource.Cursors[iLeft];
 
             if (iRight == -1)
                 right = null;
             else
-                right = DataSource.Markers[iRight];
+                right = DataSource.Cursors[iRight];
         }
 
         private void ScopeView_Load(object sender, EventArgs e)
@@ -299,17 +298,17 @@ namespace FRMLib.Scope.Controls
                     if (DataSource != null)
                     {
 
-                        Cursor cur = Cursors.Default;
+                        System.Windows.Forms.Cursor cur = System.Windows.Forms.Cursors.Default;
                         hoverMarker = null;
-                        for (int i = 0; i < DataSource.Markers.Count; i++)
+                        for (int i = 0; i < DataSource.Cursors.Count; i++)
                         {
-                            if (DataSource.Markers[i].X > xMin && DataSource.Markers[i].X < xMax)
+                            if (DataSource.Cursors[i].X > xMin && DataSource.Cursors[i].X < xMax)
                             {
                                 cur = Cursors.VSplit;
-                                hoverMarker = DataSource.Markers[i];
+                                hoverMarker = DataSource.Cursors[i];
                             }
                         }
-                        Cursor.Current = cur;
+                        System.Windows.Forms.Cursor.Current = cur;
                     }
                 }
             }
@@ -551,7 +550,9 @@ namespace FRMLib.Scope.Controls
                     }
                 }
                                     
-                int traceNo = 0;
+                int errNo = 0;
+                Brush errBrush = new SolidBrush(Color.Red);
+
                 //Loop through plots
                 foreach (Trace trace in sortedTraces)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
                 {
@@ -667,33 +668,44 @@ namespace FRMLib.Scope.Controls
                                         break;
 
                                     default:
-                                        g.DrawString($"Drawing of '{trace.DrawStyle}' is not supported yet.", Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height + 1));
+                                        g.DrawString($"Drawing of '{trace.DrawStyle}' is not supported yet.", Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height + 1));
                                         i = pointCnt;
                                         break;
 
                                 }
                             }
-
-                            foreach (Mark m in trace.Marks)
-                            {
-                                double x = (float)(m.X + Settings.HorOffset) * pxPerUnits_hor;
-                                double y = thisheight / 2 - (m.Y + trace.Offset) * pxPerUnits_ver;// * trace.Scale;
-
-                                g.DrawString(m.Text, Settings.Font, brush, (int)x, (int)y);
-                                g.DrawCross(pen, x, y, 3);
-                            }
                         }
                         catch (Exception ex)
                         {
-                            g.DrawString(ex.Message, Settings.Font, brush, new Point(0, traceNo * Settings.Font.Height));
+                            g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
                         }
-
-
-                        
                     }
-
-                    traceNo++;
                 }
+
+                try
+                {
+                    foreach (Marker marker in dataSource.Markers)
+                    {
+
+                        double pxPerUnits_ver = thisheight / (Settings.VerticalDivisions * marker.Scale);
+
+
+                        double x = (float)(marker.Point.X + Settings.HorOffset) * pxPerUnits_hor;
+                        double y = thisheight / 2 - (marker.Point.Y + marker.Offset) * pxPerUnits_ver;// * trace.Scale;
+
+                        Brush brush = new SolidBrush(marker.Pen.Color);
+
+                        g.DrawString(marker.Text, Settings.Font, brush, (int)x, (int)y);
+                        g.DrawCross(marker.Pen, x, y, 3);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
+                }
+
+                
+
             }
         }
 
@@ -715,7 +727,7 @@ namespace FRMLib.Scope.Controls
 
                 int markerNo = 0;
                 //Loop through markers
-                foreach (Marker marker in DataSource.Markers)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
+                foreach (Cursor marker in DataSource.Cursors)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
                 {
                     Pen pen = marker.Pen;
                     Brush brush = new SolidBrush(pen.Color);

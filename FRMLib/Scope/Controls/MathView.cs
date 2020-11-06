@@ -28,8 +28,8 @@ namespace FRMLib.Scope.Controls
                 if (dataSource != null)
                 {
                     dataGridView.DataSource = dataSource.MathItems;
-                    markerColumn1.DataSource = dataSource.Markers;
-                    markerColumn2.DataSource = dataSource.Markers;
+                    markerColumn1.DataSource = dataSource.Cursors;
+                    markerColumn2.DataSource = dataSource.Cursors;
                     traceColumn.DataSource = DataSource.Traces;
                 }
             }
@@ -66,14 +66,14 @@ namespace FRMLib.Scope.Controls
                     }
                     else if (pi.Name == nameof(MathItem.Marker1))
                     {
-                        markerColumn1.DisplayMember = nameof(Marker.ID);
-                        markerColumn1.ValueMember = nameof(Marker.Self);
+                        markerColumn1.DisplayMember = nameof(Scope.Cursor.ID);
+                        markerColumn1.ValueMember = nameof(Scope.Cursor.Self);
                         col = markerColumn1;
                     }
                     else if (pi.Name == nameof(MathItem.Marker2))
                     {
-                        markerColumn2.DisplayMember = nameof(Marker.ID);
-                        markerColumn2.ValueMember = nameof(Marker.Self);
+                        markerColumn2.DisplayMember = nameof(Scope.Cursor.ID);
+                        markerColumn2.ValueMember = nameof(Scope.Cursor.Self);
                         col = markerColumn2;
                     }
                     else if (pi.Name == nameof(MathItem.Function))

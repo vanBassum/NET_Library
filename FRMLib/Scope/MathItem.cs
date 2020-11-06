@@ -16,9 +16,9 @@ namespace FRMLib.Scope
         [TraceViewAttribute(Width = 60)]
         public Trace Trace { get { return GetPar<Trace>(null); } set { SetPar(value); } } 
         [TraceViewAttribute(Text = "M1", Width = 40)]
-        public Marker Marker1 { get { return GetPar<Marker>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
+        public Cursor Marker1 { get { return GetPar<Cursor>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
         [TraceViewAttribute(Text = "M2", Width = 40)]
-        public Marker Marker2 { get { return GetPar<Marker>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
+        public Cursor Marker2 { get { return GetPar<Cursor>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
         [TraceViewAttribute(Width = 80)]
         public MathFunction Function { get { return GetPar<MathFunction>(null); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 80)]

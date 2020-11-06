@@ -46,7 +46,7 @@
     <Compile Include="Ext.cs" />
     <Compile Include="Kernel32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scope\Mark.cs" />
+    <Compile Include="Scope\Marker.cs" />
     <Compile Include="Scope\Palettes.cs" />
     <Compile Include="Scope\MathFunctions\AVG.cs" />
     <Compile Include="Scope\MathFunctions\DiffX.cs" />
@@ -81,7 +81,7 @@
       <DependentUpon>TraceView.cs</DependentUpon>
     </Compile>
     <Compile Include="Scope\Ext.cs" />
-    <Compile Include="Scope\Marker.cs" />
+    <Compile Include="Scope\Cursor.cs" />
     <Compile Include="Scope\ScopeController.cs" />
     <Compile Include="Scope\Trace.cs" />
   </ItemGroup>

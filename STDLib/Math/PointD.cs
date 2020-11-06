@@ -10,12 +10,15 @@ namespace STDLib.Math
         public bool IsEmpty { get { return double.IsNaN(X) && double.IsNaN(Y); } set { X = double.NaN; Y = double.NaN; } }
 
 
+        public PointD()
+        {
+        }
+
         public PointD(double x, double y)
         {
             X = x;
             Y = y;
         }
-
 
         public void Scale(double offsetX, double scaleX, double offsetY, double scaleY)
         {
