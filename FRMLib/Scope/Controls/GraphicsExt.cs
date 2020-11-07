@@ -103,7 +103,12 @@ namespace FRMLib.Scope.Controls
 
         public static void DrawLine(this Graphics g, Pen p, Point p1, Point p2, bool extendBegin, bool extendEnd)
         {
-            g.DrawLine(p, p1, p2);
+
+            if(p1 == p2)
+                g.FillRectangle(new SolidBrush(p.Color), p1.X, p1.Y, 1, 1);
+            else
+                g.DrawLine(p, p1, p2);
+
 
             if (extendBegin)
                 g.DrawArrow(p, p2, -1, 0, 3);

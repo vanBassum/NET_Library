@@ -1,5 +1,6 @@
 ﻿using STDLib.Math;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 
@@ -11,6 +12,12 @@ namespace STDLib.Misc
         public ThreadedBindingList()
         {
             ctx = SynchronizationContext.Current;
+        }
+
+        public void AddRange(ICollection<T> collecion)
+        {
+            foreach (T t in collecion)
+                this.Add(t);
         }
 
         protected override void OnAddingNew(AddingNewEventArgs e)

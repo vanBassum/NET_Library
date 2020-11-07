@@ -514,6 +514,7 @@ namespace FRMLib.Scope.Controls
             pictureBox2.Refresh();
         }
 
+
         private void PictureBox2_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -628,7 +629,7 @@ namespace FRMLib.Scope.Controls
                                             g.DrawLine(pen, pAct, pNext, false, true);
 
                                         if (!last)
-                                            g.DrawLine(pen, pAct, pNext);
+                                            g.DrawLine(pen, pAct, pNext, false, false);
 
                                         break;
 
