@@ -5,17 +5,22 @@ namespace STDLib.Math
 
     public class PointD
     {
-        public double X { get; set; } = double.NaN;
-        public double Y { get; set; } = double.NaN;
+        public double X { get; set; }
+        public double Y { get; set; }
         public bool IsEmpty { get { return double.IsNaN(X) && double.IsNaN(Y); } set { X = double.NaN; Y = double.NaN; } }
 
+
+        public PointD()
+        {
+            X = double.NaN;
+            Y = double.NaN;
+        }
 
         public PointD(double x, double y)
         {
             X = x;
             Y = y;
         }
-
 
         public void Scale(double offsetX, double scaleX, double offsetY, double scaleY)
         {

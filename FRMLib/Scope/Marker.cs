@@ -1,39 +1,37 @@
-﻿using FRMLib.Scope.Controls;
-using STDLib.Misc;
-using System.Collections.Generic;
+﻿using STDLib.Math;
 using System.Drawing;
+using System.Runtime.Remoting.Messaging;
 
 namespace FRMLib.Scope
 {
-    public class Marker : PropertySensitive
+    public abstract class Marker
     {
-        private static HashSet<int> ids = new HashSet<int>();
+        public virtual double Scale { get; set; } = 1;
+        public virtual double Offset { get; set; } = 0;
+        public virtual Pen Pen { get; set; } = Pens.White;
+        public virtual PointD Point { get; set; }
+        public string Text { get; set; }
+    }
 
-        ~Marker()
-        {
-            ids.Remove(ID);
-        }
 
-        private static int NextId 
-        { 
-            get 
-            { 
-                int i = 1;
-                while (ids.Contains(i))
-                    i++;
-                ids.Add(i);
-                return i;
-            } 
-        }
+    public class FreeMarker : Marker
+    {
 
-        
+        public FreeMarker(double x, double y) { Point = new PointD(x, y); }
+    }
 
-        [TraceViewAttribute(Width = 25)]
-        public int ID { get; /*private set;*/ } = NextId;
-        public Pen Pen { get { return GetPar(new Pen(Color.White) { DashPattern = new float[] { 4.0F, 4.0F, 8.0F, 4.0F } }); } set { SetPar(value); } }
-        [TraceViewAttribute(AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells)]
-        public double X { get { return GetPar<double>(0); } set { SetPar<double>(value); } }
-        public Marker Self { get { return this; } }
+
+    public class LinkedMarker : Marker
+    {
+        public Trace Trace { get; set; }
+        public LinkedMarker(Trace trace) { Trace = trace; }
+        public LinkedMarker(Trace trace, double x, double y) { Trace = trace; Point = new PointD(x, y); }
+
+        public override Pen Pen { get => Trace.Pen; }
+        public override double Scale { get => Trace.Scale; }
+        public override double Offset { get => Trace.Offset; }
 
     }
+
+
 }
