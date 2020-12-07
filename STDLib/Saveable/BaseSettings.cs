@@ -124,7 +124,7 @@ namespace STDLib.Saveable
                     if (!fields.ContainsKey(propertyName))
                         fields[propertyName] = defVal;
                     
-                    if(val.GetType() == fields[propertyName].GetType())
+                    if(typeof(T2) == fields[propertyName].GetType())
                         val = (T2)fields[propertyName];
                     else
                         val = (T2)Convert.ChangeType(fields[propertyName], typeof(T2));
