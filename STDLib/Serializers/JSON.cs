@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters;
 using System.Text;
@@ -11,8 +12,8 @@ namespace STDLib.Serializers
         {
             //TypeNameHandling = TypeNameHandling.Objects,
             //TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
+            //ObjectCreationHandling = ObjectCreationHandling.Replace,         //https://stackoverflow.com/questions/13394401/json-net-deserializing-list-gives-duplicate-items
         };
-
 
         public override T Deserialize<T>(Stream data)
         {

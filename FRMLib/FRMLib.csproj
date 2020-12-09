@@ -44,11 +44,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ext.cs" />
-    <Compile Include="FormEditObject.cs">
+    <Compile Include="ObjectEditDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormEditObject.Designer.cs">
-      <DependentUpon>FormEditObject.cs</DependentUpon>
+    <Compile Include="ObjectEditDialog.Designer.cs">
+      <DependentUpon>ObjectEditDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Kernel32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -99,8 +99,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="FormEditObject.resx">
-      <DependentUpon>FormEditObject.cs</DependentUpon>
+    <EmbeddedResource Include="ObjectEditDialog.resx">
+      <DependentUpon>ObjectEditDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Scope\Controls\ScopeView.resx">
       <DependentUpon>ScopeView.cs</DependentUpon>

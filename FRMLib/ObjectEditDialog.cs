@@ -10,11 +10,11 @@ using System.Windows.Forms;
 
 namespace FRMLib
 {
-    public partial class FormEditObject : Form
+    public partial class ObjectEditDialog : Form
     {
         public object Value { get { return propertyGrid1.SelectedObject; } set { propertyGrid1.SelectedObject = value; } }
 
-        public FormEditObject()
+        public ObjectEditDialog()
         {
             InitializeComponent();
         }

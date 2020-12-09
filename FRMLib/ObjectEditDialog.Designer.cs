@@ -1,6 +1,6 @@
 ﻿namespace FRMLib
 {
-    partial class FormEditObject
+    partial class ObjectEditDialog
     {
         /// <summary>
         /// Required designer variable.
