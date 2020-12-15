@@ -69,7 +69,7 @@ namespace STDLib.Math
         */
 
         public static PointD Empty
-        { 
+        {
             get
             {
                 PointD pt = new PointD(0, 0);
@@ -77,6 +77,6 @@ namespace STDLib.Math
                 return pt;
             }
         }
-        
+
     }
 }

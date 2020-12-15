@@ -1,6 +1,5 @@
 ﻿using STDLib.Math;
 using System.Drawing;
-using System.Runtime.Remoting.Messaging;
 
 namespace FRMLib.Scope
 {

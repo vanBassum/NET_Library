@@ -83,7 +83,7 @@ namespace STDLib.JBVProtocol
         {
             List<byte> dataOut = new List<byte>();
             dataOut.Add((byte)BS.SOF);
-            for(int i=0; i<frame.TotalLength; i++)
+            for (int i = 0; i < frame.TotalLength; i++)
             {
                 byte b = frame[i];
                 if (Enum.IsDefined(typeof(BS), b))

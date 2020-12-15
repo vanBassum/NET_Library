@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace STDLib.Serializers
 {
@@ -30,7 +26,7 @@ namespace STDLib.Serializers
 
 
     }
-    
+
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public class SerializerVersionAttribute : Attribute
     {

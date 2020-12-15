@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace STDLib.Math
+﻿namespace STDLib.Math
 {
     public class SizeD
     {

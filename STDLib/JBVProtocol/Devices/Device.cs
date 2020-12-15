@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace STDLib.JBVProtocol.Devices
 {
@@ -21,7 +19,7 @@ namespace STDLib.JBVProtocol.Devices
             Client = client;
             Client.CommandRecieved += Client_CommandRecieved;
 
-            foreach(Type t in FindSubClassesOf<Device>())
+            foreach (Type t in FindSubClassesOf<Device>())
             {
                 Device d = (Device)Activator.CreateInstance(t);
                 DeviceList[d.SoftwareID] = t;

@@ -1,7 +1,6 @@
-﻿using System;
+﻿using STDLib.Extentions;
+using System;
 using System.Linq;
-using System.Threading;
-using STDLib.Extentions;
 
 namespace STDLib.JBVProtocol
 {
@@ -12,13 +11,15 @@ namespace STDLib.JBVProtocol
         public Guid Key { get; set; }
         public TimeSpan ExpiresIn { get { return Expire - DateTime.Now; } }
 
-        public bool IsValid { get 
+        public bool IsValid
+        {
+            get
             {
                 if (Expire == null) return false;
                 if (Expire < DateTime.Now) return false;
                 if (Key == null) return false;
                 return true;
-            } 
+            }
         }
 
 

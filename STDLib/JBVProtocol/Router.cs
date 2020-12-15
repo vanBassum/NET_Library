@@ -1,5 +1,4 @@
-﻿using STDLib.JBVProtocol;
-using STDLib.JBVProtocol.Commands;
+﻿using STDLib.JBVProtocol.Commands;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -61,7 +60,7 @@ namespace STDLib.JBVProtocol
                 if (!routingTable.TryGetValue(frame.TxID, out route))
                     routingTable[frame.TxID] = route = new Route { Connection = connection, Hops = frame.Hops };
 
-                if (frame.Hops < route.Hops) 
+                if (frame.Hops < route.Hops)
                 {
                     //Faster route found, update routinginfo.
                     route.Connection = connection;
@@ -125,7 +124,7 @@ namespace STDLib.JBVProtocol
                 //{
                 //    RequestLease();
                 //}
-                
+
                 PendingFrame frame;
 
                 while (pendingFrames.TryTake(out frame, 1000))
@@ -135,7 +134,7 @@ namespace STDLib.JBVProtocol
                     else
                     {
                         Command cmd = Command.Create(frame.Frame);
-                        if(cmd is RoutingInvalid)
+                        if (cmd is RoutingInvalid)
                         {
                             Logger.LOGE($"Dropped RoutingInvalid frame, RetryCount = '{frame.RetryCount}'");
                         }
@@ -193,7 +192,7 @@ namespace STDLib.JBVProtocol
                 {
                     //Unknown route.
                     RequestID(frame.RxID);
-                    DoDelayed(() => pendingFrames.Add(new PendingFrame(frame) { RetryCount = retries + 1 }), 1000) ; //Retry in 1 second.
+                    DoDelayed(() => pendingFrames.Add(new PendingFrame(frame) { RetryCount = retries + 1 }), 1000); //Retry in 1 second.
                 }
             }
         }
@@ -213,7 +212,7 @@ namespace STDLib.JBVProtocol
             public Con(IConnection con)
             {
                 Connection = con;
-                Framing.OnFrameCollected += (a,b) => OnFrameRecieved?.Invoke(this, b);
+                Framing.OnFrameCollected += (a, b) => OnFrameRecieved?.Invoke(this, b);
                 con.OnDataRecieved += (a, b) => Framing.Unstuff(b);
             }
 

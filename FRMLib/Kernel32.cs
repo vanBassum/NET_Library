@@ -27,7 +27,7 @@ namespace FRMLib
         IntPtr processHandle;
 
         #region ProcessAttach
-        
+
         public bool attach(string processname)
         {
             try
@@ -83,7 +83,7 @@ namespace FRMLib
 
         public IntPtr GetProcessBase()
         {
-            return process.MainModule.BaseAddress;       
+            return process.MainModule.BaseAddress;
         }
 
         public IntPtr GetProcessModuleBase(string moduleName)

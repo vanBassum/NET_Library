@@ -44,7 +44,7 @@ namespace STDLib.Misc
 
         public bool TryForward(T1 t1, out T2 t2)
         {
-            if(_forward.ContainsKey(t1))
+            if (_forward.ContainsKey(t1))
             {
                 t2 = Forward[t1];
                 return true;

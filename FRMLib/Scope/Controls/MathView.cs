@@ -1,11 +1,8 @@
-﻿using System.Drawing;
+﻿using System;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Reflection;
-using System;
+using System.Windows.Forms;
 
 namespace FRMLib.Scope.Controls
 {
@@ -34,7 +31,7 @@ namespace FRMLib.Scope.Controls
                 }
             }
         }
- 
+
 
 
         public MathView()
@@ -96,11 +93,11 @@ namespace FRMLib.Scope.Controls
                     col.Width = attr.Width == 0 ? 100 : attr.Width;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
-            
+
         }
 
         private void DataGridView_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)

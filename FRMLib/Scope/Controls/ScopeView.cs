@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using STDLib.Math;
+using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.Data;
+using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using STDLib.Math;
-using System.Runtime.Remoting.Messaging;
 
 namespace FRMLib.Scope.Controls
 {
@@ -78,7 +74,7 @@ namespace FRMLib.Scope.Controls
             menu = new ContextMenuStrip();
 
             ToolStripMenuItem item;
-                
+
             item = new ToolStripMenuItem("Add marker");
             item.Click += AddMarker_Click;
             menu.Items.Add(item);
@@ -203,19 +199,19 @@ namespace FRMLib.Scope.Controls
             Settings.PropertyChanged += (a, b) => this.InvokeIfRequired(() => DrawBackground());
             DrawAll();
 
-            
+
             pictureBox3.MouseClick += picBox_MouseClick;
             pictureBox3.MouseMove += picBox_MouseMove;
             pictureBox3.MouseDown += picBox_MouseDown;
             pictureBox3.MouseUp += picBox_MouseUp;
             pictureBox3.MouseWheel += PictureBox3_MouseWheel;
-            
+
             //pictureBox1.Resize += PictureBox1_Resize;
         }
 
         private void PictureBox3_MouseWheel(object sender, MouseEventArgs e)
         {
-            if(e.Delta != 0)
+            if (e.Delta != 0)
             {
 
                 double scroll = (double)(e.Delta);
@@ -223,7 +219,7 @@ namespace FRMLib.Scope.Controls
                 double B = Settings.HorOffset;
                 double percent = (double)e.X / (double)thiswidth;   //Relative mouse position.
                 double x1px = percent * scroll;
-                double x2px = thiswidth - (1-percent) * scroll;
+                double x2px = thiswidth - (1 - percent) * scroll;
 
                 //Find the actual value of x1 and x2
                 double x1 = x1px / A - B;
@@ -279,7 +275,7 @@ namespace FRMLib.Scope.Controls
             }
             else
             {
-                if(e.Button.HasFlag(MouseButtons.Left))
+                if (e.Button.HasFlag(MouseButtons.Left))
                 {
                     //Drag all.
                     if (!lastClickDown.IsEmpty)
@@ -315,7 +311,7 @@ namespace FRMLib.Scope.Controls
         }
 
 
-        
+
         private void Markers_ListChanged(object sender, ListChangedEventArgs e)
         {
             DrawForeground();
@@ -395,7 +391,7 @@ namespace FRMLib.Scope.Controls
             }
 
             double distance = max.X - min.X;
-            if(distance == 0)
+            if (distance == 0)
             {
                 Settings.HorScale = 1;
                 Settings.HorOffset = -min.X;
@@ -531,7 +527,7 @@ namespace FRMLib.Scope.Controls
                                    orderby trace.Layer descending
                                    select trace;
 
-                
+
                 double lastX = double.NegativeInfinity;
                 double firstX = double.PositiveInfinity;
                 foreach (Trace t in DataSource.Traces)
@@ -550,7 +546,7 @@ namespace FRMLib.Scope.Controls
                             firstX = pt.X;
                     }
                 }
-                                    
+
                 int errNo = 0;
                 Brush errBrush = new SolidBrush(Color.Red);
 
@@ -572,7 +568,7 @@ namespace FRMLib.Scope.Controls
                         if (inc < 1)
                             inc = 1;
 
-                        Func<PointD, Point> convert = (p) => new Point((int)((p.X + Settings.HorOffset) * pxPerUnits_hor), (int)(thisheight / 2 - (p.Y + trace.Offset) * pxPerUnits_ver)); 
+                        Func<PointD, Point> convert = (p) => new Point((int)((p.X + Settings.HorOffset) * pxPerUnits_hor), (int)(thisheight / 2 - (p.Y + trace.Offset) * pxPerUnits_ver));
 
 
                         try
@@ -581,22 +577,22 @@ namespace FRMLib.Scope.Controls
                             {
                                 bool last = (i == (pointCnt - 1));
                                 bool first = i == 0;
-                                                                
+
                                 bool extendEnd = trace.DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
                                 bool extendBegin = trace.DrawOption.HasFlag(Trace.DrawOptions.ExtendBegin);
 
 
                                 Point pPrev = Point.Empty;
-                                Point pAct  = convert(trace.Points[i]);
+                                Point pAct = convert(trace.Points[i]);
                                 Point pNext = Point.Empty;
 
-                                if(!first)
+                                if (!first)
                                     pPrev = convert(trace.Points[i - 1]);
 
                                 if (first && extendBegin)
                                     pPrev = convert(new PointD(firstX, trace.Points[i].Y));
 
-                                if(!last)
+                                if (!last)
                                     pNext = convert(trace.Points[i + 1]);
 
                                 if (last && extendEnd)
@@ -663,9 +659,9 @@ namespace FRMLib.Scope.Controls
                                         if (!last)
                                             rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
 
-                                        if(rect != Rectangle.Empty)
+                                        if (rect != Rectangle.Empty)
                                             g.DrawState(pen, rect, text, Settings.Font, !(first && extendBegin), !(last && extendEnd));
-                                        
+
                                         break;
 
                                     default:
@@ -704,9 +700,6 @@ namespace FRMLib.Scope.Controls
                 {
                     g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
                 }
-
-                
-
             }
         }
 
@@ -719,9 +712,9 @@ namespace FRMLib.Scope.Controls
 
         private void PictureBox3_Paint(object sender, PaintEventArgs e)
         {
-            
+
             Graphics g = e.Graphics;
-            
+
             if (DataSource != null)
             {
                 double pxPerUnits_hor = thiswidth / (Settings.HorizontalDivisions * Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
@@ -739,7 +732,7 @@ namespace FRMLib.Scope.Controls
 
                         g.DrawLine(pen, x, 0, x, thisheight);
                         g.DrawString(marker.ID.ToString(), Settings.Font, brush, new PointF(x, 0));
-                        
+
                     }
 
                     catch (Exception ex)
@@ -750,21 +743,21 @@ namespace FRMLib.Scope.Controls
                 }
 
                 Func<double, int> scaleX = (x) => (int)((x + Settings.HorOffset) * pxPerUnits_hor);
-                
+
                 //Loop trought mathitems
 
                 foreach (MathItem mathItem in DataSource.MathItems)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
                 {
                     try
                     {
-                        if(mathItem.Trace != null)
+                        if (mathItem.Trace != null)
                         {
                             double pxPerUnits_ver = thisheight / (Settings.VerticalDivisions * mathItem.Trace.Scale);
                             Func<double, int> scaleY = (x) => (int)(thisheight / 2 - (x + mathItem.Trace.Offset) * pxPerUnits_ver);
 
                             mathItem.Draw(g, scaleY, scaleX);
                         }
-                        
+
                     }
                     catch (Exception ex)
                     {

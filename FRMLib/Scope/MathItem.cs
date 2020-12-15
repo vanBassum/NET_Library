@@ -1,11 +1,11 @@
-﻿using System;
+﻿using FRMLib.Scope.Controls;
+using STDLib.Misc;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using FRMLib.Scope.Controls;
-using STDLib.Misc;
 
 namespace FRMLib.Scope
 {
@@ -14,7 +14,7 @@ namespace FRMLib.Scope
         [TraceViewAttribute(Text = "", Width = 20)]
         public Pen Pen { get { return GetPar(Pens.Red); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 60)]
-        public Trace Trace { get { return GetPar<Trace>(null); } set { SetPar(value); } } 
+        public Trace Trace { get { return GetPar<Trace>(null); } set { SetPar(value); } }
         [TraceViewAttribute(Text = "M1", Width = 40)]
         public Cursor Marker1 { get { return GetPar<Cursor>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
         [TraceViewAttribute(Text = "M2", Width = 40)]
@@ -38,7 +38,7 @@ namespace FRMLib.Scope
                     Value = Function.Calculate(this);
             }
         }
-        
+
         public void Draw(Graphics g, Func<double, int> scaleY, Func<double, int> scaleX)
         {
             if (Function != null && Marker1 != null && Marker2 != null && Trace != null)

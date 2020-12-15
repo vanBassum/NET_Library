@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
 using System.Data;
+using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Reflection;
+using System.Windows.Forms;
 
 namespace FRMLib.Scope.Controls
 {
@@ -64,7 +60,7 @@ namespace FRMLib.Scope.Controls
                         ccol.DataSource = Enum.GetValues(pi.PropertyType);
                         col = ccol;
                     }
-                        
+
                 }
                 else
                 {

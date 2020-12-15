@@ -44,7 +44,7 @@ namespace STDLib.JBVProtocol.Commands
             Command cmd = null;
             Type type;
 
-            if(CommandList.TryGetValue(frame.CommandID, out type))
+            if (CommandList.TryGetValue(frame.CommandID, out type))
             {
                 cmd = (Command)Activator.CreateInstance(type);
                 cmd.frame = frame;
@@ -63,7 +63,7 @@ namespace STDLib.JBVProtocol.Commands
                 .SelectMany(s => s.GetTypes())
                 .Where(p => type.IsAssignableFrom(p) && p != type);
 
-            foreach(Type t in types)
+            foreach (Type t in types)
             {
                 Command instance = (Command)Activator.CreateInstance(t);
                 if (CommandList.ContainsKey((UInt32)instance.CommandID))

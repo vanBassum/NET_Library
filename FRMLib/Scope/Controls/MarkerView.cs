@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
+﻿using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Reflection;
+using System.Windows.Forms;
 
 namespace FRMLib.Scope.Controls
 {
@@ -30,7 +25,7 @@ namespace FRMLib.Scope.Controls
             }
         }
 
-        
+
 
         public MarkerView()
         {
@@ -46,7 +41,7 @@ namespace FRMLib.Scope.Controls
             dataGridView.CellFormatting += DataGridView_CellFormatting;
         }
 
-       
+
 
         private void Traces_ListChanged(object sender, ListChangedEventArgs e)
         {
@@ -65,7 +60,7 @@ namespace FRMLib.Scope.Controls
                 col.AutoSizeMode = attr.AutoSizeMode;
             }
 
-            if(dataSource != null)
+            if (dataSource != null)
             {
                 foreach (Trace t in dataSource.Traces)
                 {
@@ -92,12 +87,12 @@ namespace FRMLib.Scope.Controls
 
             Trace t = dgv.Columns[e.ColumnIndex].Tag as Trace;
 
-            if(t!=null)
+            if (t != null)
             {
                 e.Value = t.ToHumanReadable(t.GetYValue(DataSource.Cursors[e.RowIndex].X));
             }
 
-            if(dgv.Columns[e.ColumnIndex].DataPropertyName == nameof(Scope.Cursor.X))
+            if (dgv.Columns[e.ColumnIndex].DataPropertyName == nameof(Scope.Cursor.X))
             {
                 e.Value = dataSource.HorizontalToHumanReadable((double)e.Value);
             }

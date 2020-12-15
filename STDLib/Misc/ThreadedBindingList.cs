@@ -73,7 +73,7 @@ namespace STDLib.Misc
     }
 
     public static class Ext
-    { 
+    {
         public static void Add(this ThreadedBindingList<PointD> list, double x, double y)
         {
             list.Add(new PointD(x, y));

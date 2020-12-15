@@ -1,6 +1,5 @@
 ﻿using STDLib.Math;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
@@ -9,14 +8,14 @@ namespace FRMLib.Scope.MathFunctions
     public class LinearRegression : MathFunction
     {
 
-        
+
         public override object Calculate(MathItem mathItem)
         {
 
 
             return 0;
         }
-        
+
 
         public override void Draw(Graphics g, MathItem mathItem, Func<double, int> scaleY, Func<double, int> scaleX)
         {
@@ -43,7 +42,7 @@ namespace FRMLib.Scope.MathFunctions
             xAvg /= points.Length;
             yAvg /= points.Length;
 
-            
+
             double a1 = ((points.Length * k1) - (k2 * k3)) / (points.Length * k4 - Math.Pow(k2, 2));
             double a0 = yAvg - (a1 * xAvg);
 

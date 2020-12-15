@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace STDLib.Math
+﻿namespace STDLib.Math
 {
     public class RectangleD
     {

@@ -10,11 +10,11 @@ namespace FRMLib.Scope.MathFunctions
         public override object Calculate(MathItem mathItem)
         {
             double max = double.NaN;
-            foreach(PointD pt in mathItem.Trace.GetPointsBetweenMarkers(mathItem.Marker1, mathItem.Marker2))
+            foreach (PointD pt in mathItem.Trace.GetPointsBetweenMarkers(mathItem.Marker1, mathItem.Marker2))
             {
                 if (double.IsNaN(max))
                     max = pt.Y;
-                else if(pt.Y > max)
+                else if (pt.Y > max)
                     max = pt.Y;
             }
 
@@ -43,7 +43,7 @@ namespace FRMLib.Scope.MathFunctions
             {
                 int x = scaleX(maxx);
                 int y = scaleY(max);
-                g.DrawCross(mathItem.Pen, new Point(x,y), 5);
+                g.DrawCross(mathItem.Pen, new Point(x, y), 5);
             }
         }
     }

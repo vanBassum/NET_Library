@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -25,10 +24,10 @@ namespace STDLib.JBVProtocol
         public static void LOGE(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "")
         {
             file = Path.GetFileNameWithoutExtension(file);
-            Log(ConsoleColor.Red, message, $"{file}.{member}") ;
+            Log(ConsoleColor.Red, message, $"{file}.{member}");
         }
 
-        
+
 
         static void Log(ConsoleColor color, string message, string prefix)
         {

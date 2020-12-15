@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FRMLib.Scope
 {
@@ -77,7 +73,7 @@ namespace FRMLib.Scope
 
         public static Pen GenericPallet(int i)
         {
-            return new Pen( HVS.ToColor(Hue((uint)i), 1f, 1f));
+            return new Pen(HVS.ToColor(Hue((uint)i), 1f, 1f));
         }
 
 

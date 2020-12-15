@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 
 namespace STDLib.Ethernet
 {
@@ -93,7 +92,7 @@ namespace STDLib.Ethernet
                 Socket sock = await taskCompletionSource.Task;
                 result = HandleNewConnection(sock);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result = false;
             }
@@ -137,8 +136,8 @@ namespace STDLib.Ethernet
         //--------------------------------------------------------------------------------
         //                      Sending and recieving data
         //--------------------------------------------------------------------------------
-        
-        
+
+
         /// <summary>
         /// Method to send data.
         /// </summary>

@@ -37,10 +37,10 @@ namespace STDLib.JBVProtocol
 
         void Work()
         {
-            while(true)
+            while (true)
             {
                 Frame frame = pendingFrames.Take();
-                if(frame != null)
+                if (frame != null)
                 {
                     Command gcmd = Command.Create(frame);
                     if (gcmd == null)
@@ -77,7 +77,7 @@ namespace STDLib.JBVProtocol
         public void HandleRequestLease(RequestLease cmd)
         {
             Lease lease = null;
-            if(leases.TryGetValue(cmd.Key, out lease))
+            if (leases.TryGetValue(cmd.Key, out lease))
             {
                 //Extend lease
                 lease.Expire = DateTime.Now.AddMinutes(10);

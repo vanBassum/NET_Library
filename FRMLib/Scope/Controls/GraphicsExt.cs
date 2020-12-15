@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
+﻿using System.Drawing;
 
 namespace FRMLib.Scope.Controls
 {
@@ -92,7 +90,7 @@ namespace FRMLib.Scope.Controls
 
         public static void Drawpoint(this Graphics g, Brush brush, double x, double y, int size)
         {
-            g.FillEllipse(brush, (float)x - size, (float)y - size, size*2, size*2);
+            g.FillEllipse(brush, (float)x - size, (float)y - size, size * 2, size * 2);
         }
 
         public static void Drawpoint(this Graphics g, Brush brush, Point pt, int size)
@@ -104,7 +102,7 @@ namespace FRMLib.Scope.Controls
         public static void DrawLine(this Graphics g, Pen p, Point p1, Point p2, bool extendBegin, bool extendEnd)
         {
 
-            if(p1 == p2)
+            if (p1 == p2)
                 g.FillRectangle(new SolidBrush(p.Color), p1.X, p1.Y, 1, 1);
             else
                 g.DrawLine(p, p1, p2);
@@ -134,8 +132,8 @@ namespace FRMLib.Scope.Controls
                 if (rect.Width < (bracketWidth * 2))
                     bracketWidth = rect.Width / 2;
 
-                int spaceBegin = closeBegin ? closeEnd ? bracketWidth : bracketWidth/2 : 0;
-                int spaceEnd = closeEnd ? closeBegin ? bracketWidth : bracketWidth/2 : 0;
+                int spaceBegin = closeBegin ? closeEnd ? bracketWidth : bracketWidth / 2 : 0;
+                int spaceEnd = closeEnd ? closeBegin ? bracketWidth : bracketWidth / 2 : 0;
                 int midY = rect.Y + rect.Height / 2;
 
                 double top = rect.Y;
@@ -150,8 +148,8 @@ namespace FRMLib.Scope.Controls
                 }
                 else
                 {
-                    for(int i=0; i < div; i++)
-                        g.DrawLine(p, rect.X - (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X - (((i % 2) == 0) ? wibber : 0),  (int)(top + space * (i + 1)));
+                    for (int i = 0; i < div; i++)
+                        g.DrawLine(p, rect.X - (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X - (((i % 2) == 0) ? wibber : 0), (int)(top + space * (i + 1)));
                 }
 
                 if (closeEnd)

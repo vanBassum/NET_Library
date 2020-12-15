@@ -2,7 +2,6 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace STDLib.Misc
 {
@@ -51,7 +50,7 @@ namespace STDLib.Misc
         {
             lock (Instance.writerLock)
             {
-                if(Instance.fileIsOpen)
+                if (Instance.fileIsOpen)
                     Instance.writer?.Flush();
                 Instance.writer?.Close();
                 Instance.writer?.Dispose();

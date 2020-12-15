@@ -1,5 +1,5 @@
-﻿using System.Drawing;
-using STDLib.Misc;
+﻿using STDLib.Misc;
+using System.Drawing;
 
 namespace FRMLib.Scope.Controls
 {

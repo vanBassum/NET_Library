@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -53,7 +51,7 @@ namespace STDLib.Saveable
             }
             else
             {
-                if(createIfNotExist)
+                if (createIfNotExist)
                     CreateDefaultSettings(SettingsFile);
                 else
                     throw new System.Exception($"File not found '{SettingsFile}'");
@@ -123,8 +121,8 @@ namespace STDLib.Saveable
                 {
                     if (!fields.ContainsKey(propertyName))
                         fields[propertyName] = defVal;
-                    
-                    if(typeof(T2) == fields[propertyName].GetType())
+
+                    if (typeof(T2) == fields[propertyName].GetType())
                         val = (T2)fields[propertyName];
                     else
                         val = (T2)Convert.ChangeType(fields[propertyName], typeof(T2));
@@ -132,13 +130,13 @@ namespace STDLib.Saveable
 
 
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
                 }
                 return val;
             }
-        }        
+        }
     }
 }
 

@@ -8,7 +8,7 @@ namespace STDLib.JBVProtocol.Commands
         public override UInt32 CommandID => (UInt32)CommandList.ReplyNACK;
         public override void Populate(byte[] data)
         {
-            
+
         }
 
         public override byte[] ToArray()
@@ -18,5 +18,5 @@ namespace STDLib.JBVProtocol.Commands
     }
 
 
-    
+
 }

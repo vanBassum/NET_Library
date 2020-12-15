@@ -1,5 +1,5 @@
-﻿using System;
-using STDLib.JBVProtocol.Commands;
+﻿using STDLib.JBVProtocol.Commands;
+using System;
 
 
 namespace STDLib.JBVProtocol
@@ -18,9 +18,9 @@ namespace STDLib.JBVProtocol
 
         [Flags]
         public enum OPT
-        { 
-            None        = 0,
-            Broadcast   = 1,
+        {
+            None = 0,
+            Broadcast = 1,
         }
 
         int ReplaceByte(int index, int value, byte replaceByte)

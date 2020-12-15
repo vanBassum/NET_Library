@@ -14,19 +14,19 @@ namespace FRMLib.Scope
             ids.Remove(ID);
         }
 
-        private static int NextId 
-        { 
-            get 
-            { 
+        private static int NextId
+        {
+            get
+            {
                 int i = 1;
                 while (ids.Contains(i))
                     i++;
                 ids.Add(i);
                 return i;
-            } 
+            }
         }
 
-        
+
 
         [TraceViewAttribute(Width = 25)]
         public int ID { get; /*private set;*/ } = NextId;

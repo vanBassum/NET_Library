@@ -45,7 +45,7 @@ namespace STDLib.JBVProtocol
         Task task;
         Framing framing;
         BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
- 
+
         public JBVClient(SoftwareID softId)
         {
             softwareID = softId;
@@ -73,14 +73,14 @@ namespace STDLib.JBVProtocol
 
             while (true)
             {
-                if (lease.ExpiresIn.TotalMinutes < 5 )
+                if (lease.ExpiresIn.TotalMinutes < 5)
                 {
                     RequestLease();
                 }
 
                 Frame frame;
 
-                while(pendingFrames.TryTake(out frame, 1000))
+                while (pendingFrames.TryTake(out frame, 1000))
                 {
                     Command gcmd = Command.Create(frame);
                     if (gcmd == null)
@@ -89,7 +89,7 @@ namespace STDLib.JBVProtocol
                     }
                     else
                     {
-                        switch(gcmd)
+                        switch (gcmd)
                         {
                             case RequestID cmd:
                                 if (cmd.ID == lease.ID)
@@ -106,7 +106,7 @@ namespace STDLib.JBVProtocol
                                 }
                                 break;
                             case RequestSID cmd:
-                                if(cmd.SID == SoftwareID.Unknown || cmd.SID == softwareID)
+                                if (cmd.SID == SoftwareID.Unknown || cmd.SID == softwareID)
                                 {
                                     ReplySID(cmd);
                                 }
@@ -170,7 +170,7 @@ namespace STDLib.JBVProtocol
             UInt16 sequence = sequencer.RequestSequenceID();
 
             TaskCompletionSource<Command> tcs = new TaskCompletionSource<Command>();
-            ct?.Register(()=> 
+            ct?.Register(() =>
             {
                 sequencer.FreeSequenceID(sequence);
                 tcs.TrySetResult(null);
@@ -178,7 +178,7 @@ namespace STDLib.JBVProtocol
 
             CommandRecieved += (sender, rxCmd) =>
             {
-                if(rxCmd.Sequence == sequence)
+                if (rxCmd.Sequence == sequence)
                 {
                     sequencer.FreeSequenceID(sequence);
                     tcs.TrySetResult(rxCmd);

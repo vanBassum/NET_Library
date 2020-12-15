@@ -13,8 +13,10 @@ namespace STDLib.JBVProtocol
         public TCPConnection(TcpSocketClient client)
         {
             this.client = client;
-            client.OnDataRecieved += (sender, data) => { 
-                OnDataRecieved?.Invoke(this, data); };
+            client.OnDataRecieved += (sender, data) =>
+            {
+                OnDataRecieved?.Invoke(this, data);
+            };
         }
 
         public void SendData(byte[] data)

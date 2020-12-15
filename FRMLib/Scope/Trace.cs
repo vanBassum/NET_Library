@@ -30,7 +30,7 @@ namespace FRMLib.Scope
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
         // [TraceViewAttribute]
         public DrawOptions DrawOption { get { return GetPar(DrawOptions.None); } set { SetPar(value); } }
-        public Func<double, string> ToHumanReadable { get { return GetPar( new Func<double, string>((a) => a.ToHumanReadable(3)) ); } set { SetPar(value); } }
+        public Func<double, string> ToHumanReadable { get { return GetPar(new Func<double, string>((a) => a.ToHumanReadable(3))); } set { SetPar(value); } }
         public PointD Minimum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public PointD Maximum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public Trace Self { get { return this; } }
@@ -41,7 +41,7 @@ namespace FRMLib.Scope
 
         private void Points_ListChanged(object sender, System.ComponentModel.ListChangedEventArgs e)
         {
-            switch(e.ListChangedType)
+            switch (e.ListChangedType)
             {
                 case System.ComponentModel.ListChangedType.ItemAdded:
                     DoMinMax(Points[e.NewIndex]);
@@ -69,7 +69,7 @@ namespace FRMLib.Scope
             double x1 = 0;
             double x2 = 0;
 
-            if(marker1.X < marker2.X)
+            if (marker1.X < marker2.X)
             {
                 x1 = marker1.X;
                 x2 = marker2.X;
@@ -83,7 +83,7 @@ namespace FRMLib.Scope
 
             bool startFound = false;
             bool endFound = false;
-            for (int i=0; i<Points.Count; i++)
+            for (int i = 0; i < Points.Count; i++)
             {
                 if (Points[i].X >= x1)
                     startFound = true;
@@ -142,7 +142,7 @@ namespace FRMLib.Scope
                         return double.NaN;
                 case DrawStyles.NonInterpolatedLine:
                     if (i > 0 && (i < (Points.Count + (DrawOption.HasFlag(DrawOptions.ExtendEnd) ? 1 : 0))))
-                        return Points[i-1].Y;
+                        return Points[i - 1].Y;
                     else
                         return double.NaN;
 
@@ -177,7 +177,7 @@ namespace FRMLib.Scope
             ExtendEnd = 4,
         }
 
-        
+
     }
 
 
