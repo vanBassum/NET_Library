@@ -28,8 +28,8 @@ namespace FRMLib.Scope
         //public ThreadedBindingList<Mark> Marks { get; } = new ThreadedBindingList<Mark>();
         //[TraceViewAttribute(Width = 80)]
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
-        // [TraceViewAttribute]
-        public DrawOptions DrawOption { get { return GetPar(DrawOptions.None); } set { SetPar(value); } }
+        [TraceViewAttribute]
+        public DrawOptions DrawOption { get { return GetPar((DrawOptions)0); } set { SetPar(value); } }
         public Func<double, string> ToHumanReadable { get { return GetPar(new Func<double, string>((a) => a.ToHumanReadable(3))); } set { SetPar(value); } }
         public PointD Minimum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public PointD Maximum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }

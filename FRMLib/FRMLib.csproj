@@ -58,6 +58,22 @@
     </Compile>
     <Compile Include="Kernel32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scope\Controls\CheckedComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Scope\Controls\EnumExt.cs" />
+    <Compile Include="Scope\Controls\EnumFlagsCheckedCombobox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Scope\Controls\MyCell.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Scope\Controls\MyColumn.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Scope\Controls\MyEditControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Scope\MathFunctions\LinearRegression.cs" />
     <Compile Include="Scope\Marker.cs" />
     <Compile Include="Scope\Palettes.cs" />

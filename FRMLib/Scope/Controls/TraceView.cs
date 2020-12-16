@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -49,8 +51,9 @@ namespace FRMLib.Scope.Controls
                 {
                     if (pi.PropertyType.GetCustomAttributes<FlagsAttribute>().Any())
                     {
+
                         //https://www.codeproject.com/Articles/24614/How-to-Host-a-Color-Picker-Combobox-in-Windows-For
-                        DataGridViewComboBoxColumn ccol = new DataGridViewComboBoxColumn();
+                        MyColumn ccol = new MyColumn();
                         ccol.DataSource = Enum.GetValues(pi.PropertyType);
                         col = ccol;
                     }
