@@ -1,7 +1,8 @@
-﻿using System;
+﻿using FRMLib.Scope.Controls;
+using System;
 using System.Windows.Forms;
 
-namespace FRMLib.Scope.Controls
+namespace FRMLib.Controls
 {
     public class EnumFlagsCheckedCombobox : UserControl
     {
@@ -27,7 +28,7 @@ namespace FRMLib.Scope.Controls
                 lb.Items.Clear();
                 foreach (Enum item in Enum.GetValues(_value.GetType()))
                 {
-                    if(item.ToInt() != 0)
+                    if (item.ToInt() != 0)
                         lb.Items.Add(item, _value.HasFlag(item));
                 }
             }
@@ -37,19 +38,19 @@ namespace FRMLib.Scope.Controls
         {
 
             button.Size = new System.Drawing.Size(22, 22);
-            button.Location = new System.Drawing.Point(this.Width - button.Width, -1);
+            button.Location = new System.Drawing.Point(Width - button.Width, -1);
             button.Text = "\u2BC6";
             button.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-            button.Click += new System.EventHandler(this.Button_Click);
-            this.Controls.Add(button);
+            button.Click += new EventHandler(Button_Click);
+            Controls.Add(button);
 
             textbox.Location = new System.Drawing.Point(0, 0);
-            textbox.Size = new System.Drawing.Size(this.Width - button.Width, 20);
+            textbox.Size = new System.Drawing.Size(Width - button.Width, 20);
             textbox.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
-           
-            this.Controls.Add(textbox);
 
-            this.Height = 20;
+            Controls.Add(textbox);
+
+            Height = 20;
 
             dropDown = new ToolStripDropDown();
             lb = new CheckedListBox();
@@ -73,14 +74,14 @@ namespace FRMLib.Scope.Controls
 
         void Button_Click(object sender, EventArgs e)
         {
-            dropDown.Width = this.Width;
-            lb.Width = this.Width;
-            host.Width = this.Width;
+            dropDown.Width = Width;
+            lb.Width = Width;
+            host.Width = Width;
 
             if (dropDown.Visible)
                 dropDown.Close();
             else
-                dropDown.Show(this, 0, this.Height);
+                dropDown.Show(this, 0, Height);
         }
     }
 }

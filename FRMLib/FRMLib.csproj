@@ -58,22 +58,15 @@
     </Compile>
     <Compile Include="Kernel32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scope\Controls\CheckedComboBox.cs">
+    <Compile Include="Controls\CheckedComboBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Scope\Controls\EnumExt.cs" />
-    <Compile Include="Scope\Controls\EnumFlagsCheckedCombobox.cs">
+    <Compile Include="Controls\EnumFlagsCheckedCombobox.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Scope\Controls\MyCell.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Scope\Controls\MyColumn.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Scope\Controls\MyEditControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <Compile Include="Controls\DataGridViewEnumFlagsCell.cs" />
+    <Compile Include="Controls\DataGridViewEnumFlagsColumn.cs" />
+    <Compile Include="Controls\DataGridViewEnumFlagsEditControl.cs" />
     <Compile Include="Scope\MathFunctions\LinearRegression.cs" />
     <Compile Include="Scope\Marker.cs" />
     <Compile Include="Scope\Palettes.cs" />
@@ -102,7 +95,7 @@
     <Compile Include="Scope\Controls\ScopeView.Designer.cs">
       <DependentUpon>ScopeView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Scope\Controls\ScopeViewSettings.cs" />
+    <Compile Include="Scope\ScopeViewSettings.cs" />
     <Compile Include="Scope\Controls\TraceView.cs">
       <SubType>UserControl</SubType>
     </Compile>

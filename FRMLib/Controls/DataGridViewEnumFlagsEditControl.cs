@@ -1,16 +1,17 @@
-﻿using System;
+﻿using FRMLib.Controls;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 
-namespace FRMLib.Scope.Controls
+namespace FRMLib.Controls
 {
     public partial class TraceView
     {
-        public class MyEditControl : EnumFlagsCheckedCombobox, IDataGridViewEditingControl
+        public class DataGridViewEnumFlagsEditControl : EnumFlagsCheckedCombobox, IDataGridViewEditingControl
         {
 
-            public MyEditControl()
+            public DataGridViewEnumFlagsEditControl()
             {
                 OnCheckedChanged += MyEditControl_OnCheckedChanged;
             }

@@ -26,7 +26,7 @@ namespace FRMLib.Scope
         public int Layer { get { return GetPar(10); } set { SetPar(value); } }
         public ThreadedBindingList<PointD> Points { get; } = new ThreadedBindingList<PointD>();
         //public ThreadedBindingList<Mark> Marks { get; } = new ThreadedBindingList<Mark>();
-        //[TraceViewAttribute(Width = 80)]
+        [TraceViewAttribute(Width = 80)]
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
         [TraceViewAttribute]
         public DrawOptions DrawOption { get { return GetPar((DrawOptions)0); } set { SetPar(value); } }

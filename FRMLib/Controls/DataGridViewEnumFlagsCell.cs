@@ -2,13 +2,13 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace FRMLib.Scope.Controls
+namespace FRMLib.Controls
 {
     public partial class TraceView
     {
-        public class MyCell :  DataGridViewCell
+        public class DataGridViewEnumFlagsCell :  DataGridViewCell
         {
-            public MyCell()
+            public DataGridViewEnumFlagsCell()
             {
                 
             }
@@ -24,13 +24,13 @@ namespace FRMLib.Scope.Controls
             public override void InitializeEditingControl(int rowIndex, object initialFormattedValue, DataGridViewCellStyle dataGridViewCellStyle)
             {
                 base.InitializeEditingControl(rowIndex, initialFormattedValue, dataGridViewCellStyle);
-                MyEditControl ctl = DataGridView.EditingControl as MyEditControl;
+                DataGridViewEnumFlagsEditControl ctl = DataGridView.EditingControl as DataGridViewEnumFlagsEditControl;
                 ctl.Dock = DockStyle.Fill;
                 ctl.Value = (Enum)this.Value;
             }
 
 
-            public override Type EditType { get { return typeof(MyEditControl); } }
+            public override Type EditType { get { return typeof(DataGridViewEnumFlagsEditControl); } }
             public override Type ValueType { get { return typeof(Enum); } }
             
 

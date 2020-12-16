@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using static FRMLib.Controls.TraceView;
 
 namespace FRMLib.Scope.Controls
 {
@@ -36,7 +37,7 @@ namespace FRMLib.Scope.Controls
             dataGridView1.RowHeadersVisible = false;
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
-
+            
 
             foreach (var pi in typeof(Trace).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
             {
@@ -53,7 +54,7 @@ namespace FRMLib.Scope.Controls
                     {
 
                         //https://www.codeproject.com/Articles/24614/How-to-Host-a-Color-Picker-Combobox-in-Windows-For
-                        MyColumn ccol = new MyColumn();
+                        DataGridViewEnumFlagsColumn ccol = new DataGridViewEnumFlagsColumn();
                         ccol.DataSource = Enum.GetValues(pi.PropertyType);
                         col = ccol;
                     }
@@ -76,12 +77,10 @@ namespace FRMLib.Scope.Controls
                 col.Name = pi.Name;
                 col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
                 col.Width = attr.Width == 0 ? 100 : attr.Width;
-
+                
             }
             dataGridView1.CellFormatting += dataGridView1_CellFormatting;
         }
-
-
 
         private void TraceView_Load(object sender, EventArgs e)
         {

@@ -586,6 +586,8 @@ namespace FRMLib.Scope.Controls
                                 Point pAct = convert(trace.Points[i]);
                                 Point pNext = Point.Empty;
 
+                               
+
                                 if (!first)
                                     pPrev = convert(trace.Points[i - 1]);
 
@@ -598,77 +600,80 @@ namespace FRMLib.Scope.Controls
                                 if (last && extendEnd)
                                     pNext = convert(new PointD(lastX, trace.Points[i].Y));
 
+
                                 //Outside view check
-
-
-                                if (trace.DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
-                                    g.DrawCross(pen, pAct, 3);
-
-
-                                switch (trace.DrawStyle)
+                                if (CheckWithinScreen(pAct) || CheckWithinScreen(pPrev) || CheckWithinScreen(pNext))
                                 {
-                                    case Trace.DrawStyles.Points:
-                                        g.Drawpoint(brush, pAct, 2);
-                                        break;
 
-                                    case Trace.DrawStyles.DiscreteSingal:
-                                        g.Drawpoint(brush, pAct, 4);
-                                        g.DrawLine(pen, new Point(pAct.X, thisheight / 2), pAct);
-                                        break;
+                                    if (trace.DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
+                                        g.DrawCross(pen, pAct, 3);
 
-                                    case Trace.DrawStyles.Lines:
 
-                                        if (first && extendBegin)
-                                            g.DrawLine(pen, pPrev, pAct, true, false);
+                                    switch (trace.DrawStyle)
+                                    {
+                                        case Trace.DrawStyles.Points:
+                                            g.Drawpoint(brush, pAct, 2);
+                                            break;
 
-                                        if (last && extendEnd)
-                                            g.DrawLine(pen, pAct, pNext, false, true);
+                                        case Trace.DrawStyles.DiscreteSingal:
+                                            g.Drawpoint(brush, pAct, 4);
+                                            g.DrawLine(pen, new Point(pAct.X, thisheight / 2), pAct);
+                                            break;
 
-                                        if (!last)
-                                            g.DrawLine(pen, pAct, pNext, false, false);
+                                        case Trace.DrawStyles.Lines:
 
-                                        break;
+                                            if (first && extendBegin)
+                                                g.DrawLine(pen, pPrev, pAct, true, false);
 
-                                    case Trace.DrawStyles.NonInterpolatedLine:
-                                        if (first && extendBegin)
-                                            g.DrawLine(pen, pPrev, pAct, true, false);
+                                            if (last && extendEnd)
+                                                g.DrawLine(pen, pAct, pNext, false, true);
 
-                                        if (last && extendEnd)
-                                            g.DrawLine(pen, pAct, pNext, false, true);
+                                            if (!last)
+                                                g.DrawLine(pen, pAct, pNext, false, false);
 
-                                        if (!last)
-                                        {
-                                            g.DrawLine(pen, pAct, new Point(pNext.X, pAct.Y));
-                                            g.DrawLine(pen, new Point(pNext.X, pAct.Y), pNext);
-                                        }
-                                        break;
+                                            break;
 
-                                    case Trace.DrawStyles.State:
-                                        string text = trace.ToHumanReadable(trace.Points[i].Y);
+                                        case Trace.DrawStyles.NonInterpolatedLine:
+                                            if (first && extendBegin)
+                                                g.DrawLine(pen, pPrev, pAct, true, false);
 
-                                        //1, 2, 3
+                                            if (last && extendEnd)
+                                                g.DrawLine(pen, pAct, pNext, false, true);
 
-                                        Rectangle rect = Rectangle.Empty;
+                                            if (!last)
+                                            {
+                                                g.DrawLine(pen, pAct, new Point(pNext.X, pAct.Y));
+                                                g.DrawLine(pen, new Point(pNext.X, pAct.Y), pNext);
+                                            }
+                                            break;
 
-                                        if (first && extendBegin)
-                                            rect = new Rectangle((int)pPrev.X, (int)stateY - 8, pAct.X - pPrev.X, Settings.Font.Height);
+                                        case Trace.DrawStyles.State:
+                                            string text = trace.ToHumanReadable(trace.Points[i].Y);
 
-                                        if (last && extendEnd)
-                                            rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
+                                            //1, 2, 3
 
-                                        if (!last)
-                                            rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
+                                            Rectangle rect = Rectangle.Empty;
 
-                                        if (rect != Rectangle.Empty)
-                                            g.DrawState(pen, rect, text, Settings.Font, !(first && extendBegin), !(last && extendEnd));
+                                            if (first && extendBegin)
+                                                rect = new Rectangle((int)pPrev.X, (int)stateY - 8, pAct.X - pPrev.X, Settings.Font.Height);
 
-                                        break;
+                                            if (last && extendEnd)
+                                                rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
 
-                                    default:
-                                        g.DrawString($"Drawing of '{trace.DrawStyle}' is not supported yet.", Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height + 1));
-                                        i = pointCnt;
-                                        break;
+                                            if (!last)
+                                                rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
 
+                                            if (rect != Rectangle.Empty)
+                                                g.DrawState(pen, rect, text, Settings.Font, !(first && extendBegin), !(last && extendEnd));
+
+                                            break;
+
+                                        default:
+                                            g.DrawString($"Drawing of '{trace.DrawStyle}' is not supported yet.", Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height + 1));
+                                            i = pointCnt;
+                                            break;
+
+                                    }
                                 }
                             }
                         }
@@ -690,10 +695,12 @@ namespace FRMLib.Scope.Controls
                         double x = (float)(marker.Point.X + Settings.HorOffset) * pxPerUnits_hor;
                         double y = thisheight / 2 - (marker.Point.Y + marker.Offset) * pxPerUnits_ver;// * trace.Scale;
 
-                        Brush brush = new SolidBrush(marker.Pen.Color);
-
-                        g.DrawString(marker.Text, Settings.Font, brush, (int)x, (int)y);
-                        g.DrawCross(marker.Pen, x, y, 3);
+                        if (CheckWithinScreen(x, y))
+                        {
+                            Brush brush = new SolidBrush(marker.Pen.Color);
+                            g.DrawString(marker.Text, Settings.Font, brush, (int)x, (int)y);
+                            g.DrawCross(marker.Pen, x, y, 3);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -703,6 +710,15 @@ namespace FRMLib.Scope.Controls
             }
         }
 
+        bool CheckWithinScreen(Point pt)
+        {
+            return CheckWithinScreen(pt.X, pt.Y);
+        }
+
+        bool CheckWithinScreen(double x, double y)
+        {
+            return (x > 0 && x < thiswidth && y > 0 && y < thisheight);
+        }
 
 
         private void DrawForeground()

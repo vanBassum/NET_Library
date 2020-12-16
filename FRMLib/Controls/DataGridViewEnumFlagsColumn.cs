@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace FRMLib.Scope.Controls
+namespace FRMLib.Controls
 {
     public partial class TraceView
     {
-        public class MyColumn : DataGridViewColumn
+        public class DataGridViewEnumFlagsColumn : DataGridViewColumn
         {
             
             private Array _dataSource;
@@ -18,9 +18,9 @@ namespace FRMLib.Scope.Controls
                 }
             }
             
-            public MyColumn()
+            public DataGridViewEnumFlagsColumn()
             {
-                this.CellTemplate = new MyCell();
+                this.CellTemplate = new DataGridViewEnumFlagsCell();
             }
 
             public override DataGridViewCell CellTemplate
@@ -33,9 +33,9 @@ namespace FRMLib.Scope.Controls
                 {
                     // Ensure that the cell used for the template is a CalendarCell.
                     if (value != null &&
-                        !value.GetType().IsAssignableFrom(typeof(MyCell)))
+                        !value.GetType().IsAssignableFrom(typeof(DataGridViewEnumFlagsCell)))
                     {
-                        throw new InvalidCastException("Must be a " + nameof(MyCell));
+                        throw new InvalidCastException("Must be a " + nameof(DataGridViewEnumFlagsCell));
                     }
                     base.CellTemplate = value;
                 }

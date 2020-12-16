@@ -2,7 +2,7 @@
 
 namespace FRMLib.Scope.Controls
 {
-    public static class EnumExt
+    public static class Enum_Ext
     {
         public static int ToInt(this Enum val)
         {

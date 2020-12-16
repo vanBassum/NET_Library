@@ -1,7 +1,7 @@
 ﻿using STDLib.Misc;
 using System.Drawing;
 
-namespace FRMLib.Scope.Controls
+namespace FRMLib.Scope
 {
     public class ScopeViewSettings : PropertySensitive
     {
