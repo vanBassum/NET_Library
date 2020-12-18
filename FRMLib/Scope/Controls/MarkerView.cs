@@ -41,8 +41,6 @@ namespace FRMLib.Scope.Controls
             dataGridView.CellFormatting += DataGridView_CellFormatting;
         }
 
-
-
         private void Traces_ListChanged(object sender, ListChangedEventArgs e)
         {
             //TODO: There is a lot of optimalisation possible here!

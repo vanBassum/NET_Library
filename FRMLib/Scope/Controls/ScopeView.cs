@@ -231,9 +231,11 @@ namespace FRMLib.Scope.Controls
                     Settings.HorOffset = -x1;
                     return;
                 }
-
+                Settings.NotifyOnChange = false;
                 Settings.HorScale = (double)distance / (double)Settings.HorizontalDivisions;
+                Settings.NotifyOnChange = true;
                 Settings.HorOffset = -(double)(x1);
+               
             }
         }
 
@@ -564,18 +566,19 @@ namespace FRMLib.Scope.Controls
                         double stateY = thisheight / 2 - trace.Offset * pxPerUnits_ver;// * trace.Scale;
 
                         int pointCnt = trace.Points.Count;
-                        int inc = pointCnt / thiswidth;
+                        int inc = pointCnt / thiswidth;     //TODO get points between left and right pos in screen. When this is done inc = 1 can be removed.
+                        inc = 1;
                         if (inc < 1)
                             inc = 1;
 
+                                                
+
                         Func<PointD, Point> convert = (p) => new Point((int)((p.X + Settings.HorOffset) * pxPerUnits_hor), (int)(thisheight / 2 - (p.Y + trace.Offset) * pxPerUnits_ver));
-
-
                         try
                         {
                             for (int i = 0; i < pointCnt; i += inc)
                             {
-                                bool last = (i == (pointCnt - 1));
+                                bool last = (i == (pointCnt - inc));
                                 bool first = i == 0;
 
                                 bool extendEnd = trace.DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
@@ -589,13 +592,13 @@ namespace FRMLib.Scope.Controls
                                
 
                                 if (!first)
-                                    pPrev = convert(trace.Points[i - 1]);
+                                    pPrev = convert(trace.Points[i - inc]);
 
                                 if (first && extendBegin)
                                     pPrev = convert(new PointD(firstX, trace.Points[i].Y));
 
                                 if (!last)
-                                    pNext = convert(trace.Points[i + 1]);
+                                    pNext = convert(trace.Points[i + inc]);
 
                                 if (last && extendEnd)
                                     pNext = convert(new PointD(lastX, trace.Points[i].Y));

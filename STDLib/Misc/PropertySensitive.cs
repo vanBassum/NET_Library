@@ -17,6 +17,7 @@ namespace STDLib.Misc
     /// </summary>
     public abstract class PropertySensitive : INotifyPropertyChanged
     {
+        public bool NotifyOnChange { get; set; } = true;
         /// <summary>
         /// <see cref="INotifyPropertyChanged.PropertyChanged"/>
         /// </summary>
@@ -36,7 +37,8 @@ namespace STDLib.Misc
         protected void SetPar<T>(T value, [CallerMemberName] string propertyName = null)
         {
             fields[propertyName] = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if(NotifyOnChange)
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>
