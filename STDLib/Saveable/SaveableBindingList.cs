@@ -1,5 +1,6 @@
 ﻿using STDLib.Serializers;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -36,6 +37,19 @@ namespace STDLib.Saveable
         {
             if (SaveOnDestruction && file != null)
                 Save();
+        }
+        public List<T> ToList()
+        {
+            List<T> list = new List<T>();
+            list.AddRange(this);
+            return list;
+        }
+
+
+        public void AddRange(IEnumerable<T> list)
+        {
+            foreach (var v in list)
+                this.Add(v);
         }
 
         public void SortBy<Tkey>(Func<T, Tkey> predicate)
