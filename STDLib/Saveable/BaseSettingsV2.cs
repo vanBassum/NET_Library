@@ -70,7 +70,7 @@ namespace STDLib.Saveable
         public static readonly string defaultDataFolder = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? Path.Combine("/data", "vanBassum", System.Reflection.Assembly.GetEntryAssembly().GetName().Name) : "data";
         private Dictionary<string, object> fields = new Dictionary<string, object>();
         private static readonly Serializer serializer = new JSON();
-        public static string SettingsFile = Path.Combine(defaultDataFolder, "settings.json");
+        public static string SettingsFile = Path.Combine(defaultDataFolder, $"{typeof(T1).Name}.json");
 
         public static T1 Items { get; set; }
 
