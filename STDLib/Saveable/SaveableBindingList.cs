@@ -62,6 +62,7 @@ namespace STDLib.Saveable
 
         public void Save()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(file));
             if (file == null)
                 throw new Exception("Wrong initializer used, use SaveableBindingList(string file)");
             Save(file);
