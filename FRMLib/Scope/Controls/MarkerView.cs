@@ -68,7 +68,8 @@ namespace FRMLib.Scope.Controls
                     col.Tag = t;
                     col.Name = t.Name;
                     col.HeaderText = t.Name;
-                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            
                 }
             }
             //dataGridView.AutoResizeColumns();

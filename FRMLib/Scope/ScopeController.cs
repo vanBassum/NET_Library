@@ -1,5 +1,7 @@
-﻿using STDLib.Misc;
+﻿using STDLib.Math;
+using STDLib.Misc;
 using System;
+using System.Drawing;
 
 namespace FRMLib.Scope
 {
@@ -9,8 +11,9 @@ namespace FRMLib.Scope
         public ThreadedBindingList<Cursor> Cursors { get; private set; } = new ThreadedBindingList<Cursor>();
         public ThreadedBindingList<Marker> Markers { get; private set; } = new ThreadedBindingList<Marker>();
         public ThreadedBindingList<MathItem> MathItems { get; private set; } = new ThreadedBindingList<MathItem>();
+        public ThreadedBindingList<IScopeDrawable> Drawables { get; private set; } = new ThreadedBindingList<IScopeDrawable>();
         public Func<double, string> HorizontalToHumanReadable { get; set; } = TicksToString;
-
+        
 
         public void Clear()
         {
@@ -27,6 +30,13 @@ namespace FRMLib.Scope
         }
     }
 
+    public interface IScopeDrawable
+    {
+        PointD Point { get; set; }
+
+        void Draw(Graphics g,  Func<PointD, Point> convert);
+
+    }
 
 
 

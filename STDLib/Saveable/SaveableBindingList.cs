@@ -48,8 +48,11 @@ namespace STDLib.Saveable
 
         public void AddRange(IEnumerable<T> list)
         {
-            foreach (var v in list)
-                this.Add(v);
+            if (list != null)
+            {
+                foreach (var v in list)
+                    this.Add(v);
+            }
         }
 
         public void SortBy<Tkey>(Func<T, Tkey> predicate)
@@ -79,6 +82,7 @@ namespace STDLib.Saveable
 
         public void Save(string file)
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(file));
             using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
                 Save(stream);
         }

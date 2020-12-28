@@ -381,6 +381,48 @@ namespace FRMLib.Scope.Controls
             t.Offset = -(double)(distance / 2 + t.Minimum.Y);
         }
 
+
+        public void AutoScaleTraceKeepZero(Trace t)
+        {
+            if (double.IsNaN(t.Maximum.Y) || double.IsNaN(t.Maximum.X))
+            {
+                t.Scale = 1f;
+                t.Offset = 0f;
+                return;
+            }
+
+            double distance = t.Maximum.Y - t.Minimum.Y;
+            double div = distance * 2 / ((double)Settings.VerticalDivisions);
+            double multiplier = 1f;
+
+            while (div > 10)
+            {
+                multiplier *= 10;
+                div /= 10;
+            }
+
+            while (div < 0.5)
+            {
+                multiplier /= 10;
+                div *= 10;
+            }
+
+
+            if (div <= 1)
+                t.Scale = (double)(1 * multiplier);
+            else if (div <= 2)
+                t.Scale = (double)(2 * multiplier);
+            else if (div <= 5)
+                t.Scale = (double)(5 * multiplier);
+            else
+                t.Scale = (double)(10 * multiplier);
+
+            t.Offset = 0;
+        }
+
+
+
+
         public void AutoScaleHorizontal()
         {
             PointD min = PointD.Empty;
@@ -691,19 +733,51 @@ namespace FRMLib.Scope.Controls
                 {
                     foreach (Marker marker in dataSource.Markers)
                     {
-
                         double pxPerUnits_ver = thisheight / (Settings.VerticalDivisions * marker.Scale);
-
-
                         double x = (float)(marker.Point.X + Settings.HorOffset) * pxPerUnits_hor;
                         double y = thisheight / 2 - (marker.Point.Y + marker.Offset) * pxPerUnits_ver;// * trace.Scale;
 
                         if (CheckWithinScreen(x, y))
                         {
-                            Brush brush = new SolidBrush(marker.Pen.Color);
-                            g.DrawString(marker.Text, Settings.Font, brush, (int)x, (int)y);
-                            g.DrawCross(marker.Pen, x, y, 3);
+                            if (marker is LinkedMarker linkedMarker)
+                            {
+                                if (linkedMarker.Trace.Visible)
+                                {
+                                    Pen pen;
+                                    Brush brush;
+                                    if(linkedMarker.Pen == null)
+                                        pen = linkedMarker.Trace.Pen;
+                                    else
+                                        pen = linkedMarker.Pen;
+
+                                    brush = new SolidBrush(pen.Color);
+
+                                    g.DrawString(marker.Text, Settings.Font, brush, (int)x, (int)y);
+                                    g.DrawCross(pen, x, y, 7);
+                                    
+                                }
+                            }
+                            else
+                            {
+                                Brush brush = new SolidBrush(marker.Pen.Color);
+                                g.DrawString(marker.Text, Settings.Font, brush, (int)x, (int)y);
+                                g.DrawCross(marker.Pen, x, y, 7);
+                            }
                         }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
+                }
+
+                try
+                {
+                    foreach (IScopeDrawable drawable in dataSource.Drawables)
+                    {
+                        Func<PointD, Point> convert = (p) => new Point((int)((p.X + Settings.HorOffset) * pxPerUnits_hor), (int)(thisheight / 2 - p.Y));
+                        drawable.Draw(g, convert);
+
                     }
                 }
                 catch (Exception ex)

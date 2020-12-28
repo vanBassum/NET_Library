@@ -131,6 +131,30 @@ namespace STDLib.Misc
             }
         }
 
+        /// <summary>
+        /// Write a string without anything appended.
+        /// The string will be appended to the file "as is"
+        /// </summary>
+        /// <param name="message"></param>
+        public static void WriteRawLine(string message)
+        {
+            lock (Logger.Instance.writerLock)
+            {
+                if (autoOpen)
+                {
+                    Instance.closeFileTimer.Stop();
+                    if (!Logger.Instance.fileIsOpen)
+                        OpenFile();
+                }
+                Logger.Instance.writer.WriteLine(message);
+                Console.WriteLine($"Log 'message'");
+                if (autoOpen)
+                    Instance.closeFileTimer.Start();
+
+            }
+        }
+
+
         private static void CreateDirIfNotExists(string dir)
         {
             if (dir != "")

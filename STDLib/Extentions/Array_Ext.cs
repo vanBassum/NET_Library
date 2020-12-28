@@ -2,7 +2,7 @@
 
 namespace STDLib.Extentions
 {
-    public static class Array_Ext
+    public static partial class Array_Ext
     {
         /// <summary>
         /// Creates a copy of this array.
@@ -33,5 +33,7 @@ namespace STDLib.Extentions
             return result;
         }
     }
+
+    
 
 }
