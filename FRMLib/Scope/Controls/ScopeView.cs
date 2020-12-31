@@ -391,9 +391,14 @@ namespace FRMLib.Scope.Controls
                 return;
             }
 
-            double distance = t.Maximum.Y - t.Minimum.Y;
+            double distance = t.Maximum.Y;
+            if (t.Minimum.Y < 0 && (-t.Minimum.Y) < distance)
+                distance = -t.Minimum.Y;
             double div = distance * 2 / ((double)Settings.VerticalDivisions);
             double multiplier = 1f;
+
+            if (div == 0)
+                return;
 
             while (div > 10)
             {
