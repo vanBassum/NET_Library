@@ -1,4 +1,4 @@
-﻿using STDLib.JBVProtocol.Commands;
+﻿using STDLib.Misc;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -133,19 +133,18 @@ namespace STDLib.JBVProtocol
                         SendFrame(frame.Frame, frame.RetryCount);
                     else
                     {
-                        Command cmd = Command.Create(frame.Frame);
-                        if (cmd is RoutingInvalid)
+                        switch ((CommandList)frame.Frame.CommandID)
                         {
-                            Logger.LOGE($"Dropped RoutingInvalid frame, RetryCount = '{frame.RetryCount}'");
-                        }
-                        else
-                        {
-                            Logger.LOGE($"Dropped frame, RetryCount = '{frame.RetryCount}'");
-
-                            RoutingInvalid cmd2 = new RoutingInvalid();
-                            cmd2.RxID = frame.Frame.TxID;
-                            cmd2.Sequence = cmd.Sequence;
-                            pendingFrames.Add(new PendingFrame(cmd2.GetFrame()));
+                            case CommandList.RoutingInvalid:
+                                Logger.LOGE($"Dropped RoutingInvalid frame, RetryCount = '{frame.RetryCount}'");
+                                break;
+                            default:
+                                Logger.LOGE($"Dropped frame, RetryCount = '{frame.RetryCount}'");
+                                Frame f = Frame.RoutingInvalid();
+                                f.RxID = frame.Frame.TxID;
+                                f.Sequence = frame.Frame.Sequence;
+                                pendingFrames.Add(new PendingFrame(f));
+                                break;
                         }
                     }
                 }
@@ -166,11 +165,9 @@ namespace STDLib.JBVProtocol
         void RequestID(UInt16 id)
         {
             Logger.LOGI("RequestID");
-            RequestID cmd = new RequestID();
-            cmd.ID = id;
-            Frame frame = cmd.GetFrame();
-            frame.RxID = 0;
-            SendFrame(frame);
+            Frame f = Frame.RequestID(id);
+            f.RxID = 0;
+            SendFrame(f);
         }
 
         void SendFrame(Frame frame, int retries = 0)

@@ -15,5 +15,6 @@ namespace STDLib.JBVProtocol
         ConnectionServer = 7,
         DebugTool = 8,
         FunctionGenerator = 9,
+        LogHandler = 10,
     }
 }

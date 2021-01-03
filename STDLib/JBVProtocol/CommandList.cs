@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace STDLib.JBVProtocol.Commands
+namespace STDLib.JBVProtocol
 {
-    public enum CommandList : UInt32
+    public enum CommandList : uint
     {
 
         /// <summary> Is send back to the sender when the router couln't find a path to the reciever id. </summary>
@@ -17,13 +17,13 @@ namespace STDLib.JBVProtocol.Commands
         /// <summary> Send as a <see cref="Frame.OPT.Broadcast"/>, The device with matching <see cref="RequestID.ID"/> will respond with a broadcast. Used by the <see cref="Router"/> to find missing <see cref="Router.Route"/>. </summary>
         RequestID = 0xFFFFFFF7,
 
-        /// <summary> Send as a <see cref="Frame.OPT.Broadcast"/>, The reply to <see cref="CommandList.RequestID"/>. </summary>
+        /// <summary> Send as a <see cref="Frame.OPT.Broadcast"/>, The reply to <see cref="RequestID"/>. </summary>
         ReplyID = 0xFFFFFFF8,
 
         /// <summary> Send as a <see cref="Frame.OPT.Broadcast"/>, The device with matching <see cref="RequestSID.SID"/> will respond with a broadcast. </summary>
         RequestSID = 0xFFFFFFF9,
 
-        /// <summary> The reply to <see cref="CommandList.RequestSID"/>. </summary>
+        /// <summary> The reply to <see cref="RequestSID"/>. </summary>
         ReplySID = 0xFFFFFFFA,
 
         /// <summary> A generic command that indicates that a command was not executed. </summary>

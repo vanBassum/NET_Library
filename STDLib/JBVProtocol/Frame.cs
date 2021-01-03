@@ -1,5 +1,4 @@
-﻿using STDLib.JBVProtocol.Commands;
-using System;
+﻿using System;
 
 
 namespace STDLib.JBVProtocol
@@ -27,6 +26,13 @@ namespace STDLib.JBVProtocol
         {
             return (value & ~(0xFF << index)) | (replaceByte << index);
         }
+
+        public void SetData(byte[] data)
+        {
+            Data = data;
+            DataLength = (UInt16)data.Length;
+        }
+
 
         public byte this[int index]
         {
@@ -74,12 +80,120 @@ namespace STDLib.JBVProtocol
                             Data = new byte[DataLength];
                         Data[index - 14] = value;
                         break;
-
-
                 }
             }
         }
 
+
+        public static Frame ReplyACK()
+        {
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.ReplyACK,
+                Options = OPT.None,
+            }; 
+        }
+
+        public static Frame ReplyNACK()
+        {
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.ReplyNACK,
+                Options = OPT.None,
+            };
+        }
+
+        public static Frame ReplyID(UInt16 id)
+        {
+            byte[] data = BitConverter.GetBytes(id);
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.ReplyID,
+                Options = OPT.Broadcast,
+                Data = data,
+                DataLength = (UInt16)data.Length,
+            };
+        }
+
+        public static Frame ReplyLease(Lease lease)
+        {
+            byte[] data = lease.ToByteArray();
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.ReplyLease,
+                Options = OPT.Broadcast,
+                Data = data,
+                DataLength = (UInt16)data.Length,
+            };
+        }
+
+        public static Frame ReplySID(SoftwareID sid)
+        {
+            byte[] data = BitConverter.GetBytes((UInt32)sid);
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.ReplySID,
+                Options = OPT.None,
+                Data = data,
+                DataLength = (UInt16)data.Length,
+            };
+        }
+        public static Frame ReplyCMDINV(SoftwareID sid)
+        {
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.ReplyCMDINV,
+                Options = OPT.None,
+            };
+        }
+
+
+
+        public static Frame RequestID(UInt16 id)
+        {
+            byte[] data = BitConverter.GetBytes(id);
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.RequestID,
+                Options = OPT.Broadcast,
+                Data = data,
+                DataLength = (UInt16)data.Length,
+            };
+        }
+
+        public static Frame RequestLease(Guid key)
+        {
+            byte[] data = key.ToByteArray();
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.RequestLease,
+                Options = OPT.Broadcast,
+                Data = data,
+                DataLength = (UInt16)data.Length,
+            };
+        }
+
+        public static Frame RequestSID(SoftwareID sid)
+        {
+            byte[] data = BitConverter.GetBytes((UInt32)sid);
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.RequestSID,
+                Options = OPT.Broadcast,
+                Data = data,
+                DataLength = (UInt16)data.Length,
+            };
+        }
+
+
+        public static Frame RoutingInvalid()
+        {
+            return new Frame()
+            {
+                CommandID = (UInt32)CommandList.RoutingInvalid,
+                Options = OPT.None,
+            };
+        }
     }
 
 }

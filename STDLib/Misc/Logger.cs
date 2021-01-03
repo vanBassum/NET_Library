@@ -1,4 +1,5 @@
-﻿using System;
+﻿using STDLib.Saveable;
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -13,155 +14,111 @@ namespace STDLib.Misc
     /// </summary>
     public class Logger
     {
-        /// <summary>
-        /// The datetime format to use.
-        /// </summary>
-        public static string DateTimeFormat { get { return "dd-MMM-yyyy HH:mm:ss.fff K"; } }
-        StreamWriter writer = null;
-        private static Logger instance = new Logger();
-        private static Logger Instance { get { lock (instance) { return instance; }; } }
+        static LogList<LogEntry> LogList = new LogList<LogEntry>();
+        public static string LogFile { get => LogList.LogFile; set => LogList.LogFile = value; }
+        public static object ConsoleLock = new object();
+        public static LogLevel ConsoleLog { get; set; } = (LogLevel)0xFF;
+        public static LogLevel FileLog { get; set; } = LogLevel.Error | LogLevel.Fatal | LogLevel.Warning;
 
-        private static string file;
-        private static bool autoOpen;
-        private System.Timers.Timer closeFileTimer = new System.Timers.Timer(1000);
-
-        bool fileIsOpen = false;
-        object writerLock = new object();
-
-
-        Logger()
+        public static void LOGI(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "")
         {
-            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-            closeFileTimer.Elapsed += CloseFileTimer_Elapsed;
+            Log(DateTime.Now, message, LogLevel.Info, file, member);
         }
 
-        private void CloseFileTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        public static void LOGW(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "")
         {
-            Instance.closeFileTimer.Stop();
-            Logger.CloseFile();
+            Log(DateTime.Now, message, LogLevel.Warning, file, member);
         }
 
-        private void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        public static void LOGE(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "")
         {
-            CloseFileInt();
+            Log(DateTime.Now, message, LogLevel.Error, file, member);
         }
 
-        private void CloseFileInt()
+        public static void LOGF(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "")
         {
-            lock (Instance.writerLock)
+            Log(DateTime.Now, message, LogLevel.Fatal, file, member);
+        }
+
+        public static void Log(DateTime timestamp, string message, LogLevel level, [CallerFilePath] string file = "", [CallerMemberName] string member = "")
+        {
+            if (timestamp == null)
+                timestamp = DateTime.Now;
+            LogEntry logEntry = new LogEntry(timestamp, message, level, file, member);
+            Log(logEntry);
+        }
+
+        private static void Log(LogEntry logEntry)
+        {
+            string consoleMessage = $"{Path.GetFileNameWithoutExtension(logEntry.File)}.{logEntry.Member}:{logEntry.Message}";
+
+
+            lock (ConsoleLock)
             {
-                if (Instance.fileIsOpen)
-                    Instance.writer?.Flush();
-                Instance.writer?.Close();
-                Instance.writer?.Dispose();
-                fileIsOpen = false;
-
-            }
-
-        }
-
-
-        /// <summary>
-        /// Sets the logfile to be used.
-        /// A new file is automatically created if it didn't exist.
-        /// </summary>
-        /// <param name="file">Path to file</param>
-        /// <param name="autoOpen">Let the Logger automatically open and close the file when nessesairy. Otherwise use <see cref="OpenFile"/> and <see cref="CloseFile"/> to open and close the file manually.</param>
-        public static void SetFile(string file, bool autoOpen = true)
-        {
-            CreateDirIfNotExists(Path.GetDirectoryName(file));
-            Logger.file = file;
-            Logger.autoOpen = autoOpen;
-        }
-
-        /// <summary>
-        /// Opens the file in order to write to the file with <see cref="WriteLine(string, string)"/>
-        /// No need to use this if the <see cref="SetFile(string, bool)"/> with autoOpen = true, was used.
-        /// </summary>
-        public static void OpenFile()
-        {
-            Console.WriteLine("OpenLOG");
-            string path = Path.GetDirectoryName(file);
-            if (path != "")
-            {
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
-            }
-            lock (Logger.Instance.writerLock)
-            {
-                Logger.Instance.writer = new StreamWriter(File.Open(file, FileMode.Append, FileAccess.Write));
-                Logger.Instance.fileIsOpen = true;
-            }
-        }
-
-        /// <summary>
-        /// Closes the file after lines has been written to the file with <see cref="WriteLine(string, string)"/>
-        /// No need to use this if the <see cref="SetFile(string, bool)"/> with autoOpen = true, was used
-        /// </summary>
-        public static void CloseFile()
-        {
-            Console.WriteLine("CloseLOG");
-            Instance.CloseFileInt();
-        }
-
-
-
-        /// <summary>
-        /// Write a string to the logfile that was set with <see cref="SetFile(string, bool)"/>
-        /// </summary>
-        /// <param name="message">The message string to be written.</param>
-        /// <param name="memberName">The name of the calling function.</param>
-        public static void WriteLine(string message, [CallerMemberName] string memberName = "")
-        {
-            lock (Logger.Instance.writerLock)
-            {
-                if (autoOpen)
+                switch(logEntry.Level)
                 {
-                    Instance.closeFileTimer.Stop();
-                    if (!Logger.Instance.fileIsOpen)
-                        OpenFile();
+                    case LogLevel.Debug:
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        break;
+                    case LogLevel.Info:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        break;
+                    case LogLevel.Warning:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    case LogLevel.Error:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                    case LogLevel.Fatal:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
                 }
-                string timestamp = DateTime.Now.ToString(DateTimeFormat);
-
-                Logger.Instance.writer.WriteLine($"{timestamp}, {memberName}, {Regex.Escape(message)}");
-                Console.WriteLine($"Log {memberName}: '{message}'");
-                if (autoOpen)
-                    Instance.closeFileTimer.Start();
-
+                Console.WriteLine(consoleMessage);
+                Console.ForegroundColor = ConsoleColor.White;
             }
-        }
-
-        /// <summary>
-        /// Write a string without anything appended.
-        /// The string will be appended to the file "as is"
-        /// </summary>
-        /// <param name="message"></param>
-        public static void WriteRawLine(string message)
-        {
-            lock (Logger.Instance.writerLock)
-            {
-                if (autoOpen)
-                {
-                    Instance.closeFileTimer.Stop();
-                    if (!Logger.Instance.fileIsOpen)
-                        OpenFile();
-                }
-                Logger.Instance.writer.WriteLine(message);
-                Console.WriteLine($"Log 'message'");
-                if (autoOpen)
-                    Instance.closeFileTimer.Start();
-
-            }
-        }
-
-
-        private static void CreateDirIfNotExists(string dir)
-        {
-            if (dir != "")
-            {
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
-            }
+            LogList.Add(logEntry);
         }
     }
+
+
+
+    public class LogEntry
+    {
+        public DateTime Timestamp { get; set; }
+        public string Message { get; set; }
+        public LogLevel Level { get; set; }
+        public string File { get; set; }
+        public string Member { get; set; }
+
+        public LogEntry()
+        {
+
+        }
+
+        public LogEntry(DateTime timestamp, string message, LogLevel level, [CallerFilePath] string file = "", [CallerMemberName] string member = "")
+        {
+            Timestamp = timestamp;
+            Message = message;
+            Level = level;
+            File = file;
+            Member = member;
+        }
+
+
+    }
+
+    [Flags]
+    public enum LogLevel
+    {
+        //Off     = 0,
+        //All     = 0xFFFF,
+        Debug = (1 << 0),
+        Info = (1 << 1),
+        Warning = (1 << 2),
+        Error = (1 << 3),
+        Fatal   = (1 << 4),
+    }
+
+
+
 }

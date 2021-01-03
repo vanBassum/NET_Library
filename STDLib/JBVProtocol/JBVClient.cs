@@ -1,7 +1,6 @@
-﻿using STDLib.JBVProtocol.Commands;
+﻿using STDLib.Misc;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,39 +8,14 @@ using System.Threading.Tasks;
 
 namespace STDLib.JBVProtocol
 {
-    public class Sequencer
-    {
-        HashSet<UInt16> pendingSequences = new HashSet<ushort>();
-        UInt16 nextSeq = 0;
-
-        public UInt16 RequestSequenceID()
-        {
-            lock (pendingSequences)
-            {
-                while (pendingSequences.Contains(nextSeq++)) ;
-                pendingSequences.Add(nextSeq);
-            }
-            return nextSeq;
-        }
-
-        public void FreeSequenceID(UInt16 seqId)
-        {
-            lock (pendingSequences)
-            {
-                pendingSequences.Remove(seqId);
-            }
-        }
-    }
-
-
 
     public class JBVClient
     {
-        public event EventHandler<Command> CommandRecieved;
+        public IConnection Connection { get; private set; }
+        public event EventHandler<Frame> FrameRecieved;
         public event EventHandler<Lease> LeaseRecieved;
         SoftwareID softwareID = SoftwareID.Unknown;
         Lease lease = new Lease();
-        IConnection connection;
         Task task;
         Framing framing;
         BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
@@ -54,11 +28,23 @@ namespace STDLib.JBVProtocol
 
             task = new Task(Work);
             task.Start();
+            SetConnection(new DummyConnection());
+        }
+
+        public JBVClient(SoftwareID softId, UInt16 staticID)
+        {
+            softwareID = softId;
+            framing = new Framing();
+            framing.OnFrameCollected += (sender, frame) => pendingFrames.Add(frame);
+            lease = new Lease() { ID = staticID, Expire = DateTime.MaxValue };
+            task = new Task(Work);
+            task.Start();
+            SetConnection(new DummyConnection());
         }
 
         public void SetConnection(IConnection con)
         {
-            connection = con;
+            Connection = con;
             con.OnDataRecieved += (sender, data) =>
             {
                 framing.Unstuff(data);
@@ -73,7 +59,7 @@ namespace STDLib.JBVProtocol
 
             while (true)
             {
-                if (lease.ExpiresIn.TotalMinutes < 5)
+                if (this.lease.ExpiresIn.TotalMinutes < 5)
                 {
                     RequestLease();
                 }
@@ -82,40 +68,53 @@ namespace STDLib.JBVProtocol
 
                 while (pendingFrames.TryTake(out frame, 1000))
                 {
-                    Command gcmd = Command.Create(frame);
-                    if (gcmd == null)
+                    /*
+                    if (Enum.IsDefined(typeof(CommandList), frame.CommandID))
                     {
-                        Logger.LOGE($"Command not found '{frame.CommandID}'");
-                    }
-                    else
-                    {
-                        switch (gcmd)
-                        {
-                            case RequestID cmd:
-                                if (cmd.ID == lease.ID)
-                                {
-                                    ReplyID();
-                                }
-                                break;
-                            case ReplyLease cmd:
-                                if (cmd.Lease.Key == lease.Key)
-                                {
-                                    lease = cmd.Lease;
-                                    Logger.LOGI($"Lease acquired");
-                                    LeaseRecieved?.Invoke(this, lease);
-                                }
-                                break;
-                            case RequestSID cmd:
-                                if (cmd.SID == SoftwareID.Unknown || cmd.SID == softwareID)
-                                {
-                                    ReplySID(cmd);
-                                }
-                                break;
 
-                            default:
-                                CommandRecieved?.Invoke(this, gcmd);
-                                break;
-                        }
+                    }
+                    */
+
+                    CommandList cmd = (CommandList)frame.CommandID;
+
+                    switch (cmd)
+                    {
+                        case CommandList.RequestID:
+                            UInt16 id = BitConverter.ToUInt16(frame.Data, 0);
+                            if (id == this.lease.ID)
+                            {
+                                Frame f = Frame.ReplyID(this.lease.ID);
+                                SendFrame(f);
+                            }
+                            break;
+                        case CommandList.RequestSID:
+                            SoftwareID sid = (SoftwareID)BitConverter.ToUInt32(frame.Data, 0);
+                            if (sid == SoftwareID.Unknown || sid == softwareID)
+                            {
+                                Frame f = Frame.ReplySID(this.softwareID);
+                                SendFrame(f);
+                            }
+                            break;
+                        case CommandList.ReplyLease:
+                            Lease rxLease = new Lease(frame.Data);
+                            if (rxLease.Key == this.lease.Key)
+                            {
+                                this.lease = rxLease;
+                                Logger.LOGI($"Lease acquired");
+                                LeaseRecieved?.Invoke(this, lease);
+                            }
+                            break;
+                        //case CommandList.RequestLease:
+                        //    break;
+                        //case CommandList.INVALID:
+                        //    break;
+                        //case CommandList.ReplyACK:
+                        //    break;
+                        //case CommandList.ReplySID:
+                        //    break;
+                        default:
+                            FrameRecieved?.Invoke(this, frame);
+                            break;
                     }
                 }
             }
@@ -123,31 +122,9 @@ namespace STDLib.JBVProtocol
 
         void RequestLease()
         {
-            Logger.LOGI("RequestLease");
-            RequestLease cmd = new RequestLease();
-            cmd.Key = lease.Key;
-            SendCMD(cmd);
-        }
-
-        void ReplyID()
-        {
-            ReplyID cmd = new ReplyID();
-            cmd.ID = lease.ID;
-            SendCMD(cmd);
-        }
-
-        void ReplySID(Command rxCmd)
-        {
-            ReplySID cmd = new ReplySID();
-            cmd.RxID = rxCmd.TxID;
-            cmd.SID = softwareID;
-            SendCMD(cmd);
-        }
-
-        public void SendCMD(Command cmd)
-        {
-            Frame frame = cmd.GetFrame();
-            SendFrame(frame);
+            Logger.LOGI(softwareID.ToString());
+            Frame f = Frame.RequestLease(lease.Key);
+            SendFrame(f);
         }
 
         public void SendFrame(Frame frame)
@@ -155,14 +132,14 @@ namespace STDLib.JBVProtocol
             if (lease.IsValid || frame.Options.HasFlag(Frame.OPT.Broadcast))
             {
                 frame.TxID = lease.ID;
-                if (connection != null)
-                    connection.SendData(framing.Stuff(frame));
+                if (Connection != null)
+                    Connection.SendData(framing.Stuff(frame));
                 else
                     Logger.LOGE("No connection");
             }
         }
 
-
+        /*
         Sequencer sequencer = new Sequencer();
 
         public async Task<Command> SendRequest(Command txCmd, CancellationToken? ct = null)
@@ -190,7 +167,7 @@ namespace STDLib.JBVProtocol
 
             return await tcs.Task;
         }
-
+        */
     }
 }
 
