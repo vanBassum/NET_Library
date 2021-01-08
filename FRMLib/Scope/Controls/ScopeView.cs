@@ -555,7 +555,7 @@ namespace FRMLib.Scope.Controls
             viewPort.Height = pictureBox1.Height-1;
 
             int spaceForScaleIndicatorsVertical = 45;
-            int spaceForScaleIndicatorsHorizontal = 30;
+            int spaceForScaleIndicatorsHorizontal = 25;
 
             switch (Settings.DrawScalePosVertical)
             {
@@ -642,7 +642,7 @@ namespace FRMLib.Scope.Controls
 
                                 if (t.Visible)
                                 {
-                                    double yValue = ((Settings.VerticalDivisions - row) * t.Scale);
+                                    double yValue = ((Settings.VerticalDivisions - row) * t.Scale) - t.Offset;
                                     switch (Settings.ZeroPosition)
                                     {
                                         case VerticalZeroPosition.Middle:
@@ -683,10 +683,11 @@ namespace FRMLib.Scope.Controls
                         if(dt.Year > 1970)
                         {
                             Brush b = new SolidBrush(Settings.GridZeroPen.Color);
-                            int y = Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height;
-                            string s = dt.ToShortDateString() + "\r\n" + dt.ToShortTimeString();
-                            Size textSize = TextRenderer.MeasureText(s, Settings.Font);
-                            g.DrawString(s, Settings.Font, b, new Rectangle(x - textSize.Width / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal));
+                            int y = Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height + 2;
+                            string dateString = dt.ToString("dd-MM-yyyy") + "\r\n" + dt.ToString("HH:mm:ss");
+                            StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center };
+                            Size textSize = TextRenderer.MeasureText(dateString, Settings.Font);
+                            g.DrawString(dateString, Settings.Font, b, new Rectangle(x - pxPerColumn / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal), sf) ;
                         }
 
                     }
@@ -730,6 +731,9 @@ namespace FRMLib.Scope.Controls
                     max.KeepMaximum(t.Maximum);
                 }
 
+                double xLeft = Settings.HorOffset;
+                double xRight = ((viewPort.Width) / pxPerUnits_hor) - Settings.HorOffset;
+
                 //Loop through traces
                 foreach (Trace trace in sortedTraces)
                 {
@@ -740,7 +744,7 @@ namespace FRMLib.Scope.Controls
                         (int)(zeroPos - (p.Y + trace.Offset) * pxPerUnits_ver));
                     try
                     {
-                        trace.Draw(g, viewPort, convert, min.X, max.X);
+                        trace.Draw(g, viewPort, convert, min.X, max.X, xLeft, xRight);
                     }
                     catch (Exception ex)
                     {

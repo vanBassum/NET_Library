@@ -80,12 +80,19 @@ namespace FRMLib.Scope.Controls
                 
             }
             dataGridView1.CellFormatting += dataGridView1_CellFormatting;
+            dataGridView1.KeyDown += DataGridView1_KeyDown;
             dataGridView1.CurrentCellDirtyStateChanged += DataGridView1_CurrentCellDirtyStateChanged;
+        }
+
+        private void DataGridView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Enter)
+                dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
         }
 
         private void DataGridView1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
-            dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            
         }
 
         private void TraceView_Load(object sender, EventArgs e)

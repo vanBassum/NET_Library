@@ -161,7 +161,7 @@ namespace FRMLib.Scope
         }
 
 
-        public void Draw(Graphics g, Rectangle viewPort, Func<PointD, Point> convert, double firstX, double lastX)
+        public void Draw(Graphics g, Rectangle viewPort, Func<PointD, Point> convert, double firstX, double lastX, double xLeft, double xRight)
         {
             Pen pen = Pen;
             Brush brush = new SolidBrush(pen.Color);
@@ -183,27 +183,39 @@ namespace FRMLib.Scope
                     bool extendEnd = DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
                     bool extendBegin = DrawOption.HasFlag(Trace.DrawOptions.ExtendBegin);
 
-                    Point pPrev = Point.Empty;
-                    Point pAct = convert(Points[i]);
-                    Point pNext = Point.Empty;
+                    PointD pPrevD = PointD.Empty;
+                    PointD pActD = Points[i];
+                    PointD pNextD = PointD.Empty;
 
                     if (!first)
-                        pPrev = convert(Points[i - inc]);
+                        pPrevD = Points[i - inc];
                     if (first && extendBegin)
-                        pPrev = convert(new PointD(firstX, Points[i].Y));
+                        pPrevD = new PointD(firstX, Points[i].Y);
                     if (!last)
-                        pNext = convert(Points[i + inc]);
+                        pNextD = Points[i + inc];
                     if (last && extendEnd)
-                        pNext = convert(new PointD(lastX, Points[i].Y));
+                        pNextD = new PointD(lastX, Points[i].Y);
 
+                    Point pPrev = convert(pPrevD);
+                    Point pAct = convert(pActD);
+                    Point pNext = convert(pNextD);
 
                     //Outside view check
                     if (viewPort.CheckIfPointIsWithin(pAct) || viewPort.CheckIfPointIsWithin(pPrev) || viewPort.CheckIfPointIsWithin(pNext))
                     {
+                        if(pActD.X < xLeft)
+                            pAct = convert(new PointD(xLeft, GetYValue(xLeft)));
+                        else if (pActD.X > xRight)
+                            pAct = convert(new PointD(xRight, GetYValue(xRight)));
 
-                        if (DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
-                            g.DrawCross(pen, pAct, 3);
+                        if (pPrevD.X < xLeft)
+                            pPrev = convert(new PointD(xLeft, GetYValue(xLeft)));
 
+                        if (pNextD.X > xRight)
+                            pNext = convert(new PointD(xRight, GetYValue(xRight)));
+
+                        if (DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses) && viewPort.CheckIfPointIsWithin(convert(pActD)))
+                            g.DrawCross(pen, convert(pActD), 3);
 
                         switch (DrawStyle)
                         {
