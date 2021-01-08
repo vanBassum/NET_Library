@@ -13,6 +13,8 @@ namespace FRMLib.Controls
 {
     public partial class CollectionEditControl : UserControl
     {
+        public object SelectedObject { get; private set; }
+        public event EventHandler<object> SelectedItemChanged;
         public event EventHandler<object> ObjectChanged;
         bool objectIsNew = false;
         object editObject = null;
@@ -32,37 +34,22 @@ namespace FRMLib.Controls
         {
             StopEditMode();
 
-            int w = 0;
-            foreach(var p in CreateNewObject().GetType().GetProperties())
-            {
-                w = Math.Max(TextRenderer.MeasureText(p.Name, propertyGrid1.Font).Width, w);
-            }
-
-            //SetLabelColumnWidth(propertyGrid1, w);
         }
 
-        public static void SetLabelColumnWidth(PropertyGrid grid, int width)
-        {
-            if (grid == null)
-                throw new ArgumentNullException("grid");
-
-            // get the grid view
-            Control view = (Control)grid.GetType().GetField("gridView", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(grid);
-
-            // set label width
-            FieldInfo fi = view.GetType().GetField("labelWidth", BindingFlags.Instance | BindingFlags.NonPublic);
-            fi.SetValue(view, width);
-
-            // refresh
-            view.Invalidate();
-        }
 
         object CreateNewObject()
         {
             if (CreateObject == null)
             {
-                Type type = DataSource.GetType().GetGenericArguments()[0];
-                return Activator.CreateInstance(type);
+                if (DataSource == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    Type type = DataSource.GetType().GetGenericArguments()[0];
+                    return Activator.CreateInstance(type);
+                }
             }
             else
             {
@@ -112,8 +99,12 @@ namespace FRMLib.Controls
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(listBox1.SelectedItem != null)
+            if (listBox1.SelectedItem != null)
+            {
                 propertyGrid1.SelectedObject = listBox1.SelectedItem;
+                SelectedObject = listBox1.SelectedItem;
+                SelectedItemChanged?.Invoke(this, listBox1.SelectedItem);
+            }
         }
 
 
