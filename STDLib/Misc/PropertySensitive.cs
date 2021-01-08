@@ -17,6 +17,7 @@ namespace STDLib.Misc
     /// </summary>
     public abstract class PropertySensitive : INotifyPropertyChanged
     {
+        [Browsable(false)]
         public bool NotifyOnChange { get; set; } = true;
         /// <summary>
         /// <see cref="INotifyPropertyChanged.PropertyChanged"/>

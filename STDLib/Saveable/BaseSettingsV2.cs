@@ -12,10 +12,11 @@ namespace STDLib.Saveable
 
     public class BaseSettingsV2<T1> where T1 : BaseSettingsV2<T1>
     {
-        public static readonly string defaultDataFolder = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? Path.Combine("/data", "vanBassum", System.Reflection.Assembly.GetEntryAssembly().GetName().Name) : "data";
+        public static bool PendingChanges { get; private set; } = false;
+        public static string DefaultDataFolder { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? Path.Combine("/data", "vanBassum", System.Reflection.Assembly.GetEntryAssembly().GetName().Name) : "data";
         private Dictionary<string, object> fields = new Dictionary<string, object>();
         private static readonly Serializer serializer = new JSON();
-        public static FileInfo SettingsFile = new FileInfo( Path.Combine(defaultDataFolder, $"{typeof(T1).Name}.json"));
+        public static FileInfo SettingsFile = new FileInfo( Path.Combine(DefaultDataFolder, $"{typeof(T1).Name}.json"));
 
         public static T1 Items { get; set; }
 
@@ -24,6 +25,7 @@ namespace STDLib.Saveable
             Directory.CreateDirectory(SettingsFile.DirectoryName);
             using (Stream stream = SettingsFile.Open(FileMode.Create, FileAccess.ReadWrite))
                 serializer.Serialize(Items, stream);
+            PendingChanges = false;
         }
 
         public static void Load()
@@ -37,12 +39,14 @@ namespace STDLib.Saveable
             {
                 Items = serializer.Deserialize<T1>(SettingsFile);
             }
+            PendingChanges = false;
         }
 
         protected void SetPar<T2>(T2 value, [CallerMemberName] string propertyName = null)
         {
             lock (fields)
             {
+                PendingChanges = true;
                 fields[propertyName] = value;
             }
         }
