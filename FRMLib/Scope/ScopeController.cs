@@ -23,6 +23,16 @@ namespace FRMLib.Scope
             Traces.Clear();
         }
 
+
+        public void ClearData()
+        {
+            MathItems.Clear();
+            Cursors.Clear();
+            Markers.Clear();
+            foreach (var v in Traces)
+                v.Points.Clear();
+        }
+
         static string TicksToString(double ticks)
         {
             DateTime dt = new DateTime((long)ticks);

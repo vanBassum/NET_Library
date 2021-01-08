@@ -6,7 +6,6 @@ namespace STDLib.Extentions
 {
     public static class Numers_Ext
     {
-
         public static string ToHumanReadable(this decimal num, int size = 8)
         {
             const string prefix = "fpnum\0kMGT";

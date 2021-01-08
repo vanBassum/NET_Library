@@ -1,6 +1,7 @@
 ﻿using FRMLib.Scope.Controls;
 using STDLib.Math;
 using STDLib.Misc;
+using STDLib.Extentions;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -30,7 +31,7 @@ namespace FRMLib.Scope
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
         [TraceViewAttribute]
         public DrawOptions DrawOption { get { return GetPar((DrawOptions)0); } set { SetPar(value); } }
-        public Func<double, string> ToHumanReadable { get { return GetPar(new Func<double, string>((a) => a.ToHumanReadable(3))); } set { SetPar(value); } }
+        public Func<double, string> ToHumanReadable { get { return GetPar(new Func<double, string>((a) => a.ToHumanReadable(3) + Unit)); } set { SetPar(value); } }
         public PointD Minimum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public PointD Maximum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public Trace Self { get { return this; } }
@@ -158,6 +159,119 @@ namespace FRMLib.Scope
             }
 
         }
+
+
+        public void Draw(Graphics g, Rectangle viewPort, Func<PointD, Point> convert, double firstX, double lastX)
+        {
+            Pen pen = Pen;
+            Brush brush = new SolidBrush(pen.Color);
+
+            if (Visible)
+            {
+                //Pen linePen = new Pen(trace.Colour);
+                //double stateY = viewPort.Height / 2 - Offset * pxPerUnits_ver;// * trace.Scale;
+
+                int pointCnt = Points.Count;
+                int inc = 1;
+                //Only draw points within screen, this can be calculated.
+
+                for (int i = 0; i < pointCnt; i += inc)
+                {
+                    bool last = (i == (pointCnt - inc));
+                    bool first = i == 0;
+
+                    bool extendEnd = DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
+                    bool extendBegin = DrawOption.HasFlag(Trace.DrawOptions.ExtendBegin);
+
+                    Point pPrev = Point.Empty;
+                    Point pAct = convert(Points[i]);
+                    Point pNext = Point.Empty;
+
+                    if (!first)
+                        pPrev = convert(Points[i - inc]);
+                    if (first && extendBegin)
+                        pPrev = convert(new PointD(firstX, Points[i].Y));
+                    if (!last)
+                        pNext = convert(Points[i + inc]);
+                    if (last && extendEnd)
+                        pNext = convert(new PointD(lastX, Points[i].Y));
+
+
+                    //Outside view check
+                    if (viewPort.CheckIfPointIsWithin(pAct) || viewPort.CheckIfPointIsWithin(pPrev) || viewPort.CheckIfPointIsWithin(pNext))
+                    {
+
+                        if (DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses))
+                            g.DrawCross(pen, pAct, 3);
+
+
+                        switch (DrawStyle)
+                        {
+                            case Trace.DrawStyles.Points:
+                                g.Drawpoint(brush, pAct, 2);
+                                break;
+
+                            case Trace.DrawStyles.DiscreteSingal:
+                                g.Drawpoint(brush, pAct, 4);
+                                g.DrawLine(pen, new Point(pAct.X, viewPort.Height / 2), pAct);
+                                break;
+
+                            case Trace.DrawStyles.Lines:
+
+                                if (first && extendBegin)
+                                    g.DrawLine(pen, pPrev, pAct, true, false);
+
+                                if (last && extendEnd)
+                                    g.DrawLine(pen, pAct, pNext, false, true);
+
+                                if (!last)
+                                    g.DrawLine(pen, pAct, pNext, false, false);
+
+                                break;
+
+                            case Trace.DrawStyles.NonInterpolatedLine:
+                                if (first && extendBegin)
+                                    g.DrawLine(pen, pPrev, pAct, true, false);
+
+                                if (last && extendEnd)
+                                    g.DrawLine(pen, pAct, pNext, false, true);
+
+                                if (!last)
+                                {
+                                    g.DrawLine(pen, pAct, new Point(pNext.X, pAct.Y));
+                                    g.DrawLine(pen, new Point(pNext.X, pAct.Y), pNext);
+                                }
+                                break;
+
+                            case Trace.DrawStyles.State:
+                                string text = ToHumanReadable(Points[i].Y);
+
+                                //1, 2, 3
+
+                                Rectangle rect = Rectangle.Empty;
+                                throw new NotImplementedException("Implement stateY");
+                                //if (first && extendBegin)
+                                //    rect = new Rectangle((int)pPrev.X, (int)stateY - 8, pAct.X - pPrev.X, Settings.Font.Height);
+                                //
+                                //if (last && extendEnd)
+                                //    rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
+                                //
+                                //if (!last)
+                                //    rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
+                                //
+                                //if (rect != Rectangle.Empty)
+                                //    g.DrawState(pen, rect, text, Settings.Font, !(first && extendBegin), !(last && extendEnd));
+
+                                break;
+
+                            default:
+                                throw new NotImplementedException($"Drawing of '{DrawStyle}' is not supported yet.");
+                        }
+                    }
+                }
+            }
+        }
+
 
         public enum DrawStyles
         {

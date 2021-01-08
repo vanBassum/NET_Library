@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using STDLib.Misc;
 using STDLib.Serializers;
 
@@ -102,7 +103,7 @@ namespace STDLib.Saveable
                 StreamReader reader = new StreamReader(fileStream);
                 while (!reader.EndOfStream)
                 {
-                    string line = reader.ReadLine();
+                    string line = Regex.Unescape( reader.ReadLine().Trim('\"'));
                     list.Add(json.Deserialize<T>(line));
                 }
 
