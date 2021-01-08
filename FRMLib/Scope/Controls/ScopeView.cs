@@ -274,7 +274,7 @@ namespace FRMLib.Scope.Controls
                     if (!lastClickDown.IsEmpty)
                     {
                         double xDif = e.X - lastClickDown.X;
-                        double A = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale) + viewPort.X;
+                        double A = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
                         Settings.HorOffset = xDif / A + horOffsetLastClick;
                     }
                 }
@@ -401,6 +401,56 @@ namespace FRMLib.Scope.Controls
             t.Offset = 0;
         }
 
+
+        public void AutoScaleHorizontalTime()
+        {
+            PointD min = PointD.Empty;
+            PointD max = PointD.Empty;
+
+            foreach (Trace t in DataSource.Traces)
+            {
+                min.KeepMinimum(t.Minimum);
+                max.KeepMaximum(t.Maximum);
+            }
+
+            DateTime start = new DateTime((long)min.X);
+            DateTime end = new DateTime((long)max.X);
+            TimeSpan span = end - start;
+            if (span.TotalDays >= Settings.HorizontalDivisions)
+            {
+                Settings.HorScale = Math.Ceiling(span.TotalDays / Settings.HorizontalDivisions) * TimeSpan.TicksPerDay;
+                start.AddMilliseconds(-start.Millisecond); 
+                start.AddSeconds(-start.Second);
+                start.AddMinutes(-start.Minute);
+                start.AddHours(-start.Hour);
+            }
+            else if (span.TotalHours >= Settings.HorizontalDivisions)
+            {
+                Settings.HorScale = Math.Ceiling(span.TotalHours / Settings.HorizontalDivisions) * TimeSpan.TicksPerHour;
+                start.AddMilliseconds(-start.Millisecond);
+                start.AddSeconds(-start.Second);
+                start.AddMinutes(-start.Minute);
+            }
+            else if (span.TotalMinutes >= Settings.HorizontalDivisions)
+            {
+                Settings.HorScale = Math.Ceiling(span.TotalMinutes / Settings.HorizontalDivisions) * TimeSpan.TicksPerMinute;
+                start.AddMilliseconds(-start.Millisecond);
+                start.AddSeconds(-start.Second);
+            }
+            else if (span.TotalSeconds >= Settings.HorizontalDivisions)
+            {
+                Settings.HorScale = Math.Ceiling(span.TotalSeconds / Settings.HorizontalDivisions) * TimeSpan.TicksPerSecond;
+                start.AddMilliseconds(-start.Millisecond);
+                start.AddSeconds(-start.Second);
+            }
+            else
+            {
+                Settings.HorScale = Math.Ceiling(span.TotalMilliseconds / Settings.HorizontalDivisions) * TimeSpan.TicksPerMillisecond;
+                start.AddMilliseconds(-start.Millisecond);
+            }
+            Settings.HorOffset = -start.Ticks;
+        }
+
         public void AutoScaleHorizontal()
         {
             PointD min = PointD.Empty;
@@ -504,8 +554,8 @@ namespace FRMLib.Scope.Controls
             viewPort.Width = pictureBox1.Width-1;
             viewPort.Height = pictureBox1.Height-1;
 
-            int spaceForScaleIndicatorsVertical = 42;
-            int spaceForScaleIndicatorsHorizontal = 20;
+            int spaceForScaleIndicatorsVertical = 45;
+            int spaceForScaleIndicatorsHorizontal = 30;
 
             switch (Settings.DrawScalePosVertical)
             {
@@ -536,6 +586,9 @@ namespace FRMLib.Scope.Controls
             int pxPerRow = viewPort.Height / rows;
             int restWidth = viewPort.Width % columns;
             int restHeight = viewPort.Height % rows;
+
+            spaceForScaleIndicatorsVertical += restWidth / 2;
+            spaceForScaleIndicatorsHorizontal += restHeight / 2;
 
             viewPort.X += restWidth / 2;
             viewPort.Y -= restHeight / 2;
@@ -619,6 +672,25 @@ namespace FRMLib.Scope.Controls
             {
                 int x = (int)(i * pxPerColumn) + viewPort.X;
                 g.DrawLine(Settings.GridPen, x, viewPort.Y, x, viewPort.Y+viewPort.Height);
+
+                if (dataSource != null)
+                {
+                    if (Settings.DrawScalePosHorizontal != DrawPosHorizontal.None)
+                    {
+                        double pxPerUnits_hor = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
+                        double xVal = ((x - viewPort.X) / pxPerUnits_hor) - Settings.HorOffset;
+                        DateTime dt = new DateTime((long) xVal);
+                        if(dt.Year > 1970)
+                        {
+                            Brush b = new SolidBrush(Settings.GridZeroPen.Color);
+                            int y = Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height;
+                            string s = dt.ToShortDateString() + "\r\n" + dt.ToShortTimeString();
+                            Size textSize = TextRenderer.MeasureText(s, Settings.Font);
+                            g.DrawString(s, Settings.Font, b, new Rectangle(x - textSize.Width / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal));
+                        }
+
+                    }
+                }
             }
            
             //Draw the zero line
@@ -649,15 +721,13 @@ namespace FRMLib.Scope.Controls
                                    orderby trace.Layer descending
                                    select trace;
 
-                double lastX = double.NegativeInfinity;
-                double firstX = double.PositiveInfinity;
-                foreach (Trace trace in sortedTraces)
-                {
-                    if (lastX < trace.Maximum.X)
-                        lastX = trace.Maximum.X;
+                PointD min = PointD.Empty;
+                PointD max = PointD.Empty;
 
-                    if (firstX < trace.Minimum.X)
-                        firstX = trace.Minimum.X;
+                foreach (Trace t in sortedTraces.Where(t=>t.Visible))
+                {
+                    min.KeepMinimum(t.Minimum);
+                    max.KeepMaximum(t.Maximum);
                 }
 
                 //Loop through traces
@@ -670,7 +740,7 @@ namespace FRMLib.Scope.Controls
                         (int)(zeroPos - (p.Y + trace.Offset) * pxPerUnits_ver));
                     try
                     {
-                        trace.Draw(g, viewPort, convert, firstX, lastX);
+                        trace.Draw(g, viewPort, convert, min.X, max.X);
                     }
                     catch (Exception ex)
                     {
