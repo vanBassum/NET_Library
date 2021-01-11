@@ -44,6 +44,7 @@ namespace STDLib.Math
 
         public void KeepMaximum(PointD pt)
         {
+
             if (IsEmpty)
             {
                 X = pt.X;

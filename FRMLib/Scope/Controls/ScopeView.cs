@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -70,41 +71,95 @@ namespace FRMLib.Scope.Controls
 
             menu = new ContextMenuStrip();
 
-            ToolStripMenuItem item;
+            AddMenuItem("Add marker", () => dataSource.Cursors.Add(dragMarker = new Cursor() { X = -Settings.HorOffset }));
+            AddMenuItem("Zoom", () => Zoom_Click());
 
-            item = new ToolStripMenuItem("Add marker");
-            item.Click += AddMarker_Click;
-            menu.Items.Add(item);
+            AddMenuItem("Horizontal scale/Draw/None", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.None);
+            AddMenuItem("Horizontal scale/Draw/Top", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.Top);
+            AddMenuItem("Horizontal scale/Draw/Bottom", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.Bottom);
+            AddMenuItem("Horizontal scale/Fit", () => FitHorizontalInXDivs(Settings.HorizontalDivisions));
+            AddMenuItem("Horizontal scale/Day", () => AutoScaleHorizontalTime(TimeSpan.FromDays(1)));
+            AddMenuItem("Horizontal scale/Hour", () => AutoScaleHorizontalTime(TimeSpan.FromHours(1)));
 
-            item = new ToolStripMenuItem("Zoom");
-            item.Click += Zoom_Click;
-            menu.Items.Add(item);
+            AddMenuItem("Vertical scale/Draw/None", () => Settings.DrawScalePosVertical = DrawPosVertical.None);
+            AddMenuItem("Vertical scale/Draw/Left", () => Settings.DrawScalePosVertical = DrawPosVertical.Left);
+            AddMenuItem("Vertical scale/Draw/Right", () => Settings.DrawScalePosVertical = DrawPosVertical.Right);
+            AddMenuItem("Vertical scale/Auto", () => AutoScaleTracesKeepZero());
 
-            item = new ToolStripMenuItem("Autoscale hor");
-            item.Click += AutoscaleHor_Click;
-            menu.Items.Add(item);
-
-            item = new ToolStripMenuItem("Clear");
-            item.Click += Clear_Click;
-            menu.Items.Add(item);
+            AddMenuItem("Clear", () => dataSource.Clear());
+            AddMenuItem("Screenshot/To clipboard", () => Screenshot_Click(true));
+            AddMenuItem("Screenshot/To file", () => Screenshot_Click(false));
         }
 
-        private void AutoscaleHor_Click(object sender, EventArgs e)
+
+        void AddMenuItem(string menuPath, Action action)
         {
-            FitHorizontalInXDivs(Settings.HorizontalDivisions);
+            string[] split = menuPath.Split('/');
+
+            ToolStripMenuItem item = null;
+
+            
+            if (menu.Items[split[0]] is ToolStripMenuItem tsi)
+                item = tsi;
+            else
+            {
+                item = new ToolStripMenuItem(split[0]);
+                item.Name = split[0];
+                menu.Items.Add(item);
+            }
+
+            for (int i = 1; i < split.Length; i++)
+            {
+                string name = split[i];
+
+                if (item.DropDownItems[name] is ToolStripMenuItem tsii)
+                    item = tsii;
+                else
+                {
+                    ToolStripMenuItem newItem = new ToolStripMenuItem(name);
+                    newItem.Name = name;
+                    item.DropDownItems.Add(newItem);
+                    item = newItem;
+                }
+
+            }
+
+            if (action != null)
+                item.Click += (a, b) => action.Invoke();
+
+
         }
 
-        private void Clear_Click(object sender, EventArgs e)
+
+        private void Screenshot_Click(bool toClipboard)
         {
-            dataSource.Clear();
+            Image img = new Bitmap(pictureBox1.Size.Width, pictureBox1.Size.Height);
+            using (Graphics g = Graphics.FromImage(img))
+            {
+                DrawBackground(g);
+                DrawData(g);
+                DrawForeground(g);
+            }
+
+            if(toClipboard)
+            {
+                Clipboard.SetImage(img);
+            }
+            else
+            {
+                SaveFileDialog diag = new SaveFileDialog();
+                diag.Filter = "PNG|*.PNG";
+                diag.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                diag.FileName = "Untitled.png";
+                diag.RestoreDirectory = true;
+                if(diag.ShowDialog() == DialogResult.OK)
+                {
+                    img.Save(diag.FileName);
+                }
+            }
         }
 
-        private void AddMarker_Click(object sender, EventArgs e)
-        {
-            dataSource.Cursors.Add(dragMarker = new Cursor() { X = -Settings.HorOffset });
-        }
-
-        private void Zoom_Click(object sender, EventArgs e)
+        private void Zoom_Click()
         {
             if (DataSource.Cursors.Count == 0)
                 return;
@@ -303,22 +358,15 @@ namespace FRMLib.Scope.Controls
             }
         }
 
-        private void Markers_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            DrawForeground();
-        }
-
-        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            DrawData();
-        }
-
-        private void Form_ResizeEnd(object sender, EventArgs e)
-        {
-            DrawAll();
-        }
+ 
 
         #region Calculations
+
+        public void AutoScaleTraces()
+        {
+            foreach (Trace t in dataSource.Traces)
+                AutoScaleTrace(t);
+        }
 
         public void AutoScaleTrace(Trace t)
         {
@@ -356,6 +404,12 @@ namespace FRMLib.Scope.Controls
                 t.Scale = (double)(10 * multiplier);
 
             t.Offset = -(double)(distance / (Settings.ZeroPosition == VerticalZeroPosition.Middle ? 2 : 1) + t.Minimum.Y);
+        }
+
+        public void AutoScaleTracesKeepZero()
+        {
+            foreach (Trace t in dataSource.Traces)
+                AutoScaleTraceKeepZero(t);
         }
 
         public void AutoScaleTraceKeepZero(Trace t)
@@ -401,6 +455,20 @@ namespace FRMLib.Scope.Controls
             t.Offset = 0;
         }
 
+        public void AutoScaleHorizontalTime(TimeSpan scale)
+        {
+            PointD min = PointD.Empty;
+            PointD max = PointD.Empty;
+            foreach (Trace t in DataSource.Traces)
+            {
+                min.KeepMinimum(t.Minimum);
+                max.KeepMaximum(t.Maximum);
+            }
+
+            Settings.HorScale = scale.Ticks;
+            Settings.HorOffset = -min.X;
+        }
+
 
         public void AutoScaleHorizontalTime()
         {
@@ -412,6 +480,7 @@ namespace FRMLib.Scope.Controls
                 min.KeepMinimum(t.Minimum);
                 max.KeepMaximum(t.Maximum);
             }
+            
 
             DateTime start = new DateTime((long)min.X);
             DateTime end = new DateTime((long)max.X);
@@ -450,6 +519,9 @@ namespace FRMLib.Scope.Controls
             }
             Settings.HorOffset = -start.Ticks;
         }
+
+
+
 
         public void AutoScaleHorizontal()
         {
@@ -525,34 +597,19 @@ namespace FRMLib.Scope.Controls
 
         #endregion
 
-
-
-
-
-
         #region Drawing
-
-        public void DrawAll()
-        {
-            DrawBackground();
-            DrawData();
-            DrawForeground();
-        }
-
-
 
         private void DrawBackground()
         {
             pictureBox1.Refresh();
         }
 
-        //Draw the background
-        private void PictureBox1_Paint(object sender, PaintEventArgs e)
+        private void DrawBackground(Graphics g)
         {
             viewPort.X = 0;
             viewPort.Y = 0;
-            viewPort.Width = pictureBox1.Width-1;
-            viewPort.Height = pictureBox1.Height-1;
+            viewPort.Width = pictureBox1.Width - 1;
+            viewPort.Height = pictureBox1.Height - 1;
 
             int spaceForScaleIndicatorsVertical = 45;
             int spaceForScaleIndicatorsHorizontal = 25;
@@ -608,10 +665,7 @@ namespace FRMLib.Scope.Controls
                     break;
             }
 
-
-            Graphics g = e.Graphics;
             g.Clear(Settings.BackgroundColor);
-
 
             //Draw the viewport
             g.DrawRectangle(Settings.GridPen, viewPort);
@@ -624,42 +678,45 @@ namespace FRMLib.Scope.Controls
 
                 if (dataSource != null)
                 {
-                    if(Settings.DrawScalePosVertical != DrawPosVertical.None)
+                    if (Settings.DrawScalePosVertical != DrawPosVertical.None)
                     {
+                        int scaleDrawCount = dataSource.Traces.Where(a => a.DrawOption.HasFlag(Trace.DrawOptions.ShowScale)).Count();
                         int fit = pxPerRow / Settings.Font.Height;
-                        if (fit > dataSource.Traces.Count)
-                            fit = dataSource.Traces.Count;
+                        if (fit > scaleDrawCount)
+                            fit = scaleDrawCount;
                         int yy = y - (fit / 2) * Settings.Font.Height;
                         if (fit % 2 != 0)
                             yy -= Settings.Font.Height / 2;
 
                         int i = 0;
 
-                        foreach(Trace t in dataSource.Traces)
+                        foreach (Trace t in dataSource.Traces)
                         {
-                            if (i < dataSource.Traces.Count && (i) < fit)
+
+                            if (i < dataSource.Traces.Count
+                                && (i) < fit
+                                && t.DrawOption.HasFlag(Trace.DrawOptions.ShowScale)
+                                && t.Visible)
                             {
 
-                                if (t.Visible)
+                                double yValue = ((Settings.VerticalDivisions - row) * t.Scale) - t.Offset;
+                                switch (Settings.ZeroPosition)
                                 {
-                                    double yValue = ((Settings.VerticalDivisions - row) * t.Scale) - t.Offset;
-                                    switch (Settings.ZeroPosition)
-                                    {
-                                        case VerticalZeroPosition.Middle:
-                                            yValue -= (Settings.VerticalDivisions / 2) * t.Scale;
-                                            break;
-                                        case VerticalZeroPosition.Top:
-                                            yValue -= (Settings.VerticalDivisions) * t.Scale;
-                                            break;
-                                    }
-
-                                    Brush b = new SolidBrush(t.Pen.Color);
-                                    int x = Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
-                                    g.DrawString(t.ToHumanReadable(yValue), Settings.Font, b, new Rectangle(x, yy, spaceForScaleIndicatorsVertical, Settings.Font.Height));
-                                    yy += Settings.Font.Height;
-                                    i++;
+                                    case VerticalZeroPosition.Middle:
+                                        yValue -= (Settings.VerticalDivisions / 2) * t.Scale;
+                                        break;
+                                    case VerticalZeroPosition.Top:
+                                        yValue -= (Settings.VerticalDivisions) * t.Scale;
+                                        break;
                                 }
+
+                                Brush b = new SolidBrush(t.Pen.Color);
+                                int x = Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
+                                g.DrawString(t.ToHumanReadable(yValue), Settings.Font, b, new Rectangle(x, yy, spaceForScaleIndicatorsVertical, Settings.Font.Height));
+                                yy += Settings.Font.Height;
+                                i++;
                             }
+
                             else
                                 break;
                         }
@@ -671,7 +728,7 @@ namespace FRMLib.Scope.Controls
             for (int i = 1; i < columns + 0; i++)
             {
                 int x = (int)(i * pxPerColumn) + viewPort.X;
-                g.DrawLine(Settings.GridPen, x, viewPort.Y, x, viewPort.Y+viewPort.Height);
+                g.DrawLine(Settings.GridPen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
 
                 if (dataSource != null)
                 {
@@ -679,36 +736,34 @@ namespace FRMLib.Scope.Controls
                     {
                         double pxPerUnits_hor = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
                         double xVal = ((x - viewPort.X) / pxPerUnits_hor) - Settings.HorOffset;
-                        DateTime dt = new DateTime((long) xVal);
-                        if(dt.Year > 1970)
+                        if (xVal > DateTime.MinValue.Ticks && xVal < DateTime.MaxValue.Ticks)
                         {
-                            Brush b = new SolidBrush(Settings.GridZeroPen.Color);
-                            int y = Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height + 2;
-                            string dateString = dt.ToString("dd-MM-yyyy") + "\r\n" + dt.ToString("HH:mm:ss");
-                            StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center };
-                            Size textSize = TextRenderer.MeasureText(dateString, Settings.Font);
-                            g.DrawString(dateString, Settings.Font, b, new Rectangle(x - pxPerColumn / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal), sf) ;
+                            DateTime dt = new DateTime((long)xVal);
+                            if (dt.Year > 1970)
+                            {
+                                Brush b = new SolidBrush(Settings.GridZeroPen.Color);
+                                int y = Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height + 2;
+                                string dateString = dt.ToString("dd-MM-yyyy") + "\r\n" + dt.ToString("HH:mm:ss");
+                                StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center };
+                                Size textSize = TextRenderer.MeasureText(dateString, Settings.Font);
+                                g.DrawString(dateString, Settings.Font, b, new Rectangle(x - pxPerColumn / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal), sf);
+                            }
                         }
-
                     }
                 }
             }
-           
+
             //Draw the zero line
-            g.DrawLine(Settings.GridZeroPen, viewPort.X, zeroPos, viewPort.X+viewPort.Width, zeroPos);
+            g.DrawLine(Settings.GridZeroPen, viewPort.X, zeroPos, viewPort.X + viewPort.Width, zeroPos);
         }
-
-
 
         private void DrawData()
         {
             pictureBox2.Refresh();
         }
 
-
-        private void PictureBox2_Paint(object sender, PaintEventArgs e)
+        private void DrawData(Graphics g)
         {
-            Graphics g = e.Graphics;
             if (DataSource == null)
             {
                 g.DrawString("No datasource bound", DefaultFont, Brushes.White, new Point(this.Width / 2 - 50, this.Height / 2));
@@ -725,7 +780,7 @@ namespace FRMLib.Scope.Controls
                 PointD min = PointD.Empty;
                 PointD max = PointD.Empty;
 
-                foreach (Trace t in sortedTraces.Where(t=>t.Visible))
+                foreach (Trace t in sortedTraces.Where(t => t.Visible))
                 {
                     min.KeepMinimum(t.Minimum);
                     max.KeepMaximum(t.Maximum);
@@ -744,19 +799,19 @@ namespace FRMLib.Scope.Controls
                         (int)(zeroPos - (p.Y + trace.Offset) * pxPerUnits_ver));
                     try
                     {
-                        trace.Draw(g, viewPort, convert, min.X, max.X, xLeft, xRight);
+                        trace.Draw(g, viewPort, convert, min.X, max.X, xLeft, xRight, Settings.Font);
                     }
                     catch (Exception ex)
                     {
                         g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
                     }
                 }
-            
+
                 try
                 {
                     foreach (Marker marker in dataSource.Markers)
                     {
-                        if(marker is LinkedMarker lm)
+                        if (marker is LinkedMarker lm)
                         {
                             double pxPerUnits_ver = viewPort.Height / (Settings.VerticalDivisions * lm.Trace.Scale);
                             Func<PointD, Point> convert = (p) => new Point(
@@ -781,60 +836,55 @@ namespace FRMLib.Scope.Controls
                 {
                     g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
                 }
-            
+
                 try
                 {
                     foreach (IScopeDrawable drawable in dataSource.Drawables)
                     {
                         Func<PointD, Point> convert = (p) => new Point((int)((p.X + Settings.HorOffset) * pxPerUnits_hor), (int)(viewPort.Height / 2 - p.Y));
                         drawable.Draw(g, convert);
-            
+
                     }
                 }
                 catch (Exception ex)
                 {
                     g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
                 }
-            }
+            }           
         }
-
 
         private void DrawForeground()
         {
             pictureBox3.Refresh();
         }
-
-        private void PictureBox3_Paint(object sender, PaintEventArgs e)
+        void DrawForeground(Graphics g)
         {
-
-            Graphics g = e.Graphics;
-            
             if (DataSource != null)
             {
                 double pxPerUnits_hor = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
-            
+
                 int markerNo = 0;
                 //Loop through markers
                 foreach (Cursor marker in DataSource.Cursors)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
                 {
                     Pen pen = marker.Pen;
                     Brush brush = new SolidBrush(pen.Color);
-            
+
                     try
                     {
                         float x = (float)((marker.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
                         g.DrawLine(pen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
                         g.DrawString(marker.ID.ToString(), Settings.Font, brush, new PointF(x, 0));
-            
+
                     }
-            
+
                     catch (Exception ex)
                     {
                         g.DrawString(ex.Message, Settings.Font, brush, new Point(0, markerNo * Settings.Font.Height));
                     }
                     markerNo++;
                 }
-            
+
                 //Func<double, int> scaleX = (x) => (int)((x + Settings.HorOffset) * pxPerUnits_hor);
                 //Loop trought mathitems
                 //@TODO
@@ -860,5 +910,52 @@ namespace FRMLib.Scope.Controls
         }
 
         #endregion
+
+
+        public void DrawAll()
+        {
+            DrawBackground();
+            DrawData();
+            DrawForeground();
+        }
+
+
+
+
+
+
+        //Draw the background
+        private void PictureBox1_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            DrawBackground(g);
+        }
+
+        private void PictureBox2_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            DrawData(g);
+        }
+
+        private void PictureBox3_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            DrawForeground(g);
+        }
+
+        private void Markers_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            DrawForeground();
+        }
+
+        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            DrawData();
+        }
+
+        private void Form_ResizeEnd(object sender, EventArgs e)
+        {
+            DrawAll();
+        }
     }
 }

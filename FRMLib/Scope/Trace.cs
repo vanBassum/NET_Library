@@ -161,7 +161,7 @@ namespace FRMLib.Scope
         }
 
 
-        public void Draw(Graphics g, Rectangle viewPort, Func<PointD, Point> convert, double firstX, double lastX, double xLeft, double xRight)
+        public void Draw(Graphics g, Rectangle viewPort, Func<PointD, Point> convert, double firstX, double lastX, double xLeft, double xRight, Font font)
         {
             Pen pen = Pen;
             Brush brush = new SolidBrush(pen.Color);
@@ -169,7 +169,7 @@ namespace FRMLib.Scope
             if (Visible)
             {
                 //Pen linePen = new Pen(trace.Colour);
-                //double stateY = viewPort.Height / 2 - Offset * pxPerUnits_ver;// * trace.Scale;
+                double stateY = convert(new PointD(0, 1)).Y;// viewPort.Height / 2 - Offset * pxPerUnits_ver;// * trace.Scale;
 
                 int pointCnt = Points.Count;
                 int inc = 1;
@@ -261,18 +261,18 @@ namespace FRMLib.Scope
                                 //1, 2, 3
 
                                 Rectangle rect = Rectangle.Empty;
-                                throw new NotImplementedException("Implement stateY");
-                                //if (first && extendBegin)
-                                //    rect = new Rectangle((int)pPrev.X, (int)stateY - 8, pAct.X - pPrev.X, Settings.Font.Height);
-                                //
-                                //if (last && extendEnd)
-                                //    rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
-                                //
-                                //if (!last)
-                                //    rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, Settings.Font.Height);
-                                //
-                                //if (rect != Rectangle.Empty)
-                                //    g.DrawState(pen, rect, text, Settings.Font, !(first && extendBegin), !(last && extendEnd));
+                                //throw new NotImplementedException("Implement stateY");
+                                if (first && extendBegin)
+                                    rect = new Rectangle((int)pPrev.X, (int)stateY - 8, pAct.X - pPrev.X, font.Height);
+                                
+                                if (last && extendEnd)
+                                    rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, font.Height);
+                                
+                                if (!last)
+                                    rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, font.Height);
+                                
+                                if (rect != Rectangle.Empty)
+                                    g.DrawState(pen, rect, text, font, !(first && extendBegin), !(last && extendEnd));
 
                                 break;
 
@@ -298,9 +298,10 @@ namespace FRMLib.Scope
         public enum DrawOptions
         {
             None = 0,
-            ShowCrosses = 1,
-            ExtendBegin = 2,
-            ExtendEnd = 4,
+            ShowCrosses = (1 << 0),
+            ExtendBegin = (1 << 1),
+            ExtendEnd = (1 << 2),
+            ShowScale = (1 << 3),
         }
 
 
