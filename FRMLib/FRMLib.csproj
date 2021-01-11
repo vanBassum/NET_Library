@@ -49,6 +49,12 @@
     <Compile Include="CollectionEditDialog.Designer.cs">
       <DependentUpon>CollectionEditDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\CollectionEditControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\CollectionEditControl.Designer.cs">
+      <DependentUpon>CollectionEditControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Ext.cs" />
     <Compile Include="ObjectEditDialog.cs">
       <SubType>Form</SubType>
@@ -116,6 +122,9 @@
   <ItemGroup>
     <EmbeddedResource Include="CollectionEditDialog.resx">
       <DependentUpon>CollectionEditDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\CollectionEditControl.resx">
+      <DependentUpon>CollectionEditControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ObjectEditDialog.resx">
       <DependentUpon>ObjectEditDialog.cs</DependentUpon>
