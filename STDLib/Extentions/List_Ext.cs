@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace STDLib.Extentions
@@ -26,6 +27,19 @@ namespace STDLib.Extentions
                         list[i] = list[i + 1];
                         list[i + 1] = temp;
                     }
+                }
+            }
+        }
+
+        public static void OrderBy(this IList list, string propertyName, bool Ascending)
+        {
+            Type listElementType = list.GetType().GetGenericArguments().SingleOrDefault();
+            if(listElementType != null)
+            {
+                PropertyInfo pi = listElementType.GetProperty(propertyName);
+                if(pi != null)
+                {
+                    list.OrderBy(pi, Ascending);
                 }
             }
         }
