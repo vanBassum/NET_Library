@@ -30,7 +30,7 @@ namespace FRMLib.Scope
         [TraceViewAttribute(Width = 80)]
         public DrawStyles DrawStyle { get { return GetPar(DrawStyles.Lines); } set { SetPar(value); } }
         [TraceViewAttribute]
-        public DrawOptions DrawOption { get { return GetPar((DrawOptions)0); } set { SetPar(value); } }
+        public DrawOptions DrawOption { get { return GetPar(DrawOptions.ShowScale); } set { SetPar(value); } }
         public Func<double, string> ToHumanReadable { get { return GetPar(new Func<double, string>((a) => a.ToHumanReadable(3) + Unit)); } set { SetPar(value); } }
         public PointD Minimum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public PointD Maximum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }

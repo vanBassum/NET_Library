@@ -35,8 +35,8 @@ namespace FRMLib.Scope
 
         public Font Font { get { return GetPar(new Font("Ariel", 8.0f)); } set { SetPar(value); } }
 
-        public DrawPosVertical DrawScalePosVertical { get { return GetPar<DrawPosVertical>(DrawPosVertical.None); } set { SetPar(value); } }
-        public DrawPosHorizontal DrawScalePosHorizontal { get { return GetPar<DrawPosHorizontal>(DrawPosHorizontal.None); } set { SetPar(value); } }
+        public DrawPosVertical DrawScalePosVertical { get { return GetPar<DrawPosVertical>(DrawPosVertical.Right); } set { SetPar(value); } }
+        public DrawPosHorizontal DrawScalePosHorizontal { get { return GetPar<DrawPosHorizontal>(DrawPosHorizontal.Bottom); } set { SetPar(value); } }
     }
 
     public enum VerticalZeroPosition

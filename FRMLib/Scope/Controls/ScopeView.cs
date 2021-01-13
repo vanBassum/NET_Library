@@ -84,6 +84,9 @@ namespace FRMLib.Scope.Controls
             AddMenuItem("Vertical scale/Draw/None", () => Settings.DrawScalePosVertical = DrawPosVertical.None);
             AddMenuItem("Vertical scale/Draw/Left", () => Settings.DrawScalePosVertical = DrawPosVertical.Left);
             AddMenuItem("Vertical scale/Draw/Right", () => Settings.DrawScalePosVertical = DrawPosVertical.Right);
+            AddMenuItem("Vertical scale/Zero position/Top", () => Settings.ZeroPosition = VerticalZeroPosition.Top);
+            AddMenuItem("Vertical scale/Zero position/Middle", () => Settings.ZeroPosition = VerticalZeroPosition.Middle);
+            AddMenuItem("Vertical scale/Zero position/Bottom", () => Settings.ZeroPosition = VerticalZeroPosition.Bottom);
             AddMenuItem("Vertical scale/Auto", () => AutoScaleTracesKeepZero());
 
             AddMenuItem("Clear", () => dataSource.Clear());
@@ -421,9 +424,7 @@ namespace FRMLib.Scope.Controls
                 return;
             }
 
-            double distance = t.Maximum.Y;
-            if (t.Minimum.Y < 0 && (-t.Minimum.Y) < distance)
-                distance = -t.Minimum.Y;
+            double distance = Math.Max(Math.Abs(t.Maximum.Y), Math.Abs(t.Minimum.Y));
             double div = distance * (Settings.ZeroPosition == VerticalZeroPosition.Middle ? 2 : 1) / ((double)Settings.VerticalDivisions);
             double multiplier = 1f;
 
