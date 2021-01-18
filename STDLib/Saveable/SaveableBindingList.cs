@@ -28,11 +28,12 @@ namespace STDLib.Saveable
             Load();
         }
 
-        public SaveableBindingList(string file)
+        public SaveableBindingList(string file, bool load = true)
         {
             this.serializer = new JSON();
             this.file = file;
-            Load();
+            if(load)
+                Load();
         }
 
         ~SaveableBindingList()
