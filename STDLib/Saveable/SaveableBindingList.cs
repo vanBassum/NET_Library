@@ -21,9 +21,11 @@ namespace STDLib.Saveable
             this.serializer = new JSON();
         }
 
-        public SaveableBindingList(Serializer serializer)
+        public SaveableBindingList(Serializer serializer, string file)
         {
             this.serializer = serializer;
+            this.file = file;
+            Load();
         }
 
         public SaveableBindingList(string file)

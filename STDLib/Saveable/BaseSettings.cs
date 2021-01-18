@@ -15,7 +15,7 @@ namespace STDLib.Saveable
     {
         static readonly string defaultDataFolder = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? Path.Combine("/data", "vanBassum", System.Reflection.Assembly.GetEntryAssembly().GetName().Name) : "data";
         private static Dictionary<string, object> fields = new Dictionary<string, object>();
-        private readonly static Serializer serializer = new JSON();
+        public static JSON Serializer { get; } = new JSON();
 
         /// <summary>
         /// Depending on windows or linux.
@@ -76,7 +76,7 @@ namespace STDLib.Saveable
         /// <param name="stream"></param>
         public static void Save(Stream stream)
         {
-            serializer.Serialize(fields, stream);
+            Serializer.Serialize(fields, stream);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace STDLib.Saveable
         /// <param name="stream"></param>
         public static void Load(Stream stream)
         {
-            fields = serializer.Deserialize<Dictionary<string, object>>(stream);
+            fields = Serializer.Deserialize<Dictionary<string, object>>(stream);
             if (fields == null)
                 fields = new Dictionary<string, object>();
         }
