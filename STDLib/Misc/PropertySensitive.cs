@@ -26,6 +26,12 @@ namespace STDLib.Misc
 
         private readonly Dictionary<string, object> fields = new Dictionary<string, object>();
 
+
+        public void InvokePropertyChanged(PropertyChangedEventArgs e)
+        {
+            PropertyChanged?.Invoke(this, e);
+        }
+
         /// <summary>
         /// Use this in the setter of a property to set the value
         /// <code>
