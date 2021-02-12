@@ -8,9 +8,10 @@ namespace STDLib.JBVProtocol
         public event EventHandler<byte[]> DoSendData;
         public event EventHandler<byte[]> OnDataRecieved;
 
-        public void SendData(byte[] data)
+        public bool SendData(byte[] data)
         {
             DoSendData?.Invoke(this, data);
+            return true;
         }
 
         void HandleData(byte[] data)

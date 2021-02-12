@@ -183,9 +183,17 @@ namespace STDLib.JBVProtocol
             else
             {
                 Route route = null;
+
+                bool sucsess = false;
+
                 if (routingTable.TryGetValue(frame.RxID, out route))
-                    route.Connection.SendFrame(frame);
-                else
+                {
+                    sucsess = route.Connection.SendFrame(frame);
+                    if(!sucsess)
+                        routingTable.TryRemove(frame.RxID, out route);
+                }
+
+                if(!sucsess)
                 {
                     //Unknown route.
                     RequestID(frame.RxID);
@@ -213,9 +221,10 @@ namespace STDLib.JBVProtocol
                 con.OnDataRecieved += (a, b) => Framing.Unstuff(b);
             }
 
-            public void SendFrame(Frame frame)
+            public bool SendFrame(Frame frame)
             {
-                Connection.SendData(Framing.Stuff(frame));
+                //Logger.LOGI($"Send frame { frame.ToString()}");
+                return Connection.SendData(Framing.Stuff(frame));
             }
         }
 
