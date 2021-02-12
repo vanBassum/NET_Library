@@ -145,9 +145,16 @@ namespace STDLib.Ethernet
         /// <returns>Number of bytes that where send.</returns>
         public int SendDataSync(byte[] data)
         {
-            if (globalSocket != null)
-                if (globalSocket.Connected)
-                    return globalSocket.Send(data);
+            try
+            {
+                if (globalSocket != null)
+                    if (globalSocket.Connected)
+                        return globalSocket.Send(data);
+            }
+            catch(Exception ex)
+            {
+
+            }
             return 0;
         }
 
