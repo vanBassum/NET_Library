@@ -1,4 +1,5 @@
-﻿using STDLib.Misc;
+﻿using STDLib.JBVProtocol.Devices;
+using STDLib.Misc;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -11,15 +12,18 @@ namespace STDLib.JBVProtocol
 
     public class JBVClient
     {
+
         public IConnection Connection { get; private set; }
         public event EventHandler<Frame> FrameRecieved;
         public event EventHandler<Lease> LeaseRecieved;
+        public event EventHandler<Device> OnDeviceFound;
         SoftwareID softwareID = SoftwareID.Unknown;
         Lease lease = new Lease();
         Task task;
         Framing framing;
         BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
 
+        
         public JBVClient(SoftwareID softId)
         {
             softwareID = softId;
@@ -110,13 +114,27 @@ namespace STDLib.JBVProtocol
                         //    break;
                         //case CommandList.ReplyACK:
                         //    break;
-                        //case CommandList.ReplySID:
-                        //    break;
+                        case CommandList.ReplySID:
+                            DeviceFound(frame);
+                            break;
                         default:
                             FrameRecieved?.Invoke(this, frame);
                             break;
                     }
                 }
+            }
+        }
+
+        void DeviceFound(Frame frame)
+        {
+            SoftwareID id = (SoftwareID)BitConverter.ToUInt32(frame.Data, 0);
+            switch (id)
+            {
+                case SoftwareID.FunctionGenerator:
+                    OnDeviceFound?.Invoke(this, new FunctionGenerator(this, frame.TxID));
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -139,35 +157,44 @@ namespace STDLib.JBVProtocol
             }
         }
 
-        /*
+        
         Sequencer sequencer = new Sequencer();
 
-        public async Task<Command> SendRequest(Command txCmd, CancellationToken? ct = null)
+        public async Task<Frame> SendRequest(Frame txFrame, CancellationToken? ct = null)
         {
             UInt16 sequence = sequencer.RequestSequenceID();
 
-            TaskCompletionSource<Command> tcs = new TaskCompletionSource<Command>();
+            TaskCompletionSource<Frame> tcs = new TaskCompletionSource<Frame>();
             ct?.Register(() =>
             {
                 sequencer.FreeSequenceID(sequence);
                 tcs.TrySetResult(null);
             });
 
-            CommandRecieved += (sender, rxCmd) =>
+            FrameRecieved += (sender, rxFrame) =>
             {
-                if (rxCmd.Sequence == sequence)
+                if (rxFrame.Sequence == sequence)
                 {
                     sequencer.FreeSequenceID(sequence);
-                    tcs.TrySetResult(rxCmd);
+                    tcs.TrySetResult(rxFrame);
                 }
             };
 
-            txCmd.Sequence = sequence;
-            SendCMD(txCmd);
+            txFrame.Sequence = sequence;
+            SendFrame(txFrame);
 
             return await tcs.Task;
         }
-        */
+
+        public void SearchDevices(SoftwareID sid = SoftwareID.Unknown)
+        {
+            Frame f = new Frame();
+            f.CommandID = (UInt32) CommandList.RequestSID;
+            f.RxID = 0;
+            f.SetData(BitConverter.GetBytes((UInt32)sid));
+            f.Options |= Frame.OPT.Broadcast;
+            SendFrame(f);
+        }
     }
 }
 

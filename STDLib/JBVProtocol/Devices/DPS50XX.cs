@@ -4,11 +4,10 @@ using System.Text;
 
 namespace STDLib.JBVProtocol.Devices
 {
-    public class DPS50XX
+    /*
+    public class DPS50XX : Device
     {
-        public JBVClient JBVClient { get; set; }
-        public UInt16 ID { get; set; }
-
+        public override SoftwareID SoftwareID => SoftwareID.DPS50xx;
 
         public void SetLED(bool status)
         {
@@ -55,4 +54,5 @@ namespace STDLib.JBVProtocol.Devices
         }
 
     }
+    */
 }

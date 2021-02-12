@@ -1,76 +1,40 @@
-﻿using STDLib.JBVProtocol.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace STDLib.JBVProtocol.Devices
 {
+
     public abstract class Device
     {
-        static Dictionary<SoftwareID, Type> DeviceList = new Dictionary<SoftwareID, Type>();
-        public UInt16 ID { get; set; }
         public abstract SoftwareID SoftwareID { get; }
-        protected static JBVClient Client { get; set; }
+        public UInt16 ID { get; }
 
-        public static event EventHandler<Device> OnDeviceFound;
 
-        public static void Init(JBVClient client)
+        JBVClient client;
+
+        public Device(JBVClient JBVClient, UInt16 ID)
         {
-            Client = client;
-            Client.CommandRecieved += Client_CommandRecieved;
-
-            foreach(Type t in FindSubClassesOf<Device>())
-            {
-                Device d = (Device)Activator.CreateInstance(t);
-                DeviceList[d.SoftwareID] = t;
-            }
+            this.client = JBVClient;
+            this.ID = ID;
+        }
+        protected void SendBroadcast(UInt32 cmd, byte[] data)
+        {
+            Frame f = new Frame();
+            f.CommandID = cmd;
+            f.RxID = ID;
+            f.SetData(data);
+            f.Options |= Frame.OPT.Broadcast;
+            client.SendFrame(f);
         }
 
-        private static void Client_CommandRecieved(object sender, Command e)
+        protected async Task<Frame> SendRequest(UInt32 cmd, byte[] data)
         {
-            switch (e)
-            {
-                case ReplySID cmd:
-                    Type type;
-                    if (DeviceList.TryGetValue(cmd.SID, out type))
-                    {
-                        Device dev = (Device)Activator.CreateInstance(type);
-                        dev.ID = cmd.TxID;
-                        OnDeviceFound?.Invoke(null, dev);
-                    }
-                    break;
-            }
+            Frame f = new Frame();
+            f.CommandID = cmd;
+            f.RxID = ID;
+            f.SetData(data);
+            return await client.SendRequest(f);
         }
-
-        public static void SearchDevices(SoftwareID softId = SoftwareID.Unknown)
-        {
-            RequestSID cmd = new RequestSID();
-            cmd.SID = softId;
-            Client.SendCMD(cmd);
-        }
-
-        static IEnumerable<Type> FindSubClassesOf<TBaseType>()
-        {
-            var baseType = typeof(TBaseType);
-            var assembly = baseType.Assembly;
-
-            return assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
-        }
-
-        public override string ToString()
-        {
-            return this.GetType().Name;
-        }
-
-        public async Task<Command> Send(Command cmd, CancellationToken? ct = null)
-        {
-            cmd.RxID = ID;
-            return await Client.SendRequest(cmd, ct);
-        }
-
     }
 }
