@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Text;
 
 namespace STDLib.JBVProtocol
 {
@@ -33,6 +33,10 @@ namespace STDLib.JBVProtocol
             DataLength = (UInt16)data.Length;
         }
 
+        public override string ToString()
+        {
+            return $"({TxID} -> {RxID}) {CommandID.ToString("X")}";
+        }
 
         public byte this[int index]
         {

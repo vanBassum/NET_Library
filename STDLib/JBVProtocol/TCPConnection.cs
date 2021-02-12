@@ -19,9 +19,9 @@ namespace STDLib.JBVProtocol
             };
         }
 
-        public void SendData(byte[] data)
+        public bool SendData(byte[] data)
         {
-            client.SendDataSync(data);
+            return data.Length == client.SendDataSync(data);
         }
     }
 }
