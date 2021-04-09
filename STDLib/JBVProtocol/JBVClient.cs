@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 
 namespace STDLib.JBVProtocol
 {
+    
 
     public class JBVClient
     {
-
-        public IConnection Connection { get; private set; }
+        IConnection _Connection = null;
+        public IConnection Connection { get => _Connection; set => SetConnection(value); }
         public event EventHandler<Frame> FrameRecieved;
         public event EventHandler<Lease> LeaseRecieved;
         public event EventHandler<Device> OnDeviceFound;
@@ -23,16 +24,24 @@ namespace STDLib.JBVProtocol
         Framing framing;
         BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
 
+
+        void SetConnection(IConnection connection)
+        {
+            _Connection = connection;
+            _Connection.OnDataRecieved += (sender, data) =>
+            {
+                framing.Unstuff(data);
+            };
+        }
+
         
         public JBVClient(SoftwareID softId)
         {
             softwareID = softId;
             framing = new Framing();
             framing.OnFrameCollected += (sender, frame) => pendingFrames.Add(frame);
-
             task = new Task(Work);
             task.Start();
-            SetConnection(new DummyConnection());
         }
 
         public JBVClient(SoftwareID softId, UInt16 staticID)
@@ -43,19 +52,9 @@ namespace STDLib.JBVProtocol
             lease = new Lease() { ID = staticID, Expire = DateTime.MaxValue };
             task = new Task(Work);
             task.Start();
-            SetConnection(new DummyConnection());
         }
 
-        public void SetConnection(IConnection con)
-        {
-            Connection = con;
-            con.OnDataRecieved += (sender, data) =>
-            {
-                framing.Unstuff(data);
-            };
 
-
-        }
 
         void Work()
         {
@@ -134,6 +133,7 @@ namespace STDLib.JBVProtocol
                     OnDeviceFound?.Invoke(this, new FunctionGenerator(this, frame.TxID));
                     break;
                 default:
+                    Logger.LOGE($"Device {id.ToString()} not implemented");
                     break;
             }
         }

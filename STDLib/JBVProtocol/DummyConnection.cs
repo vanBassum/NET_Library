@@ -1,12 +1,17 @@
-﻿using System;
+﻿using STDLib.Misc;
+using System;
 
 
 namespace STDLib.JBVProtocol
 {
-    public class DummyConnection : IConnection
+    public class DummyConnection : PropertySensitive, IConnection
     {
+        public ConnectionStatus ConnectionStatus => ConnectionStatus.Connected;
+
         public event EventHandler<byte[]> DoSendData;
         public event EventHandler<byte[]> OnDataRecieved;
+
+
 
         public bool SendData(byte[] data)
         {

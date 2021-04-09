@@ -55,6 +55,9 @@
     <Compile Include="Controls\CollectionEditControl.Designer.cs">
       <DependentUpon>CollectionEditControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ConsoleTextbox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Ext.cs" />
     <Compile Include="ObjectEditDialog.cs">
       <SubType>Form</SubType>

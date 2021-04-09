@@ -36,5 +36,10 @@ namespace STDLib.JBVProtocol.Devices
             f.SetData(data);
             return await client.SendRequest(f);
         }
+
+        public override string ToString()
+        {
+            return SoftwareID.ToString();
+        }
     }
 }
