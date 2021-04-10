@@ -6,9 +6,11 @@ namespace STDLib.JBVProtocol
 {
     public class Lease
     {
-        public UInt16 ID { get; set; }
+        public UInt32 ID { get; set; }
         public DateTime Expire { get; set; }
         public Guid Key { get; set; }
+        public SoftwareID SoftwareID { get; set; }
+
         public TimeSpan ExpiresIn { get { return Expire - DateTime.Now; } }
 
         public bool IsValid
@@ -30,10 +32,11 @@ namespace STDLib.JBVProtocol
 
         public Lease(byte[] data)
         {
-            ID = BitConverter.ToUInt16(data, 0);
+            ID = BitConverter.ToUInt32(data, 0);
             Key = new Guid(data.SubArray(2, 16));
             long unixDateTime = BitConverter.ToInt64(data, 18);
             Expire = DateTimeOffset.FromUnixTimeSeconds(unixDateTime).DateTime.ToLocalTime();
+            SoftwareID = (SoftwareID)BitConverter.ToUInt32(data, 18+8);
         }
 
         public byte[] ToByteArray()
@@ -44,6 +47,7 @@ namespace STDLib.JBVProtocol
             data = data.Concat(BitConverter.GetBytes(ID)).ToArray();
             data = data.Concat(Key.ToByteArray()).ToArray();
             data = data.Concat(BitConverter.GetBytes(unixDateTime)).ToArray();
+            data = data.Concat(BitConverter.GetBytes((UInt32)SoftwareID)).ToArray();
             return data;
         }
 

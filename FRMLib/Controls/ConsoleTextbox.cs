@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using STDLib.Extentions;
+using STDLib.Misc;
 
 namespace FRMLib.Controls
 {
@@ -102,7 +103,7 @@ namespace FRMLib.Controls
             }
             else
             {
-                if (e.KeyData.HasFlag(Keys.Enter))
+                if (e.KeyData == Keys.Enter)
                 {
                     string cmd = this.Text.Substring(startpos);
                     e.SuppressKeyPress = true;
@@ -153,14 +154,7 @@ namespace FRMLib.Controls
         }
     }
 
-    public enum LogLevel
-    {
-        VERBOSE,
-        DEBUG,
-        INFO,
-        ERROR,
-        NONE
-    }
+    
 
     public class CMDArgs
     {
@@ -311,23 +305,5 @@ Examples of some commands:
 
     }
 
-    public class ConsoleStream
-    {
-        public event EventHandler OnRecieved;
-        Queue<string> x = new Queue<string>();
-
-        public string ReadAll()
-        {
-            StringBuilder res = new StringBuilder();
-            foreach (string s in x)
-                res.Append(s);
-            return res.ToString();
-        }
-
-        public void Write(string text)
-        {
-            x.Enqueue(text);
-            OnRecieved?.Invoke(this, null);
-        }
-    }
+    
 }
