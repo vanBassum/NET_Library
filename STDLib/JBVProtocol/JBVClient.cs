@@ -71,10 +71,19 @@ namespace STDLib.JBVProtocol
                 while (pendingFrames.TryTake(out frame, 1000))
                 {
                     TaskCompletionSource<Frame> f;
-                    if(pending.TryGetValue(frame.Sequence, out f))
+                    if (pending.TryGetValue(frame.Sequence, out f))
                         f.SetResult(frame);
                     else
-                        FrameRecieved?.Invoke(this, frame);
+                    {
+                        if(frame.Type == Frame.FrameTypes.ProtocolFrame)
+                        {
+                            //
+                        }
+                        else
+                        {
+                            FrameRecieved?.Invoke(this, frame);
+                        }
+                    }
                 }
             }
         }

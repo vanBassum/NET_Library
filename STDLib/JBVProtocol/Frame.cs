@@ -38,7 +38,8 @@ namespace STDLib.JBVProtocol
         public enum FrameOptions
         {
             None = 0,
-            Broadcast = 1,
+            Broadcast = (1 << 0),   //Frame will be send to all within the network.
+            ASCII = (1 << 1),	    //The data field has to be interpreted as ASCII, also the reply will be send in ASCII.
         }
 
         public enum FrameTypes

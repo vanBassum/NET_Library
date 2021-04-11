@@ -25,12 +25,28 @@ namespace FRMLib.Controls
         {
             this.KeyDown += ConsoleTextbox_KeyDown;
             this.SelectionChanged += ConsoleTextbox_SelectionChanged;
+            this.MouseDown += ConsoleTextbox_MouseDown;
+        }
+
+        private void ConsoleTextbox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Right)
+            {
+                if(SelectionLength == 0)
+                {
+                    Text = Text.Insert(SelectionStart, Clipboard.GetText(TextDataFormat.Text));
+                }
+                else
+                {
+                    Clipboard.SetText(SelectedText);
+                }
+            }
         }
 
         private void ConsoleTextbox_SelectionChanged(object sender, EventArgs e)
         {
-            if (SelectionStart < startpos && Text.Length >= startpos)
-                SetCaret(startpos);
+            //if (SelectionStart < startpos && Text.Length >= startpos)
+            //    SetCaret(startpos);
         }
 
         void SetCaret(int pos)
@@ -88,6 +104,9 @@ namespace FRMLib.Controls
 
         private async void ConsoleTextbox_KeyDown(object sender, KeyEventArgs e)
         {
+            if (SelectionStart < startpos && Text.Length >= startpos)
+                SetCaret(Text.Length);
+
             if (cts != null)
             {
                 if (e.KeyData.HasFlag(Keys.Control, Keys.C))
@@ -167,7 +186,7 @@ namespace FRMLib.Controls
         public CMDArgs(string rawCmd)
         {
             RawCommand = rawCmd;
-            ParseCommand(rawCmd);
+            ParseCommandASCII(rawCmd);
         }
 
 
@@ -202,6 +221,11 @@ Examples of some commands:
             //DECIMAL,  // Maybe \dl for little endian @TODO
         }
 
+
+        void ParseCommandASCII(string cmd)
+        {
+            Command = Encoding.ASCII.GetBytes(cmd);
+        }
 
         void ParseCommand(string cmd)
         {
