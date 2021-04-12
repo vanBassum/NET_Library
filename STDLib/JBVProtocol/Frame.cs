@@ -6,7 +6,7 @@ namespace STDLib.JBVProtocol
 
     public class Frame
     {
-        byte Opt { get; set; } = 0;
+        public Options Opts { get; set; } = 0;
         public byte Hops { get; set; } = 0;
         public UInt32 TxID { get; set; } = 0;
         public UInt32 RxID { get; set; } = 0;
@@ -16,37 +16,25 @@ namespace STDLib.JBVProtocol
 
 
 
-        public FrameTypes Type
-        {
-            get { return (FrameTypes)((Opt & 0xF0) >> 4); }
-            set { Opt = (byte)((Opt & 0x0F) | (((byte)value << 4) & 0xF0)); }
-        }
-
-        public FrameOptions Options
-        {
-            get { return (FrameOptions)((Opt & 0x0F)); }
-            set { Opt = (byte)((Opt & 0xF0) | ((byte)value & 0x0F)); }
-        }
-
-
         public int GetTotalLength()
         {
             return 14 + DataLength;
         }
 
         [Flags]
-        public enum FrameOptions
+        public enum Options
         {
             None = 0,
-            Broadcast = (1 << 0),   //Frame will be send to all within the network.
-            ASCII = (1 << 1),	    //The data field has to be interpreted as ASCII, also the reply will be send in ASCII.
+            Broadcast = (1 << 0),   // when true, message is send to all clients in network. When frame is reply and broadcast, the frame will not be handled as broadcast!
+            ASCII =     (1 << 1),   // when true, commands are send as ASCII otherwise commands are send as raw data, currently only ascii mode supported.
+            Request =   (1 << 2),   // frame is either a request or a reply.
+            //RFU		= (1<<3),	// Suggestion: CRC, true when CRC of frame is also send. Might be helpful when using things like RS232.
+            //RFU 		= (1<<4),	// Suggestion: Encryption, Together with next field determines what encryption is used. (Since this is the first byte, the rest of the message can be encrypted.)
+            //RFU 		= (1<<5),	// Suggestion: Encryption,
+            //RFU		= (1<<6),	//
+            //RFU		= (1<<7),	//
         }
 
-        public enum FrameTypes
-        {
-            ProtocolFrame = 0x00,
-            DataFrame = 0x01,
-        }
 
 
         int ReplaceByte(int index, int value, byte replaceByte)
@@ -76,7 +64,7 @@ namespace STDLib.JBVProtocol
             {
                 switch (index)
                 {
-                    case 0: return (byte)Opt;
+                    case 0: return (byte)Opts;
                     case 1: return (byte)Hops;
                     case 2: return (byte)(TxID >> 24);
                     case 3: return (byte)(TxID >> 16);
@@ -97,7 +85,7 @@ namespace STDLib.JBVProtocol
             {
                 switch (index)
                 {
-                    case 0: Opt = value; break;
+                    case 0: Opts = (Options)value; break;
                     case 1: Hops = value; break;
                     case 2: TxID = (UInt32)ReplaceByte(24, (int)TxID, value); break;
                     case 3: TxID = (UInt32)ReplaceByte(16, (int)TxID, value); break;

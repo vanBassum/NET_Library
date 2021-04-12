@@ -75,14 +75,7 @@ namespace STDLib.JBVProtocol
                         f.SetResult(frame);
                     else
                     {
-                        if(frame.Type == Frame.FrameTypes.ProtocolFrame)
-                        {
-                            //
-                        }
-                        else
-                        {
-                            FrameRecieved?.Invoke(this, frame);
-                        }
+                        FrameRecieved?.Invoke(this, frame);
                     }
                 }
             }
