@@ -59,11 +59,24 @@ namespace STDLib.Ethernet
 
 
         #region Connection setup
-        public async Task<bool> ConnectAsync(string host, int port = 80, CancellationTokenSource cts = null)
+
+
+        public async Task<bool> ConnectAsync(string host, CancellationTokenSource cts = null)
+        {
+            IPEndPoint ep = DNSExt.Parse(host);
+            return await ConnectAsync(ep, cts);
+        }
+
+        public async Task<bool> ConnectAsync(string host, int port, CancellationTokenSource cts = null)
+        {
+            IPEndPoint ep = DNSExt.Parse(host, port);
+            return await ConnectAsync(ep, cts);
+        }
+
+        public async Task<bool> ConnectAsync(IPEndPoint ep, CancellationTokenSource cts = null)
         {
             ConnectionStatus = ConnectionStatus.Connecting;
             TaskCompletionSource<Socket> taskCompletionSource = new TaskCompletionSource<Socket>();
-            IPEndPoint ep = DNSExt.Parse(host, port);
 
             if (globalSocket != null)
                 globalSocket.Close();
