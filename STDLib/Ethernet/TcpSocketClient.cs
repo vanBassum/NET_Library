@@ -1,4 +1,6 @@
-﻿using System;
+﻿using STDLib.JBVProtocol;
+using STDLib.Misc;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -6,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace STDLib.Ethernet
 {
-    public class TcpSocketClient
+    public class TcpSocketClient : PropertySensitive, IConnection
     {
         Socket globalSocket;
         readonly byte[] rxBuffer = new byte[1024];
@@ -18,28 +20,16 @@ namespace STDLib.Ethernet
         public event EventHandler<byte[]> OnDataRecieved;
 
         /// <summary>
-        /// Fires when the connection is closed.
-        /// </summary>
-        public event EventHandler OnDisconnected;
-
-        /// <summary>
         /// The IP endpoint of the client to witch the socket is connected.
         /// </summary>
-        public IPEndPoint RemoteEndPoint { get; private set; }
+        public IPEndPoint RemoteEndPoint { get => GetPar<IPEndPoint>(); private set => SetPar<IPEndPoint>(value); }
 
         /// <summary>
-        /// Returns true if the socket is connected.
+        /// Tells the current connection status.
         /// </summary>
-        public bool IsConnected { get { return globalSocket == null ? false : globalSocket.Connected; } }
+        public ConnectionStatus ConnectionStatus { get => GetPar<ConnectionStatus>(ConnectionStatus.Disconnected); private set => SetPar<ConnectionStatus>(value); }
 
-        /// <summary>
-        /// True when connecting.
-        /// </summary>
-        public bool IsConnecting { get; private set; } = false;
-
-        //--------------------------------------------------------------------------------
-        //                          Constructor and destructor
-        //--------------------------------------------------------------------------------
+        #region Constructor and destructor
         /// <summary>
         /// Creates a new client.
         /// </summary>
@@ -65,15 +55,28 @@ namespace STDLib.Ethernet
             if (globalSocket != null)
                 globalSocket.Close();
         }
+        #endregion
 
-        //--------------------------------------------------------------------------------
-        //                              Connection setup
-        //--------------------------------------------------------------------------------
+
+        #region Connection setup
+
+
         public async Task<bool> ConnectAsync(string host, CancellationTokenSource cts = null)
         {
-            IsConnecting = true;
-            TaskCompletionSource<Socket> taskCompletionSource = new TaskCompletionSource<Socket>();
             IPEndPoint ep = DNSExt.Parse(host);
+            return await ConnectAsync(ep, cts);
+        }
+
+        public async Task<bool> ConnectAsync(string host, int port, CancellationTokenSource cts = null)
+        {
+            IPEndPoint ep = DNSExt.Parse(host, port);
+            return await ConnectAsync(ep, cts);
+        }
+
+        public async Task<bool> ConnectAsync(IPEndPoint ep, CancellationTokenSource cts = null)
+        {
+            ConnectionStatus = ConnectionStatus.Connecting;
+            TaskCompletionSource<Socket> taskCompletionSource = new TaskCompletionSource<Socket>();
 
             if (globalSocket != null)
                 globalSocket.Close();
@@ -83,7 +86,9 @@ namespace STDLib.Ethernet
             if (cts == null)
                 (cts = new CancellationTokenSource()).CancelAfter(2500);
 
-            cts.Token.Register(() => { taskCompletionSource.TrySetCanceled(); });
+            cts.Token.Register(() => { 
+                taskCompletionSource.TrySetCanceled(); 
+            });
 
             bool result = false;
             try
@@ -91,17 +96,22 @@ namespace STDLib.Ethernet
                 globalSocket.BeginConnect(ep, (res) => taskCompletionSource.SetResult(res.AsyncState as Socket), globalSocket);
                 Socket sock = await taskCompletionSource.Task;
                 result = HandleNewConnection(sock);
+                ConnectionStatus = ConnectionStatus.Connected;
+            }
+            catch (OperationCanceledException ex)
+            {
+                ConnectionStatus = ConnectionStatus.Canceled;
+                result = false;
             }
             catch (Exception ex)
             {
+                ConnectionStatus = ConnectionStatus.Error;
                 result = false;
             }
             finally
             {
                 cts.Cancel();
             }
-
-            IsConnecting = false;
             return result;
         }
 
@@ -130,13 +140,13 @@ namespace STDLib.Ethernet
             if (globalSocket != null)
                 if (globalSocket.Connected)
                     globalSocket.Shutdown(SocketShutdown.Send);     //Shutdown the socket, the recieve event will raise and 0 bytes will be read.
+            ConnectionStatus = ConnectionStatus.Disconnected;
         }
 
+        #endregion
 
-        //--------------------------------------------------------------------------------
-        //                      Sending and recieving data
-        //--------------------------------------------------------------------------------
 
+        #region Sending and recieving data
 
         /// <summary>
         /// Method to send data.
@@ -168,16 +178,14 @@ namespace STDLib.Ethernet
 
             if (bytesRead == 0)     //This happens after a socket shutdown or a keep alive timeout
             {
-
-                socket.Close();     //Dispose the socket               
-                OnDisconnected?.Invoke(this, null);
+                socket.Close();     //Dispose the socket  
+                ConnectionStatus = ConnectionStatus.Disconnected;
             }
             else
             {
                 if (sockError == SocketError.Success)
                 {
                     byte[] data = new byte[bytesRead]; //Make a copy of the recieved data so we can continue recieving data.
-
                     Array.Copy(rxBuffer, data, bytesRead);
                     OnDataRecieved?.Invoke(this, data);
                     socket.BeginReceive(rxBuffer, 0, rxBuffer.Length, SocketFlags.None, OnRecieve, socket);
@@ -185,9 +193,17 @@ namespace STDLib.Ethernet
                 else    //Some error occured, Close socket and raise disconnect event
                 {
                     socket.Close();
+                    ConnectionStatus = ConnectionStatus.Error;
                     throw new NotImplementedException();
                 }
             }
         }
+
+        public bool SendData(byte[] data)
+        {
+            return data.Length == SendDataSync(data);
+        }
+        #endregion
     }
+
 }

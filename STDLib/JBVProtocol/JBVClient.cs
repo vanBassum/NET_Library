@@ -1,7 +1,7 @@
-﻿using STDLib.JBVProtocol.Devices;
-using STDLib.Misc;
+﻿using STDLib.Misc;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,19 +9,29 @@ using System.Threading.Tasks;
 
 namespace STDLib.JBVProtocol
 {
+    
 
     public class JBVClient
     {
-
-        public IConnection Connection { get; private set; }
+        IConnection _Connection = null;
+        public IConnection Connection { get => _Connection; set => SetConnection(value); }
         public event EventHandler<Frame> FrameRecieved;
-        public event EventHandler<Lease> LeaseRecieved;
-        public event EventHandler<Device> OnDeviceFound;
         SoftwareID softwareID = SoftwareID.Unknown;
         Lease lease = new Lease();
         Task task;
         Framing framing;
         BlockingCollection<Frame> pendingFrames = new BlockingCollection<Frame>();
+
+        ConcurrentDictionary<UInt16, TaskCompletionSource<Frame>> pending = new ConcurrentDictionary<UInt16, TaskCompletionSource<Frame>>();
+
+        void SetConnection(IConnection connection)
+        {
+            _Connection = connection;
+            _Connection.OnDataRecieved += (sender, data) =>
+            {
+                framing.Unstuff(data);
+            };
+        }
 
         
         public JBVClient(SoftwareID softId)
@@ -29,10 +39,8 @@ namespace STDLib.JBVProtocol
             softwareID = softId;
             framing = new Framing();
             framing.OnFrameCollected += (sender, frame) => pendingFrames.Add(frame);
-
             task = new Task(Work);
             task.Start();
-            SetConnection(new DummyConnection());
         }
 
         public JBVClient(SoftwareID softId, UInt16 staticID)
@@ -43,19 +51,9 @@ namespace STDLib.JBVProtocol
             lease = new Lease() { ID = staticID, Expire = DateTime.MaxValue };
             task = new Task(Work);
             task.Start();
-            SetConnection(new DummyConnection());
         }
 
-        public void SetConnection(IConnection con)
-        {
-            Connection = con;
-            con.OnDataRecieved += (sender, data) =>
-            {
-                framing.Unstuff(data);
-            };
 
-
-        }
 
         void Work()
         {
@@ -65,135 +63,88 @@ namespace STDLib.JBVProtocol
             {
                 if (this.lease.ExpiresIn.TotalMinutes < 5)
                 {
-                    RequestLease();
+                    //RequestLease();
                 }
 
                 Frame frame;
 
                 while (pendingFrames.TryTake(out frame, 1000))
                 {
-                    /*
-                    if (Enum.IsDefined(typeof(CommandList), frame.CommandID))
+                    TaskCompletionSource<Frame> f;
+                    if (pending.TryGetValue(frame.Sequence, out f))
+                        f.SetResult(frame);
+                    else
                     {
-
-                    }
-                    */
-
-                    CommandList cmd = (CommandList)frame.CommandID;
-
-                    switch (cmd)
-                    {
-                        case CommandList.RequestID:
-                            UInt16 id = BitConverter.ToUInt16(frame.Data, 0);
-                            if (id == this.lease.ID)
-                            {
-                                Frame f = Frame.ReplyID(this.lease.ID);
-                                SendFrame(f);
-                            }
-                            break;
-                        case CommandList.RequestSID:
-                            SoftwareID sid = (SoftwareID)BitConverter.ToUInt32(frame.Data, 0);
-                            if (sid == SoftwareID.Unknown || sid == softwareID)
-                            {
-                                Frame f = Frame.ReplySID(this.softwareID);
-                                SendFrame(f);
-                            }
-                            break;
-                        case CommandList.ReplyLease:
-                            Lease rxLease = new Lease(frame.Data);
-                            if (rxLease.Key == this.lease.Key)
-                            {
-                                this.lease = rxLease;
-                                Logger.LOGI($"Lease acquired");
-                                LeaseRecieved?.Invoke(this, lease);
-                            }
-                            break;
-                        //case CommandList.RequestLease:
-                        //    break;
-                        //case CommandList.INVALID:
-                        //    break;
-                        //case CommandList.ReplyACK:
-                        //    break;
-                        case CommandList.ReplySID:
-                            DeviceFound(frame);
-                            break;
-                        default:
-                            FrameRecieved?.Invoke(this, frame);
-                            break;
+                        FrameRecieved?.Invoke(this, frame);
                     }
                 }
             }
         }
 
-        void DeviceFound(Frame frame)
+        public bool SendFrame(Frame frame, TLOGGER log)
         {
-            SoftwareID id = (SoftwareID)BitConverter.ToUInt32(frame.Data, 0);
-            switch (id)
+            frame.TxID = lease.ID;
+            if (Connection != null)
             {
-                case SoftwareID.FunctionGenerator:
-                    OnDeviceFound?.Invoke(this, new FunctionGenerator(this, frame.TxID));
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void RequestLease()
-        {
-            Logger.LOGI(softwareID.ToString());
-            Frame f = Frame.RequestLease(lease.Key);
-            SendFrame(f);
-        }
-
-        public void SendFrame(Frame frame)
-        {
-            if (lease.IsValid || frame.Options.HasFlag(Frame.OPT.Broadcast))
-            {
-                frame.TxID = lease.ID;
-                if (Connection != null)
-                    Connection.SendData(framing.Stuff(frame));
-                else
-                    Logger.LOGE("No connection");
-            }
-        }
-
-        
-        Sequencer sequencer = new Sequencer();
-
-        public async Task<Frame> SendRequest(Frame txFrame, CancellationToken? ct = null)
-        {
-            UInt16 sequence = sequencer.RequestSequenceID();
-
-            TaskCompletionSource<Frame> tcs = new TaskCompletionSource<Frame>();
-            ct?.Register(() =>
-            {
-                sequencer.FreeSequenceID(sequence);
-                tcs.TrySetResult(null);
-            });
-
-            FrameRecieved += (sender, rxFrame) =>
-            {
-                if (rxFrame.Sequence == sequence)
+                if(Connection.ConnectionStatus == ConnectionStatus.Connected)
                 {
-                    sequencer.FreeSequenceID(sequence);
-                    tcs.TrySetResult(rxFrame);
+                    Connection.SendData(framing.Stuff(frame));
+                    return true;
                 }
-            };
+                else
+                    log.LOGE("Connection invalid " + Connection.ConnectionStatus.ToString());
+            }
+            else
+                log.LOGE("No connection");
+                
 
-            txFrame.Sequence = sequence;
-            SendFrame(txFrame);
-
-            return await tcs.Task;
+            return false;
         }
 
-        public void SearchDevices(SoftwareID sid = SoftwareID.Unknown)
+
+        public async Task<Frame> SendFrameAndWaitForReply(Frame txFrame, TLOGGER log, CancellationToken ct)
         {
-            Frame f = new Frame();
-            f.CommandID = (UInt32) CommandList.RequestSID;
-            f.RxID = 0;
-            f.SetData(BitConverter.GetBytes((UInt32)sid));
-            f.Options |= Frame.OPT.Broadcast;
-            SendFrame(f);
+            UInt16 seq = 0;
+            Stopwatch stopWatch = new Stopwatch();
+            
+            for (seq = 0; seq < 0xFFFF; seq++)
+            {
+                if (!pending.ContainsKey(seq))
+                    break;
+            }
+
+            if (seq == 0xFFFF)
+            {
+                log.LOGE("No more free sequence id's.");
+            }
+            else
+            {
+                txFrame.Sequence = seq;
+                TaskCompletionSource<Frame> tcs = new TaskCompletionSource<Frame>();
+                ct.Register(() => { tcs.SetCanceled(); });
+                stopWatch.Start();
+                if (SendFrame(txFrame, log))
+                {
+                    pending.TryAdd(seq, tcs);
+                    try
+                    {
+                        Frame rx = await tcs.Task;
+                        stopWatch.Stop();
+                        log.LOGD($"{stopWatch.ElapsedMilliseconds}ms");
+                        return rx;
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        log.LOGE("Task cancelled");
+                    }
+                    finally
+                    {
+                        pending.TryRemove(seq, out tcs);
+                    }
+                }
+                
+            }
+            return null;
         }
     }
 }

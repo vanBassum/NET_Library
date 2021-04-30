@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace STDLib.Misc
 {
+    /*
     /// <summary>
     /// A class to write to a log file.
     /// Use as a static class.
@@ -119,6 +120,6 @@ namespace STDLib.Misc
         Fatal   = (1 << 4),
     }
 
-
+    */
 
 }

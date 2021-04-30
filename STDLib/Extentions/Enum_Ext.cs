@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FRMLib.Scope.Controls
+namespace STDLib.Extentions
 {
     public static class Enum_Ext
     {
@@ -28,6 +28,16 @@ namespace FRMLib.Scope.Controls
             int iVal = val.ToInt();
             int iResult = ~iFlags & iVal;
             return ToEnum(val.GetType(), iResult);
+        }
+
+        public static bool HasFlag(this Enum value, params Enum[] flags)
+        {
+            bool suc = true;
+
+            foreach (Enum e in flags)
+                suc &= value.HasFlag(e);
+
+            return suc;
         }
     }
 }

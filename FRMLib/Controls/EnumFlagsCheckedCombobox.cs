@@ -1,6 +1,7 @@
-﻿using FRMLib.Scope.Controls;
+﻿using STDLib.Extentions;
 using System;
 using System.Windows.Forms;
+
 
 namespace FRMLib.Controls
 {
