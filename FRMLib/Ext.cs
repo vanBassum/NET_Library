@@ -82,7 +82,18 @@ namespace FRMLib
         }
 
 
+        public static void DrawFigure(this System.Drawing.Graphics g, System.Drawing.Pen pen, STDLib.Math.Figures.Figure fig)
+        {
+            switch(fig)
+            {
+                case STDLib.Math.Figures.Line line:
+                    g.DrawLine(pen, (float)line.P1.X, (float)line.P1.Y, (float)line.P2.X, (float)line.P2.Y);
+                    break;
 
-
+                case STDLib.Math.Figures.Rectangle rect:
+                    g.DrawRectangle(pen, (float)rect.X, (float)rect.Y, (float)rect.Width, (float)rect.Height);
+                    break;
+            }
+        }
     }
 }

@@ -10,14 +10,12 @@ namespace FRMLib.Scope
         public ThreadedBindingList<Trace> Traces { get; private set; } = new ThreadedBindingList<Trace>();
         public ThreadedBindingList<Cursor> Cursors { get; private set; } = new ThreadedBindingList<Cursor>();
         public ThreadedBindingList<Marker> Markers { get; private set; } = new ThreadedBindingList<Marker>();
-        public ThreadedBindingList<MathItem> MathItems { get; private set; } = new ThreadedBindingList<MathItem>();
         public ThreadedBindingList<IScopeDrawable> Drawables { get; private set; } = new ThreadedBindingList<IScopeDrawable>();
         public Func<double, string> HorizontalToHumanReadable { get; set; } = TicksToString;
         
 
         public void Clear()
         {
-            MathItems.Clear();
             Cursors.Clear();
             Markers.Clear();
             Traces.Clear();
@@ -26,7 +24,6 @@ namespace FRMLib.Scope
 
         public void ClearData()
         {
-            MathItems.Clear();
             Cursors.Clear();
             Markers.Clear();
             foreach (var v in Traces)
@@ -42,9 +39,9 @@ namespace FRMLib.Scope
 
     public interface IScopeDrawable
     {
-        PointD Point { get; set; }
+        V2D Point { get; set; }
 
-        void Draw(Graphics g,  Func<PointD, Point> convert);
+        void Draw(Graphics g,  Func<V2D, Point> convert);
 
     }
 

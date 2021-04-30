@@ -33,7 +33,7 @@ namespace FRMLib.Scope.Controls
         private double horOffsetLastClick = 0;
         private Cursor dragMarker = null;
         private Cursor hoverMarker = null;
-        Rectangle viewPort = new Rectangle(0,0,0,0);
+        STDLib.Math.Figures.Rectangle viewPort = new STDLib.Math.Figures.Rectangle();
         //int pxPerColumn;
         //int pxPerRow;
         int zeroPos;    //Position in px that represents vertical zero
@@ -77,9 +77,9 @@ namespace FRMLib.Scope.Controls
             AddMenuItem("Horizontal scale/Draw/None", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.None);
             AddMenuItem("Horizontal scale/Draw/Top", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.Top);
             AddMenuItem("Horizontal scale/Draw/Bottom", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.Bottom);
-            AddMenuItem("Horizontal scale/Fit", () => FitHorizontalInXDivs(Settings.HorizontalDivisions));
-            AddMenuItem("Horizontal scale/Day", () => AutoScaleHorizontalTime(TimeSpan.FromDays(1)));
-            AddMenuItem("Horizontal scale/Hour", () => AutoScaleHorizontalTime(TimeSpan.FromHours(1)));
+            //AddMenuItem("Horizontal scale/Fit", () => FitHorizontalInXDivs(Settings.HorizontalDivisions));
+            //AddMenuItem("Horizontal scale/Day", () => AutoScaleHorizontalTime(TimeSpan.FromDays(1)));
+            //AddMenuItem("Horizontal scale/Hour", () => AutoScaleHorizontalTime(TimeSpan.FromHours(1)));
 
             AddMenuItem("Vertical scale/Draw/None", () => Settings.DrawScalePosVertical = DrawPosVertical.None);
             AddMenuItem("Vertical scale/Draw/Left", () => Settings.DrawScalePosVertical = DrawPosVertical.Left);
@@ -87,7 +87,7 @@ namespace FRMLib.Scope.Controls
             AddMenuItem("Vertical scale/Zero position/Top", () => Settings.ZeroPosition = VerticalZeroPosition.Top);
             AddMenuItem("Vertical scale/Zero position/Middle", () => Settings.ZeroPosition = VerticalZeroPosition.Middle);
             AddMenuItem("Vertical scale/Zero position/Bottom", () => Settings.ZeroPosition = VerticalZeroPosition.Bottom);
-            AddMenuItem("Vertical scale/Auto", () => AutoScaleTracesKeepZero());
+            //AddMenuItem("Vertical scale/Auto", () => AutoScaleTracesKeepZero());
 
             AddMenuItem("Clear", () => dataSource.Clear());
             AddMenuItem("Screenshot/To clipboard", () => Screenshot_Click(true));
@@ -365,12 +365,13 @@ namespace FRMLib.Scope.Controls
 
         #region Calculations
 
+        /*
         public void AutoScaleTraces()
         {
             foreach (Trace t in dataSource.Traces)
                 AutoScaleTrace(t);
         }
-
+       
         public void AutoScaleTrace(Trace t)
         {
             if (double.IsNaN(t.Maximum.Y) || double.IsNaN(t.Maximum.X))
@@ -593,7 +594,7 @@ namespace FRMLib.Scope.Controls
             Settings.HorScale = (double)distance / (double)divs;
             Settings.HorOffset = -(double)(min.X);
         }
-
+        */
 
 
         #endregion
@@ -640,10 +641,10 @@ namespace FRMLib.Scope.Controls
 
             int columns = Settings.HorizontalDivisions;
             int rows = Settings.VerticalDivisions;
-            int pxPerColumn = viewPort.Width / columns;
-            int pxPerRow = viewPort.Height / rows;
-            int restWidth = viewPort.Width % columns;
-            int restHeight = viewPort.Height % rows;
+            int pxPerColumn =   (int)viewPort.Width / columns;
+            int pxPerRow =      (int)viewPort.Height / rows;
+            int restWidth =     (int)viewPort.Width % columns;
+            int restHeight =    (int)viewPort.Height % rows;
 
             spaceForScaleIndicatorsVertical += restWidth / 2;
             spaceForScaleIndicatorsHorizontal += restHeight / 2;
@@ -656,26 +657,27 @@ namespace FRMLib.Scope.Controls
             switch (Settings.ZeroPosition)
             {
                 case VerticalZeroPosition.Middle:
-                    zeroPos = viewPort.Y + viewPort.Height / 2;
+                    zeroPos = (int)viewPort.Y + (int)viewPort.Height / 2;
                     break;
                 case VerticalZeroPosition.Top:
-                    zeroPos = viewPort.Y;
+                    zeroPos = (int)viewPort.Y;
                     break;
                 case VerticalZeroPosition.Bottom:
-                    zeroPos = viewPort.Y + viewPort.Height;
+                    zeroPos = (int)viewPort.Y + (int)viewPort.Height;
                     break;
             }
 
             g.Clear(Settings.BackgroundColor);
 
             //Draw the viewport
-            g.DrawRectangle(Settings.GridPen, viewPort);
+            g.DrawFigure(Settings.GridPen, viewPort);
 
             //Draw the horizontal lines
             for (int row = 1; row < rows + 0; row++)
             {
-                int y = (int)(row * pxPerRow) + viewPort.Y;
-                g.DrawLine(Settings.GridPen, viewPort.X, y, viewPort.X + viewPort.Width, y);
+                double y = (row * pxPerRow) + viewPort.Y;
+                STDLib.Math.Figures.Line line = new STDLib.Math.Figures.Line(viewPort.X, y, viewPort.X + viewPort.Width, y);
+                g.DrawFigure(Settings.GridPen, line);
 
                 if (dataSource != null)
                 {
@@ -685,7 +687,7 @@ namespace FRMLib.Scope.Controls
                         int fit = pxPerRow / Settings.Font.Height;
                         if (fit > scaleDrawCount)
                             fit = scaleDrawCount;
-                        int yy = y - (fit / 2) * Settings.Font.Height;
+                        double yy = y - (fit / 2) * Settings.Font.Height;
                         if (fit % 2 != 0)
                             yy -= Settings.Font.Height / 2;
 
@@ -712,8 +714,8 @@ namespace FRMLib.Scope.Controls
                                 }
 
                                 Brush b = new SolidBrush(t.Pen.Color);
-                                int x = Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
-                                g.DrawString(t.ToHumanReadable(yValue), Settings.Font, b, new Rectangle(x, yy, spaceForScaleIndicatorsVertical, Settings.Font.Height));
+                                double x = Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
+                                //g.DrawString(t.ToHumanReadable(yValue), Settings.Font, b, new Rectangle(x, yy, spaceForScaleIndicatorsVertical, Settings.Font.Height));
                                 yy += Settings.Font.Height;
                                 i++;
                             }
@@ -728,8 +730,9 @@ namespace FRMLib.Scope.Controls
             //Draw the vertical lines
             for (int i = 1; i < columns + 0; i++)
             {
-                int x = (int)(i * pxPerColumn) + viewPort.X;
-                g.DrawLine(Settings.GridPen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
+                double x = (i * pxPerColumn) + viewPort.X;
+                STDLib.Math.Figures.Line line = new STDLib.Math.Figures.Line(x, viewPort.Y, x, viewPort.Y + viewPort.Height);
+                g.DrawFigure(Settings.GridPen, line);
 
                 if (dataSource != null)
                 {
@@ -742,12 +745,12 @@ namespace FRMLib.Scope.Controls
                             DateTime dt = new DateTime((long)xVal);
                             if (dt.Year > 1970)
                             {
-                                Brush b = new SolidBrush(Settings.GridZeroPen.Color);
-                                int y = Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height + 2;
-                                string dateString = dt.ToString("dd-MM-yyyy") + "\r\n" + dt.ToString("HH:mm:ss");
-                                StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center };
-                                Size textSize = TextRenderer.MeasureText(dateString, Settings.Font);
-                                g.DrawString(dateString, Settings.Font, b, new Rectangle(x - pxPerColumn / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal), sf);
+                                //Brush b = new SolidBrush(Settings.GridZeroPen.Color);
+                                //int y = Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height + 2;
+                                //string dateString = dt.ToString("dd-MM-yyyy") + "\r\n" + dt.ToString("HH:mm:ss");
+                                //StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center };
+                                //Size textSize = TextRenderer.MeasureText(dateString, Settings.Font);
+                                //g.DrawString(dateString, Settings.Font, b, new Rectangle(x - pxPerColumn / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal), sf);
                             }
                         }
                     }
@@ -755,7 +758,7 @@ namespace FRMLib.Scope.Controls
             }
 
             //Draw the zero line
-            g.DrawLine(Settings.GridZeroPen, viewPort.X, zeroPos, viewPort.X + viewPort.Width, zeroPos);
+            //g.DrawLine(Settings.GridZeroPen, viewPort.X, zeroPos, viewPort.X + viewPort.Width, zeroPos);
         }
 
         private void DrawData()
@@ -778,29 +781,17 @@ namespace FRMLib.Scope.Controls
                                    orderby trace.Layer descending
                                    select trace;
 
-                PointD min = PointD.Empty;
-                PointD max = PointD.Empty;
-
-                foreach (Trace t in sortedTraces.Where(t => t.Visible))
-                {
-                    min.KeepMinimum(t.Minimum);
-                    max.KeepMaximum(t.Maximum);
-                }
-
-                double xLeft = Settings.HorOffset;
-                double xRight = ((viewPort.Width) / pxPerUnits_hor) - Settings.HorOffset;
-
                 //Loop through traces
                 foreach (Trace trace in sortedTraces)
                 {
                     double pxPerUnits_ver = viewPort.Height / (Settings.VerticalDivisions * trace.Scale);
 
-                    Func<PointD, Point> convert = (p) => new Point(
-                        (int)((p.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
-                        (int)(zeroPos - (p.Y + trace.Offset) * pxPerUnits_ver));
+                    Func<V2D, V2D> convert = (p) => new V2D(
+                        ((p.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
+                        (zeroPos - (p.Y + trace.Offset) * pxPerUnits_ver));
                     try
                     {
-                        trace.Draw(g, viewPort, convert, min.X, max.X, xLeft, xRight, Settings.Font);
+                        trace.Draw(g, viewPort, convert);
                     }
                     catch (Exception ex)
                     {
@@ -810,6 +801,7 @@ namespace FRMLib.Scope.Controls
 
                 try
                 {
+                    /*
                     foreach (Marker marker in dataSource.Markers)
                     {
                         if (marker is LinkedMarker lm)
@@ -831,7 +823,7 @@ namespace FRMLib.Scope.Controls
                             marker.Draw(g, viewPort, convert, Settings.Font);
                         }
 
-                    }
+                    }*/
                 }
                 catch (Exception ex)
                 {
@@ -842,8 +834,8 @@ namespace FRMLib.Scope.Controls
                 {
                     foreach (IScopeDrawable drawable in dataSource.Drawables)
                     {
-                        Func<PointD, Point> convert = (p) => new Point((int)((p.X + Settings.HorOffset) * pxPerUnits_hor), (int)(viewPort.Height / 2 - p.Y));
-                        drawable.Draw(g, convert);
+                        //Func<PointD, Point> convert = (p) => new Point((int)((p.X + Settings.HorOffset) * pxPerUnits_hor), (int)(viewPort.Height / 2 - p.Y));
+                        //drawable.Draw(g, convert);
 
                     }
                 }
@@ -873,9 +865,9 @@ namespace FRMLib.Scope.Controls
 
                     try
                     {
-                        float x = (float)((marker.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
-                        g.DrawLine(pen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
-                        g.DrawString(marker.ID.ToString(), Settings.Font, brush, new PointF(x, 0));
+                        //float x = (float)((marker.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
+                        //g.DrawLine(pen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
+                        //g.DrawString(marker.ID.ToString(), Settings.Font, brush, new PointF(x, 0));
 
                     }
 

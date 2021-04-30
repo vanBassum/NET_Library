@@ -56,13 +56,13 @@ namespace FRMLib.Scope
                 s = $"-{s}";
             return s;
         }
-        /*
-        public static void Add(this ThreadedBindingList<PointD> list, double x, double y)
+        
+        public static void Add(this ThreadedBindingList<V2D> list, double x, double y)
         {
-            PointD pt = new PointD(x, y);
+            V2D pt = new V2D(x, y);
             list.Add(pt);
         }
-        */
+        
     }
 
 }

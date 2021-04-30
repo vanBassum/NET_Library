@@ -2,6 +2,9 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+	<LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6062FC18-1C98-4F9A-BE4C-44171CBCB55E}</ProjectGuid>
@@ -9,9 +12,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>FRMLib</RootNamespace>
     <AssemblyName>FRMLib</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -76,27 +80,14 @@
     <Compile Include="Controls\DataGridViewEnumFlagsCell.cs" />
     <Compile Include="Controls\DataGridViewEnumFlagsColumn.cs" />
     <Compile Include="Controls\DataGridViewEnumFlagsEditControl.cs" />
-    <Compile Include="Scope\MathFunctions\LinearRegression.cs" />
     <Compile Include="Scope\Marker.cs" />
     <Compile Include="Scope\Palettes.cs" />
-    <Compile Include="Scope\MathFunctions\AVG.cs" />
-    <Compile Include="Scope\MathFunctions\DiffX.cs" />
     <Compile Include="Scope\Controls\GraphicsExt.cs" />
     <Compile Include="Scope\Controls\MarkerView.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Scope\Controls\MarkerView.Designer.cs">
       <DependentUpon>MarkerView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Scope\MathFunction.cs" />
-    <Compile Include="Scope\MathFunctions\Max.cs" />
-    <Compile Include="Scope\MathFunctions\Min.cs" />
-    <Compile Include="Scope\MathItem.cs" />
-    <Compile Include="Scope\Controls\MathView.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Scope\Controls\MathView.Designer.cs">
-      <DependentUpon>MathView.cs</DependentUpon>
     </Compile>
     <Compile Include="Scope\Controls\ScopeView.cs">
       <SubType>UserControl</SubType>
