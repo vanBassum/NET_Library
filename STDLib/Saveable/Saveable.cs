@@ -1,4 +1,5 @@
 ﻿using STDLib.Serializers;
+using System;
 using System.IO;
 using System.Reflection;
 
@@ -19,16 +20,38 @@ namespace STDLib.Saveable
             this.serializer = serializer;
         }
 
+
         public void Save(string file)
         {
-            using (Stream stream = File.Open(file, FileMode.Create, FileAccess.Write))
-                Save(stream);
+            Save(new FileInfo(file));
         }
 
         public void Load(string file)
         {
-            using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
-                Load(stream);
+            Load(new FileInfo(file));
+        }
+
+
+        public void Save(FileInfo file)
+        {
+            Directory.CreateDirectory(file.DirectoryName);
+            using (Stream stream = file.Open(FileMode.Create, FileAccess.ReadWrite))
+                Save(stream);
+        }
+
+        public void Load(FileInfo file)
+        {
+            if (!file.Exists)
+            {
+                using (Stream stream = file.Open(FileMode.Create, FileAccess.ReadWrite))
+                    Save(stream);
+            }
+            else
+            {
+                using (Stream stream = file.Open(FileMode.Open, FileAccess.Read))
+                    Load(stream);
+
+            }
         }
 
         public void Save(Stream stream)
