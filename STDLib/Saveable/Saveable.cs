@@ -38,11 +38,7 @@ namespace STDLib.Saveable
 
         public void Load(Stream stream)
         {
-            Saveable deserializedObject = serializer.Deserialize<Saveable>(stream);
-
-            foreach (PropertyInfo pi in deserializedObject.GetType().GetProperties())
-                pi.SetValue(this, pi.GetValue(deserializedObject));
-
+            serializer.PopulateObject(stream, this);
         }
     }
 }

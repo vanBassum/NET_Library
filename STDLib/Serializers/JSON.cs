@@ -20,6 +20,11 @@ namespace STDLib.Serializers
             return JsonConvert.DeserializeObject<T>(serial, Settings);
         }
 
+        public override void PopulateObject<T>(string serial, T obj)
+        {
+            JsonConvert.PopulateObject(serial, obj);
+        }
+
         public override string Serialize<T>(T obj)
         {
             return JsonConvert.SerializeObject(obj, Settings);

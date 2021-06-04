@@ -11,7 +11,7 @@ namespace STDLib.Serializers
         // String
         public abstract string Serialize<T>(T obj);
         public abstract T Deserialize<T>(string serial);
-
+        public abstract void PopulateObject<T>(string serial, T obj);
 
         // byte[]
         public virtual byte[] SerializeToByteArray<T>(T obj)
@@ -26,6 +26,11 @@ namespace STDLib.Serializers
             return Deserialize<T>(serial);
         }
 
+        public virtual void PopulateObject<T>(byte[] data, T obj)
+        {
+            string serial = Encoding.GetString(data);
+            PopulateObject<T>(serial, obj);
+        }
 
         //stream
         public virtual void Serialize<T>(T obj, Stream stream)
@@ -43,7 +48,13 @@ namespace STDLib.Serializers
             return Deserialize<T>(serial);
         }
 
-        
+        public virtual void PopulateObject<T>(Stream data, T obj)
+        {
+            StreamReader sr = new StreamReader(data);
+            string serial = sr.ReadToEnd();
+            PopulateObject<T>(serial, obj);
+        }
+
         //file
         public virtual void Serialize<T>(T obj, FileInfo file)
         {
@@ -62,6 +73,14 @@ namespace STDLib.Serializers
             }
             return result;
         }
-        
+
+        public virtual void PopulateObject<T>(FileInfo file, T obj)
+        {
+            using (Stream stream = file.Open(FileMode.Open, FileAccess.Read))
+            {
+                PopulateObject<T>(stream, obj);
+            }
+        }
+
     }
 }
