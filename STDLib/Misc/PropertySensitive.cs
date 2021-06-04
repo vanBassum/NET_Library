@@ -64,5 +64,11 @@ namespace STDLib.Misc
                 fields[propertyName] = defVal;
             return (T)fields[propertyName];
         }
+
+        protected IEnumerable<KeyValuePair<string, object>> GetFields()
+        {
+            foreach (var kvp in fields)
+                yield return kvp;
+        }
     }
 }
