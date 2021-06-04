@@ -34,18 +34,20 @@ namespace FRMLib
             // 
             // collectionEditControl1
             // 
+            this.collectionEditControl1.CreateObject = null;
             this.collectionEditControl1.DataSource = null;
+            this.collectionEditControl1.DisplayMember = "";
             this.collectionEditControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.collectionEditControl1.Location = new System.Drawing.Point(0, 0);
             this.collectionEditControl1.Name = "collectionEditControl1";
-            this.collectionEditControl1.Size = new System.Drawing.Size(855, 395);
+            this.collectionEditControl1.Size = new System.Drawing.Size(583, 395);
             this.collectionEditControl1.TabIndex = 0;
             // 
             // CollectionEditDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(855, 395);
+            this.ClientSize = new System.Drawing.Size(583, 395);
             this.Controls.Add(this.collectionEditControl1);
             this.Name = "CollectionEditDialog";
             this.Text = "CollectionEditDialog";
