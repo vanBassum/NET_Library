@@ -27,8 +27,13 @@ namespace STDLib.Saveable
 
         public void Load(string file)
         {
-            using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
-                Load(stream);
+            if (!File.Exists(file))
+                Save(file);
+            else
+            {
+                using (Stream stream = File.Open(file, FileMode.Open, FileAccess.Read))
+                    Load(stream);
+            }
         }
 
         public void Save(Stream stream)

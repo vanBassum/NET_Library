@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -15,13 +16,14 @@ namespace STDLib.Misc
     /// }
     /// </code>
     /// </summary>
+    [JsonConverter(typeof(PropertySensitiveJsonConverter))]
     public abstract class PropertySensitive : INotifyPropertyChanged
     {
         [Browsable(false)]
+        [JsonIgnore]
         public bool NotifyOnChange { get; set; } = true;
         /// <summary>
         /// <see cref="INotifyPropertyChanged.PropertyChanged"/>
-        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         private readonly Dictionary<string, object> fields = new Dictionary<string, object>();
@@ -41,7 +43,7 @@ namespace STDLib.Misc
         /// <typeparam name="T">Type of the property.</typeparam>
         /// <param name="value">Value to witch the property will be set.</param>
         /// <param name="propertyName">The name of the property.</param>
-        protected void SetPar<T>(T value, [CallerMemberName] string propertyName = null)
+        public void SetPar<T>(T value, [CallerMemberName] string propertyName = null)
         {
             fields[propertyName] = value;
             if(NotifyOnChange)
@@ -58,14 +60,14 @@ namespace STDLib.Misc
         /// <param name="defVal"></param>
         /// <param name="propertyName"></param>
         /// <returns></returns>
-        protected T GetPar<T>(T defVal = default(T), [CallerMemberName] string propertyName = null)
+        public T GetPar<T>(T defVal = default(T), [CallerMemberName] string propertyName = null)
         {
             if (!fields.ContainsKey(propertyName))
                 fields[propertyName] = defVal;
             return (T)fields[propertyName];
         }
 
-        protected IEnumerable<KeyValuePair<string, object>> GetFields()
+        public IEnumerable<KeyValuePair<string, object>> GetFields()
         {
             foreach (var kvp in fields)
                 yield return kvp;
