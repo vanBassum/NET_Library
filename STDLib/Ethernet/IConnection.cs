@@ -1,8 +1,7 @@
-﻿using STDLib.Misc;
-using System;
+﻿using System;
 using System.ComponentModel;
 
-namespace STDLib.JBVProtocol
+namespace STDLib.Ethernet
 {
     public enum ConnectionStatus
     {
@@ -12,7 +11,6 @@ namespace STDLib.JBVProtocol
         Canceled,
         Error,
     }
-
     public interface IConnection : INotifyPropertyChanged
     {
         ConnectionStatus ConnectionStatus { get; }
