@@ -19,9 +19,10 @@ namespace STDLib.JBVProtocol
         public byte[] SrcMAC { get; set; } = new byte[6];
         public byte[] DstMAC { get; set; } = new byte[6];
         public byte Hops { get; set; }
-        //public byte[] Payload { get; set; }
+		public byte FrameID { get; set; }
+		//public byte[] Payload { get; set; }
 
-        private static UInt16 FrameSize = 18;
+		private static UInt16 FrameSize = 19;
 
 
 		public abstract byte[] ToByteArray();
@@ -33,9 +34,11 @@ namespace STDLib.JBVProtocol
 
 			switch (type)
             {
-				case Types.ApplicationFrame:	return new ApplicationFrame(data);
 				case Types.ProtocolFrame : return new ProtocolFrame(data);
 				case Types.Partial: return new PartialFrame(data);
+				//case Types.ApplicationFrame:	return new ApplicationFrame(data);
+				case Types.RequestFrame: return new RequestFrame(data);
+				case Types.ResponseFrame: return new ResponseFrame(data);
 				default:
 					throw new NotImplementedException($"{type} not supported.");
 			}
@@ -63,7 +66,9 @@ namespace STDLib.JBVProtocol
 			Unknown = 0,            //Undefined, 
 			Partial = 1,            //When one large package has to be send as multiple smaller packages, e.g. ESP_NOW max 250 bytes
 			ProtocolFrame = 2,      //Used by the protocol to manage the MESH
-			ApplicationFrame = 3,   //These are send between clients.
+			//ApplicationFrame = 3,   //These are send between clients.
+			RequestFrame = 4,       //Send from one client to another
+			ResponseFrame = 5,      //Response from the other client to a request
 		};
 
 
@@ -117,17 +122,16 @@ namespace STDLib.JBVProtocol
 	}
 
 
-	public class ApplicationFrame : Frame
+	public class RequestFrame : Frame
 	{
 		public byte[] Data;
 
-
-		public ApplicationFrame()
+		public RequestFrame()
         {
-			Type = Types.ApplicationFrame;
+			Type = Types.RequestFrame;
         }
 
-		public ApplicationFrame(byte[] data)
+		public RequestFrame(byte[] data)
 		{
 			CRC = BitConverter.ToUInt16(data, 0);
 			Type = (Types)data[2];
@@ -135,7 +139,9 @@ namespace STDLib.JBVProtocol
 			SrcMAC = data.SubArray(4, 6);
 			DstMAC = data.SubArray(10, 6);
 			Hops = data[17];
-			Data = data.SubArray(18);
+			FrameID = data[18];
+			Data = data.SubArray(19);
+			
 		}
 
         public override byte[] ToByteArray()
@@ -148,15 +154,47 @@ namespace STDLib.JBVProtocol
 			raw.AddRange(SrcMAC);
 			raw.AddRange(DstMAC);
 			raw.Add(Hops);
+			raw.Add(FrameID);
 			raw.AddRange(Data);
 			return raw.ToArray();
 		}
+	}
 
-        public enum Commands : byte
+	public class ResponseFrame : Frame
+	{
+		public byte[] Data;
+
+		public ResponseFrame()
 		{
-			Unknown = 0,
-			RequestID = 1,
-			ReplyID = 2,
-		};
+			Type = Types.ResponseFrame;
+		}
+
+		public ResponseFrame(byte[] data)
+		{
+			CRC = BitConverter.ToUInt16(data, 0);
+			Type = (Types)data[2];
+			PayloadSize = BitConverter.ToUInt16(data, 3);
+			SrcMAC = data.SubArray(4, 6);
+			DstMAC = data.SubArray(10, 6);
+			Hops = data[17];
+			FrameID = data[18];
+			Data = data.SubArray(19);
+
+		}
+
+		public override byte[] ToByteArray()
+		{
+			PayloadSize = (UInt16)Data.Length;
+			List<byte> raw = new List<byte>();
+			raw.AddRange(BitConverter.GetBytes(CRC));
+			raw.Add((byte)Type);
+			raw.AddRange(BitConverter.GetBytes(PayloadSize));
+			raw.AddRange(SrcMAC);
+			raw.AddRange(DstMAC);
+			raw.Add(Hops);
+			raw.Add(FrameID);
+			raw.AddRange(Data);
+			return raw.ToArray();
+		}
 	}
 }

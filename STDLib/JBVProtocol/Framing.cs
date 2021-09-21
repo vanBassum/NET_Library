@@ -17,7 +17,7 @@ namespace STDLib.JBVProtocol
         void HandleIncommingData(IConnection con, byte[] data)
         {
             byte[] decoded = COBS.Decode(data);
-            Frame frame = Frame.FromRAW(data);
+            Frame frame = Frame.FromRAW(decoded);
             if(frame.CheckCRC())
             {
 
