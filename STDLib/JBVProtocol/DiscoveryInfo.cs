@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace STDLib.JBVProtocol
 {
@@ -25,7 +26,7 @@ namespace STDLib.JBVProtocol
     public class DiscoveryInfo
     {
         public SoftwareID SID { get; set; }
-        public string Address { get; set; }
+        public UInt64 Address { get; set; }
         public List<ListenerInfo> Listeners { get; set; }
     }
 

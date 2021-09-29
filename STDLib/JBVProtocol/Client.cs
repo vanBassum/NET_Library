@@ -17,11 +17,11 @@ namespace STDLib.JBVProtocol
 		Dictionary<byte, TaskCompletionSource<ResponseFrame>> pending = new Dictionary<byte, TaskCompletionSource<ResponseFrame>>();
 
 		List<Framing> framedConnections = new List<Framing>();
-        byte[] myAddress = { 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55 };
+        UInt64 myAddress = 0xAA55AA55AA550000;
 		SoftwareID SID = SoftwareID.Unknown;
 
-		static readonly byte[] BROADCAST = new byte[]{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-		static readonly byte[] UNKNOWNADDR = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+		static readonly UInt64 BROADCAST = 0xFFFFFFFFFFFFFFFF;
+		static readonly UInt64 UNKNOWNADDR = 0x00000000000000000;
 
 
 		void HandleProtocolFrame(Framing framing, ProtocolFrame frame)
@@ -35,12 +35,15 @@ namespace STDLib.JBVProtocol
 					break;
 				case ProtocolFrame.Commands.DiscoveryRequest:
 					DiscoveryInfo di = new DiscoveryInfo();
-					di.Address = BitConverter.ToString(myAddress).Replace("-", ":");
+					di.Address = myAddress;
 					di.SID = SID;
 					string ser = JsonConvert.SerializeObject(di);
-					ProtocolFrame reply = ProtocolFrame.ASCII(frame.SrcMAC, frame.FrameID, ProtocolFrame.Commands.DiscoveryReply, ser);
+					ProtocolFrame reply = ProtocolFrame.ASCII(frame.SrcAddress, frame.FrameID, ProtocolFrame.Commands.DiscoveryReply, ser);
 					framing.SendFrame(reply);
 					//TODO listeners
+					break;
+				case ProtocolFrame.Commands.ReplyID:
+					//TODO: Update routing table
 					break;
 			}
         }
@@ -58,7 +61,7 @@ namespace STDLib.JBVProtocol
 					ResponseFrame res = OnRequestReceived?.Invoke(request);
 					if (res != null)
 					{
-						res.SrcMAC = myAddress;
+						res.SrcAddress = myAddress;
 						framing.SendFrame(res);
 					}
 					break;
@@ -81,7 +84,7 @@ namespace STDLib.JBVProtocol
 		{
 			if (sender is Framing framing)
 			{
-				if (Enumerable.SequenceEqual(frame.DstMAC, BROADCAST))
+				if (frame.DstAddress == BROADCAST)
 				{
 					HandleFrame(framing, frame);
 					if (framing.GetConnectionType() == ConnectionTypes.Direct)
@@ -89,8 +92,7 @@ namespace STDLib.JBVProtocol
 						//Reroute frame
 					}
 				}
-				else if (Enumerable.SequenceEqual(frame.DstMAC, myAddress)
-						|| Enumerable.SequenceEqual(frame.DstMAC, UNKNOWNADDR))
+				else if (frame.DstAddress == myAddress || frame.DstAddress == UNKNOWNADDR)
 				{
 					HandleFrame(framing, frame);
 				}
@@ -104,8 +106,8 @@ namespace STDLib.JBVProtocol
 		void SendFrame(Frame frame)
         {
 			//Do all routing stuff here!!!
-			frame.SrcMAC = myAddress;
-			if(frame.DstMAC == BROADCAST)
+			frame.SrcAddress = myAddress;
+			if(frame.DstAddress == BROADCAST)
             {
 				foreach (var f in framedConnections)
 					f.SendFrame(frame);
@@ -134,6 +136,11 @@ namespace STDLib.JBVProtocol
 			SendFrame(frame);
 		}
 
+		public void Test()
+        {
+			ProtocolFrame frame = ProtocolFrame.ASCII(BROADCAST, 0, ProtocolFrame.Commands.RequestID, "");
+			SendFrame(frame);
+		}
 
 		/*
 		public Task<ResponseFrame> SendRequest(RequestFrame request)

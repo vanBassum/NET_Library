@@ -13,16 +13,15 @@ namespace STDLib.JBVProtocol
     public abstract class Frame
     {
 		
-        public UInt16 CRC { get; set; }
-        public Types Type { get; set; }
-        public UInt16 PayloadSize { get; set; }
-        public byte[] SrcMAC { get; set; } = new byte[6];
-        public byte[] DstMAC { get; set; } = new byte[6];
-        public byte Hops { get; set; }
-		public byte FrameID { get; set; }
-		//public byte[] Payload { get; set; }
+        public UInt16 CRC { get; set; }				
+        public Types Type { get; set; }				
+        public UInt16 PayloadSize { get; set; }		
+        public UInt64 SrcAddress { get; set; }		
+        public UInt64 DstAddress { get; set; }		
+        public byte Hops { get; set; }				
+		public byte FrameID { get; set; }			
 
-		private static UInt16 FrameSize = 19;
+		private static UInt16 FrameSize = 2 + 1 + 2+ 8 + 8+ 1 + 1;
 
 
 		public abstract byte[] ToByteArray();
@@ -108,12 +107,12 @@ namespace STDLib.JBVProtocol
 			CRC = BitConverter.ToUInt16(data, 0);
 			Type = (Types)data[2];
 			PayloadSize = BitConverter.ToUInt16(data, 3);
-			SrcMAC = data.SubArray(5, 6);
-			DstMAC = data.SubArray(11, 6);
-			Hops = data[17];
-			FrameID = data[18];
-			Command = (Commands)data[19];
-			Data = data.SubArray(20);
+			SrcAddress = BitConverter.ToUInt64(data, 5);
+			DstAddress = BitConverter.ToUInt64(data, 13);
+			Hops = data[21];
+			FrameID = data[22];
+			Command = (Commands)data[23];
+			Data = data.SubArray(24);
 
 		}
 
@@ -124,8 +123,8 @@ namespace STDLib.JBVProtocol
 			raw.AddRange(BitConverter.GetBytes(CRC));
 			raw.Add((byte)Type);
 			raw.AddRange(BitConverter.GetBytes(PayloadSize));
-			raw.AddRange(SrcMAC);
-			raw.AddRange(DstMAC);
+			raw.AddRange(BitConverter.GetBytes(SrcAddress));
+			raw.AddRange(BitConverter.GetBytes(DstAddress));
 			raw.Add(Hops);
 			raw.Add(FrameID);
 			raw.Add((byte)Command);
@@ -142,12 +141,12 @@ namespace STDLib.JBVProtocol
 			DiscoveryReply = 4,
 		};
 
-		public static ProtocolFrame ASCII(byte[] dst, byte fid, Commands cmd, string msg)
+		public static ProtocolFrame ASCII(UInt64 dst, byte fid, Commands cmd, string msg)
 		{
 			ProtocolFrame response = new ProtocolFrame();
 			response.Data = Encoding.ASCII.GetBytes(msg);
 			response.Command = cmd;
-			response.DstMAC = dst;
+			response.DstAddress = dst;
 			response.FrameID = fid;
 			return response;
 		}
@@ -169,23 +168,22 @@ namespace STDLib.JBVProtocol
 			CRC = BitConverter.ToUInt16(data, 0);
 			Type = (Types)data[2];
 			PayloadSize = BitConverter.ToUInt16(data, 3);
-			SrcMAC = data.SubArray(4, 6);
-			DstMAC = data.SubArray(10, 6);
-			Hops = data[17];
-			FrameID = data[18];
-			Data = data.SubArray(19);
-			
+			SrcAddress = BitConverter.ToUInt64(data, 5);
+			DstAddress = BitConverter.ToUInt64(data, 13);
+			Hops = data[21];
+			FrameID = data[22];
+			Data = data.SubArray(23);
 		}
 
-        public override byte[] ToByteArray()
-        {
-			PayloadSize = (UInt16)Data.Length;
+		public override byte[] ToByteArray()
+		{
+			PayloadSize = (UInt16)(Data.Length + 1);
 			List<byte> raw = new List<byte>();
 			raw.AddRange(BitConverter.GetBytes(CRC));
 			raw.Add((byte)Type);
 			raw.AddRange(BitConverter.GetBytes(PayloadSize));
-			raw.AddRange(SrcMAC);
-			raw.AddRange(DstMAC);
+			raw.AddRange(BitConverter.GetBytes(SrcAddress));
+			raw.AddRange(BitConverter.GetBytes(DstAddress));
 			raw.Add(Hops);
 			raw.Add(FrameID);
 			raw.AddRange(Data);
@@ -207,23 +205,22 @@ namespace STDLib.JBVProtocol
 			CRC = BitConverter.ToUInt16(data, 0);
 			Type = (Types)data[2];
 			PayloadSize = BitConverter.ToUInt16(data, 3);
-			SrcMAC = data.SubArray(4, 6);
-			DstMAC = data.SubArray(10, 6);
-			Hops = data[17];
-			FrameID = data[18];
-			Data = data.SubArray(19);
-
+			SrcAddress = BitConverter.ToUInt64(data, 5);
+			DstAddress = BitConverter.ToUInt64(data, 13);
+			Hops = data[21];
+			FrameID = data[22];
+			Data = data.SubArray(23);
 		}
 
 		public override byte[] ToByteArray()
 		{
-			PayloadSize = (UInt16)Data.Length;
+			PayloadSize = (UInt16)(Data.Length + 1);
 			List<byte> raw = new List<byte>();
 			raw.AddRange(BitConverter.GetBytes(CRC));
 			raw.Add((byte)Type);
 			raw.AddRange(BitConverter.GetBytes(PayloadSize));
-			raw.AddRange(SrcMAC);
-			raw.AddRange(DstMAC);
+			raw.AddRange(BitConverter.GetBytes(SrcAddress));
+			raw.AddRange(BitConverter.GetBytes(DstAddress));
 			raw.Add(Hops);
 			raw.Add(FrameID);
 			raw.AddRange(Data);
