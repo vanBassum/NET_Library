@@ -108,8 +108,8 @@ namespace STDLib.JBVProtocol
 			CRC = BitConverter.ToUInt16(data, 0);
 			Type = (Types)data[2];
 			PayloadSize = BitConverter.ToUInt16(data, 3);
-			SrcMAC = data.SubArray(4, 6);
-			DstMAC = data.SubArray(10, 6);
+			SrcMAC = data.SubArray(5, 6);
+			DstMAC = data.SubArray(11, 6);
 			Hops = data[17];
 			FrameID = data[18];
 			Command = (Commands)data[19];
@@ -141,6 +141,17 @@ namespace STDLib.JBVProtocol
 			DiscoveryRequest = 3,
 			DiscoveryReply = 4,
 		};
+
+		public static ProtocolFrame ASCII(byte[] dst, byte fid, Commands cmd, string msg)
+		{
+			ProtocolFrame response = new ProtocolFrame();
+			response.Data = Encoding.ASCII.GetBytes(msg);
+			response.Command = cmd;
+			response.DstMAC = dst;
+			response.FrameID = fid;
+			return response;
+		}
+
 	}
 
 

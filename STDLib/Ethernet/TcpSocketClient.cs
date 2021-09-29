@@ -28,6 +28,7 @@ namespace STDLib.Ethernet
         /// Tells the current connection status.
         /// </summary>
         public ConnectionStatus ConnectionStatus { get => GetPar<ConnectionStatus>(ConnectionStatus.Disconnected); private set => SetPar<ConnectionStatus>(value); }
+        public ConnectionTypes Type { get; set; } = ConnectionTypes.Direct;
 
         #region Constructor and destructor
         /// <summary>

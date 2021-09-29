@@ -17,6 +17,8 @@ namespace STDLib.Ethernet
         readonly byte[] rxBuffer = new byte[1024];
         public ConnectionStatus ConnectionStatus => throw new NotImplementedException();
 
+        public ConnectionTypes Type { get; set; } = ConnectionTypes.Broadcast;
+
         UdpClient client = new UdpClient(new IPEndPoint(IPAddress.Any, 51100));
         IPEndPoint endpoint;
 

@@ -57,5 +57,10 @@ namespace STDLib.JBVProtocol
             _connection.OnDataRecieved += (s, e) => HandleIncommingData((IConnection)s, e);
         }
 
+        public ConnectionTypes GetConnectionType()
+        {
+            return _connection.Type;
+        }
+
     }
 }
