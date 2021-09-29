@@ -1,6 +1,7 @@
 ﻿using STDLib.JBVProtocol;
 using STDLib.Misc;
 using System;
+using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -8,7 +9,42 @@ using System.Threading.Tasks;
 
 namespace STDLib.Ethernet
 {
-    public class TcpSocketClient : PropertySensitive, IConnection
+
+    public class UdpSocketClient : IConnection
+    {
+        public event EventHandler<byte[]> OnDataRecieved;
+        public event PropertyChangedEventHandler PropertyChanged;
+        readonly byte[] rxBuffer = new byte[1024];
+        public ConnectionStatus ConnectionStatus => throw new NotImplementedException();
+
+        UdpClient client = new UdpClient(new IPEndPoint(IPAddress.Any, 51100));
+        IPEndPoint endpoint;
+
+
+        public bool SendData(byte[] data)
+        {
+            return client.Send(data, data.Length, new IPEndPoint(IPAddress.Broadcast, 51100)) == data.Length;
+        }
+
+        public void Connect(IPEndPoint ep)
+        {
+            endpoint = ep;
+            client.BeginReceive(new AsyncCallback(ReceiveCallback), this);
+        }
+
+        public static void ReceiveCallback(IAsyncResult ar)
+        {
+            UdpSocketClient u = ((UdpSocketClient)(ar.AsyncState));
+
+            byte[] receiveBytes = u.client.EndReceive(ar, ref u.endpoint);
+            u.OnDataRecieved?.Invoke(u, receiveBytes);
+            u.client.BeginReceive(new AsyncCallback(ReceiveCallback), u);
+        }
+    }
+
+
+    /*
+    public class UdpSocketClient : PropertySensitive, IConnection
     {
         Socket globalSocket;
         readonly byte[] rxBuffer = new byte[1024];
@@ -33,24 +69,15 @@ namespace STDLib.Ethernet
         /// <summary>
         /// Creates a new client.
         /// </summary>
-        public TcpSocketClient()
+        public UdpSocketClient()
         {
         }
 
-        /// <summary>
-        /// Creates a new client based upon an existing socket.
-        /// </summary>
-        /// <param name="s">The socket to be used by this client.</param>
-        public TcpSocketClient(Socket s)
-        {
-            globalSocket = s;
-            HandleNewConnection(globalSocket);
-        }
 
         /// <summary>
         /// Destructor.
         /// </summary>
-        ~TcpSocketClient()
+        ~UdpSocketClient()
         {
             if (globalSocket != null)
                 globalSocket.Close();
@@ -215,5 +242,5 @@ namespace STDLib.Ethernet
         }
         #endregion
     }
-
+    */
 }

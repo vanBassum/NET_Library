@@ -38,17 +38,17 @@ namespace STDLib.JBVProtocol
 
         public void SendFrame(Frame frame)
         {
-            int decodedSize = frame.GetTotalsize();
-            int encodedSize = COBS.CalcEncodedSize(decodedSize);
-
-            if (MaxPackageSize >= encodedSize || MaxPackageSize == 0)
-            {
+            //int decodedSize = frame.GetTotalsize();
+            //int encodedSize = COBS.CalcEncodedSize(decodedSize);
+            //
+            //if (MaxPackageSize >= encodedSize || MaxPackageSize == 0)
+            //{
                 Send(frame);
-            }
-            else
-            {
-                throw new NotImplementedException("Partial frames not supported yet.");
-            }
+           //}
+           //else
+           //{
+           //    throw new NotImplementedException("Partial frames not supported yet.");
+           //}
         }
 
         public void SetConnection(IConnection connection)

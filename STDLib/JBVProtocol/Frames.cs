@@ -105,12 +105,32 @@ namespace STDLib.JBVProtocol
 
 		public ProtocolFrame(byte[] data)
 		{
-			throw new NotImplementedException();
+			CRC = BitConverter.ToUInt16(data, 0);
+			Type = (Types)data[2];
+			PayloadSize = BitConverter.ToUInt16(data, 3);
+			SrcMAC = data.SubArray(4, 6);
+			DstMAC = data.SubArray(10, 6);
+			Hops = data[17];
+			FrameID = data[18];
+			Command = (Commands)data[19];
+			Data = data.SubArray(20);
+
 		}
 
 		public override byte[] ToByteArray()
         {
-            throw new NotImplementedException();
+			PayloadSize = (UInt16)(Data.Length + 1);
+			List<byte> raw = new List<byte>();
+			raw.AddRange(BitConverter.GetBytes(CRC));
+			raw.Add((byte)Type);
+			raw.AddRange(BitConverter.GetBytes(PayloadSize));
+			raw.AddRange(SrcMAC);
+			raw.AddRange(DstMAC);
+			raw.Add(Hops);
+			raw.Add(FrameID);
+			raw.Add((byte)Command);
+			raw.AddRange(Data);
+			return raw.ToArray();
         }
 
         public enum Commands : byte
@@ -118,6 +138,8 @@ namespace STDLib.JBVProtocol
 			Unknown = 0,
 			RequestID = 1,
 			ReplyID = 2,
+			DiscoveryRequest = 3,
+			DiscoveryReply = 4,
 		};
 	}
 
