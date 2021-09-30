@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 
 namespace STDLib.JBVProtocol
 {
+
+
     public class Client
     {
 		public List<object> DiscoveredListeners = new List<object>();
@@ -22,6 +24,8 @@ namespace STDLib.JBVProtocol
 
 		static readonly UInt64 BROADCAST = 0xFFFFFFFFFFFFFFFF;
 		static readonly UInt64 UNKNOWNADDR = 0x00000000000000000;
+		Dictionary<UInt64, Route> routingTable = new Dictionary<ulong, Route>();
+		List<Tuple<Framing, Frame>> pendingFrames = new List<Tuple<Framing, Frame>>();
 
 
 		void HandleProtocolFrame(Framing framing, ProtocolFrame frame)
@@ -38,12 +42,12 @@ namespace STDLib.JBVProtocol
 					di.Address = myAddress;
 					di.SID = SID;
 					string ser = JsonConvert.SerializeObject(di);
-					ProtocolFrame reply = ProtocolFrame.ASCII(frame.SrcAddress, frame.FrameID, ProtocolFrame.Commands.DiscoveryReply, ser);
+					ProtocolFrame reply = ProtocolFrame.ASCII(myAddress, frame.SrcAddress, frame.FrameID, ProtocolFrame.Commands.DiscoveryReply, ser);
 					framing.SendFrame(reply);
 					//TODO listeners
 					break;
-				case ProtocolFrame.Commands.ReplyID:
-					//TODO: Update routing table
+				case ProtocolFrame.Commands.RequestID:
+					framing.SendFrame(ProtocolFrame.ASCII(myAddress, BROADCAST, frame.FrameID, ProtocolFrame.Commands.ReplyID, ""));
 					break;
 			}
         }
@@ -77,42 +81,107 @@ namespace STDLib.JBVProtocol
 				default:
 					throw new NotImplementedException($"{frame.GetType().Name} frames not supported yet.");
 			}
-
         }
 
 		void RouteFrame(object sender, Frame frame)
 		{
-			if (sender is Framing framing)
+			//Some broadcast protocols echo outgoing data, catch these here!
+			if (sender is Framing fra)
 			{
-				if (frame.DstAddress == BROADCAST)
+				if (frame.SrcAddress == myAddress && fra.GetConnectionType() == ConnectionTypes.Broadcast)
+					return;
+			}
+
+
+			if (frame.DstAddress == BROADCAST)
+			{
+				if (sender is Framing framing)
 				{
-					HandleFrame(framing, frame);
+					//Update routing table
+					Route newRoute = new Route { Connection = framing, Hops = frame.Hops };
+					if (routingTable.TryGetValue(frame.SrcAddress, out Route existingRoute))
+						routingTable[frame.SrcAddress] = Route.GetBestRoute(newRoute, existingRoute);
+					else
+					{
+						routingTable[frame.SrcAddress] = newRoute;
+
+						//Retry sending pending frames.
+						for (int i = 0; i < pendingFrames.Count; i++)
+						{
+							Framing fr = pendingFrames[i].Item1;
+							Frame f = pendingFrames[i].Item2;
+							if (routingTable.TryGetValue(f.DstAddress, out Route route))
+							{
+								route.Connection.SendFrame(f);
+								pendingFrames.RemoveAt(i);
+								i--;
+							}
+						}
+					}
+
+					//Resend frame to all except source if source is direct connection
 					if (framing.GetConnectionType() == ConnectionTypes.Direct)
 					{
-						//Reroute frame
+						foreach (var f in framedConnections.Where(a => a != framing))
+						{
+							if (routingTable.TryGetValue(frame.DstAddress, out Route route))
+                            {
+								if(frame.Hops <= route.Hops)
+									f.SendFrame(frame);
+							}
+							else
+                            {
+								//Send to all
+								f.SendFrame(frame);
+							}
+						}
 					}
-				}
-				else if (frame.DstAddress == myAddress || frame.DstAddress == UNKNOWNADDR)
-				{
+
+
+					//Broadcast, so we should do something with this frame aswell.
 					HandleFrame(framing, frame);
+					
 				}
 				else
 				{
-					//Reroute frame
+					//We send this, so send to all connections
+					foreach (var f in framedConnections)
+						f.SendFrame(frame);
+				}
+
+			}
+			else if (frame.DstAddress == myAddress || frame.DstAddress == UNKNOWNADDR)
+			{
+				//Frame is addressed to us.
+				if (sender is Framing framing)
+					HandleFrame(framing, frame);
+			}
+			else
+			{
+				//Not a broadcast, also not addressed to us so redirect.
+				if (routingTable.TryGetValue(frame.DstAddress, out Route route))
+					route.Connection.SendFrame(frame);
+				else
+				{
+					//Route not known, store frame in buffer,
+					if (sender is Framing framing)
+						pendingFrames.Add(new Tuple<Framing, Frame>(framing, frame));
+					else if (sender == null)
+						pendingFrames.Add(new Tuple<Framing, Frame>(null, frame));
+
+					//Aks for the destination to report in order to build route.
+					SendFrame(ProtocolFrame.ASCII(myAddress, BROADCAST, 0, ProtocolFrame.Commands.RequestID, ""));
 				}
 			}
 		}
 
+		
 		void SendFrame(Frame frame)
         {
-			//Do all routing stuff here!!!
 			frame.SrcAddress = myAddress;
-			if(frame.DstAddress == BROADCAST)
-            {
-				foreach (var f in framedConnections)
-					f.SendFrame(frame);
-            }
+			RouteFrame(null, frame);
         }
+		
 
 		public void AddConnection(IConnection con)
 		{
@@ -132,17 +201,17 @@ namespace STDLib.JBVProtocol
 		public void SendDiscoveryRequest()
         {
 			DiscoveredListeners.Clear();
-			ProtocolFrame frame = ProtocolFrame.ASCII(BROADCAST, 0, ProtocolFrame.Commands.DiscoveryRequest, "");
+			ProtocolFrame frame = ProtocolFrame.ASCII(myAddress, BROADCAST, 0, ProtocolFrame.Commands.DiscoveryRequest, "");
 			SendFrame(frame);
 		}
 
 		public void Test()
         {
-			ProtocolFrame frame = ProtocolFrame.ASCII(BROADCAST, 0, ProtocolFrame.Commands.RequestID, "");
+			ProtocolFrame frame = ProtocolFrame.ASCII(myAddress, BROADCAST, 0, ProtocolFrame.Commands.RequestID, "");
 			SendFrame(frame);
 		}
 
-		/*
+		
 		public Task<ResponseFrame> SendRequest(RequestFrame request)
         {
 			byte frameId = 0;
@@ -160,7 +229,7 @@ namespace STDLib.JBVProtocol
 				throw new Exception("Max concurrent frames reached");
 			
 		}
-		*/
+		
     }
 
 }

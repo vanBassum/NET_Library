@@ -38,6 +38,7 @@ namespace STDLib.JBVProtocol
 
         public void SendFrame(Frame frame)
         {
+            frame.Hops++;
             //int decodedSize = frame.GetTotalsize();
             //int encodedSize = COBS.CalcEncodedSize(decodedSize);
             //

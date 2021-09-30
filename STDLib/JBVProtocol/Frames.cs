@@ -141,12 +141,13 @@ namespace STDLib.JBVProtocol
 			DiscoveryReply = 4,
 		};
 
-		public static ProtocolFrame ASCII(UInt64 dst, byte fid, Commands cmd, string msg)
+		public static ProtocolFrame ASCII(UInt64 src, UInt64 dst, byte fid, Commands cmd, string msg)
 		{
 			ProtocolFrame response = new ProtocolFrame();
 			response.Data = Encoding.ASCII.GetBytes(msg);
 			response.Command = cmd;
 			response.DstAddress = dst;
+			response.SrcAddress = src;
 			response.FrameID = fid;
 			return response;
 		}
