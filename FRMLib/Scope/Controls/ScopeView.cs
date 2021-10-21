@@ -814,12 +814,15 @@ namespace FRMLib.Scope.Controls
                     {
                         if (marker is LinkedMarker lm)
                         {
-                            double pxPerUnits_ver = viewPort.Height / (Settings.VerticalDivisions * lm.Trace.Scale);
-                            Func<PointD, Point> convert = (p) => new Point(
-                                (int)((p.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
-                                (int)(zeroPos - (p.Y + lm.Trace.Offset) * pxPerUnits_ver));
+                            if(dataSource.Traces.Contains(lm.Trace))
+                            {
+                                double pxPerUnits_ver = viewPort.Height / (Settings.VerticalDivisions * lm.Trace.Scale);
+                                Func<PointD, Point> convert = (p) => new Point(
+                                    (int)((p.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
+                                    (int)(zeroPos - (p.Y + lm.Trace.Offset) * pxPerUnits_ver));
 
-                            marker.Draw(g, viewPort, convert, Settings.Font);
+                                marker.Draw(g, viewPort, convert, Settings.Font);
+                            }
                         }
                         else if (marker is FreeMarker fm)
                         {
