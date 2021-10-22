@@ -28,18 +28,26 @@ namespace STDLib.Saveable
             PendingChanges = false;
         }
 
-        public static void Load()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>True if settingsfile was loaded, false if new settingsfile was created.</returns>
+        public static bool Load()
         {
+            bool loadedExistingFile = false;
             if (!SettingsFile.Exists)
             {
+                loadedExistingFile = false;
                 Items = Activator.CreateInstance<T1>();
                 Save();
             }
             else
             {
+                loadedExistingFile = true;
                 Items = serializer.Deserialize<T1>(SettingsFile);
             }
             PendingChanges = false;
+            return loadedExistingFile;
         }
 
         protected void SetPar<T2>(T2 value, [CallerMemberName] string propertyName = null)
