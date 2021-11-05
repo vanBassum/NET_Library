@@ -470,6 +470,12 @@ namespace FRMLib.Scope.Controls
             Settings.HorOffset = -min.X;
         }
 
+        public void SetHorizontalTime(DateTime start, DateTime end)
+        {
+            TimeSpan scale = end - start;
+            Settings.HorScale = scale.Ticks / Settings.HorizontalDivisions;
+            Settings.HorOffset = -start.Ticks;
+        }
 
         public void AutoScaleHorizontalTime()
         {
