@@ -3,7 +3,6 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -11,7 +10,7 @@ namespace FRMLib.Scope.Controls
 {
     public partial class ScopeView : UserControl
     {
-        public ScopeViewSettings Settings { get; set; } = new ScopeViewSettings();
+        //public ScopeViewSettings Settings { get; set; } = new ScopeViewSettings();
         private ScopeController dataSource;
         public ScopeController DataSource
         {
@@ -21,6 +20,7 @@ namespace FRMLib.Scope.Controls
                 dataSource = value;
                 if (dataSource != null)
                 {
+                    dataSource.Settings.PropertyChanged += (a, b) => this.InvokeIfRequired(() => DrawBackground());
                     dataSource.Traces.ListChanged += Traces_ListChanged;
                     dataSource.Cursors.ListChanged += Markers_ListChanged;
                 }
@@ -33,7 +33,7 @@ namespace FRMLib.Scope.Controls
         private double horOffsetLastClick = 0;
         private Cursor dragMarker = null;
         private Cursor hoverMarker = null;
-        Rectangle viewPort = new Rectangle(0,0,0,0);
+        Rectangle viewPort = new Rectangle(0, 0, 0, 0);
         //int pxPerColumn;
         //int pxPerRow;
         int zeroPos;    //Position in px that represents vertical zero
@@ -71,22 +71,22 @@ namespace FRMLib.Scope.Controls
 
             menu = new ContextMenuStrip();
 
-            AddMenuItem("Add marker", () => dataSource.Cursors.Add(dragMarker = new Cursor() { X = -Settings.HorOffset }));
+            AddMenuItem("Add marker", () => dataSource.Cursors.Add(dragMarker = new Cursor() { X = -dataSource.Settings.HorOffset }));
             AddMenuItem("Zoom", () => Zoom_Click());
 
-            AddMenuItem("Horizontal scale/Draw/None", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.None);
-            AddMenuItem("Horizontal scale/Draw/Top", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.Top);
-            AddMenuItem("Horizontal scale/Draw/Bottom", () => Settings.DrawScalePosHorizontal = DrawPosHorizontal.Bottom);
-            AddMenuItem("Horizontal scale/Fit", () => FitHorizontalInXDivs(Settings.HorizontalDivisions));
+            AddMenuItem("Horizontal scale/Draw/None", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.None);
+            AddMenuItem("Horizontal scale/Draw/Top", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.Top);
+            AddMenuItem("Horizontal scale/Draw/Bottom", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.Bottom);
+            AddMenuItem("Horizontal scale/Fit", () => FitHorizontalInXDivs(dataSource.Settings.HorizontalDivisions));
             AddMenuItem("Horizontal scale/Day", () => AutoScaleHorizontalTime(TimeSpan.FromDays(1)));
             AddMenuItem("Horizontal scale/Hour", () => AutoScaleHorizontalTime(TimeSpan.FromHours(1)));
 
-            AddMenuItem("Vertical scale/Draw/None", () => Settings.DrawScalePosVertical = DrawPosVertical.None);
-            AddMenuItem("Vertical scale/Draw/Left", () => Settings.DrawScalePosVertical = DrawPosVertical.Left);
-            AddMenuItem("Vertical scale/Draw/Right", () => Settings.DrawScalePosVertical = DrawPosVertical.Right);
-            AddMenuItem("Vertical scale/Zero position/Top", () => Settings.ZeroPosition = VerticalZeroPosition.Top);
-            AddMenuItem("Vertical scale/Zero position/Middle", () => Settings.ZeroPosition = VerticalZeroPosition.Middle);
-            AddMenuItem("Vertical scale/Zero position/Bottom", () => Settings.ZeroPosition = VerticalZeroPosition.Bottom);
+            AddMenuItem("Vertical scale/Draw/None", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.None);
+            AddMenuItem("Vertical scale/Draw/Left", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.Left);
+            AddMenuItem("Vertical scale/Draw/Right", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.Right);
+            AddMenuItem("Vertical scale/Zero position/Top", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Top);
+            AddMenuItem("Vertical scale/Zero position/Middle", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Middle);
+            AddMenuItem("Vertical scale/Zero position/Bottom", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Bottom);
             AddMenuItem("Vertical scale/Auto", () => AutoScaleTracesKeepZero());
 
             AddMenuItem("Clear", () => dataSource.Clear());
@@ -101,7 +101,7 @@ namespace FRMLib.Scope.Controls
 
             ToolStripMenuItem item = null;
 
-            
+
             if (menu.Items[split[0]] is ToolStripMenuItem tsi)
                 item = tsi;
             else
@@ -144,7 +144,7 @@ namespace FRMLib.Scope.Controls
                 DrawForeground(g);
             }
 
-            if(toClipboard)
+            if (toClipboard)
             {
                 Clipboard.SetImage(img);
             }
@@ -155,7 +155,7 @@ namespace FRMLib.Scope.Controls
                 diag.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 diag.FileName = "Untitled.png";
                 diag.RestoreDirectory = true;
-                if(diag.ShowDialog() == DialogResult.OK)
+                if (diag.ShowDialog() == DialogResult.OK)
                 {
                     img.Save(diag.FileName);
                 }
@@ -195,19 +195,19 @@ namespace FRMLib.Scope.Controls
                       select pt.X).FirstOrDefault();
             }
 
-            Settings.HorOffset = -x1;
-            Settings.HorScale = (x2 - x1) / Settings.HorizontalDivisions;
+            dataSource.Settings.HorOffset = -x1;
+            dataSource.Settings.HorScale = (x2 - x1) / dataSource.Settings.HorizontalDivisions;
             DrawAll();
         }
 
         void GetMarkersAdjecentToX(double xPos, ref Cursor left, ref Cursor right)
         {
-            double pxPerUnits_hor = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
-            double x = (xPos * Settings.HorScale * Settings.HorizontalDivisions / viewPort.Height) - Settings.HorOffset + viewPort.X;
-            
+            double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
+            double x = (xPos * dataSource.Settings.HorScale * dataSource.Settings.HorizontalDivisions / viewPort.Height) - dataSource.Settings.HorOffset + viewPort.X;
+
             int iLeft = -1;
             int iRight = -1;
-            
+
             for (int i = 0; i < DataSource.Cursors.Count; i++)
             {
                 if (DataSource.Cursors[i].X < x)
@@ -220,7 +220,7 @@ namespace FRMLib.Scope.Controls
                             iLeft = i;
                     }
                 }
-            
+
                 if (DataSource.Cursors[i].X > x)
                 {
                     if (iRight == -1)
@@ -232,12 +232,12 @@ namespace FRMLib.Scope.Controls
                     }
                 }
             }
-            
+
             if (iLeft == -1)
                 left = null;
             else
                 left = DataSource.Cursors[iLeft];
-            
+
             if (iRight == -1)
                 right = null;
             else
@@ -247,7 +247,7 @@ namespace FRMLib.Scope.Controls
         private void ScopeView_Load(object sender, EventArgs e)
         {
             this.Resize += Form_ResizeEnd;
-            Settings.PropertyChanged += (a, b) => this.InvokeIfRequired(() => DrawBackground());
+
             DrawAll();
 
 
@@ -265,26 +265,26 @@ namespace FRMLib.Scope.Controls
             if (e.Delta != 0)
             {
                 double scroll = (double)(e.Delta);
-                double A = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
-                double B = Settings.HorOffset;
+                double A = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
+                double B = dataSource.Settings.HorOffset;
                 double percent = (double)(e.X - viewPort.X) / (double)viewPort.Width;   //Relative mouse position.
                 double x1px = percent * scroll;
                 double x2px = viewPort.Width - (1 - percent) * scroll;
-                
+
                 //Find the actual value of x1 and x2
                 double x1 = x1px / A - B;
                 double x2 = x2px / A - B;
                 double distance = x2 - x1;
                 if (distance == 0)
                 {
-                    Settings.HorScale = 1;
-                    Settings.HorOffset = -x1;
+                    dataSource.Settings.HorScale = 1;
+                    dataSource.Settings.HorOffset = -x1;
                     return;
                 }
-                Settings.NotifyOnChange = false;
-                Settings.HorScale = (double)distance / (double)Settings.HorizontalDivisions;
-                Settings.NotifyOnChange = true;
-                Settings.HorOffset = -(double)(x1);
+                dataSource.Settings.NotifyOnChange = false;
+                dataSource.Settings.HorScale = (double)distance / (double)dataSource.Settings.HorizontalDivisions;
+                dataSource.Settings.NotifyOnChange = true;
+                dataSource.Settings.HorOffset = -(double)(x1);
             }
         }
 
@@ -298,7 +298,7 @@ namespace FRMLib.Scope.Controls
         {
             dragMarker = hoverMarker;
             lastClickDown = e.Location;
-            horOffsetLastClick = Settings.HorOffset;
+            horOffsetLastClick = dataSource.Settings.HorOffset;
         }
 
         private void picBox_MouseClick(object sender, MouseEventArgs e)
@@ -316,11 +316,11 @@ namespace FRMLib.Scope.Controls
         private void picBox_MouseMove(object sender, MouseEventArgs e)
         {
 
-            double pxPerUnits_hor = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
+            double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
             if (dragMarker != null)
             {
                 //Drag a marker.
-                double x = ((e.X - viewPort.X) / pxPerUnits_hor) - Settings.HorOffset;
+                double x = ((e.X - viewPort.X) / pxPerUnits_hor) - dataSource.Settings.HorOffset;
                 dragMarker.X = x;
                 DrawForeground();
             }
@@ -332,24 +332,27 @@ namespace FRMLib.Scope.Controls
                     if (!lastClickDown.IsEmpty)
                     {
                         double xDif = e.X - lastClickDown.X;
-                        double A = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
-                        Settings.HorOffset = xDif / A + horOffsetLastClick;
+                        double A = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
+                        double offset = xDif / A + horOffsetLastClick;
+                        dataSource.Settings.HorOffset = Math.Round(offset / dataSource.Settings.HorSnapSize) * dataSource.Settings.HorSnapSize;
                     }
                 }
                 else
                 {
                     //Detect markers.
-                    double xMin = (((e.X - viewPort.X) - 4) / pxPerUnits_hor) - Settings.HorOffset + viewPort.X;
-                    double xMax = (((e.X - viewPort.X) + 4) / pxPerUnits_hor) - Settings.HorOffset + viewPort.X;
-            
                     if (DataSource != null)
                     {
-            
                         System.Windows.Forms.Cursor cur = System.Windows.Forms.Cursors.Default;
                         hoverMarker = null;
                         for (int i = 0; i < DataSource.Cursors.Count; i++)
                         {
-                            if (DataSource.Cursors[i].X > xMin && DataSource.Cursors[i].X < xMax)
+                            Cursor cursor = DataSource.Cursors[i];
+                            int cursorX = (int)((cursor.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
+                            int xMin = cursorX - 4;
+                            int xMax = cursorX + 4;
+
+
+                            if (e.X > xMin && e.X < xMax)
                             {
                                 cur = Cursors.VSplit;
                                 hoverMarker = DataSource.Cursors[i];
@@ -361,7 +364,7 @@ namespace FRMLib.Scope.Controls
             }
         }
 
- 
+
 
         #region Calculations
 
@@ -381,7 +384,7 @@ namespace FRMLib.Scope.Controls
             }
 
             double distance = t.Maximum.Y - t.Minimum.Y;
-            double div = distance / ((double)Settings.VerticalDivisions);
+            double div = distance / ((double)dataSource.Settings.VerticalDivisions);
             double multiplier = 1f;
 
             while (div > 10)
@@ -406,7 +409,7 @@ namespace FRMLib.Scope.Controls
             else
                 t.Scale = (double)(10 * multiplier);
 
-            t.Offset = -(double)(distance / (Settings.ZeroPosition == VerticalZeroPosition.Middle ? 2 : 1) + t.Minimum.Y);
+            t.Offset = -(double)(distance / (dataSource.Settings.ZeroPosition == VerticalZeroPosition.Middle ? 2 : 1) + t.Minimum.Y);
         }
 
         public void AutoScaleTracesKeepZero()
@@ -425,7 +428,7 @@ namespace FRMLib.Scope.Controls
             }
 
             double distance = Math.Max(Math.Abs(t.Maximum.Y), Math.Abs(t.Minimum.Y));
-            double div = distance * (Settings.ZeroPosition == VerticalZeroPosition.Middle ? 2 : 1) / ((double)Settings.VerticalDivisions);
+            double div = distance * (dataSource.Settings.ZeroPosition == VerticalZeroPosition.Middle ? 2 : 1) / ((double)dataSource.Settings.VerticalDivisions);
             double multiplier = 1f;
 
             if (div == 0)
@@ -466,15 +469,15 @@ namespace FRMLib.Scope.Controls
                 max.KeepMaximum(t.Maximum);
             }
 
-            Settings.HorScale = scale.Ticks;
-            Settings.HorOffset = -min.X;
+            dataSource.Settings.HorScale = scale.Ticks;
+            dataSource.Settings.HorOffset = -min.X;
         }
 
         public void SetHorizontalTime(DateTime start, DateTime end)
         {
             TimeSpan scale = end - start;
-            Settings.HorScale = scale.Ticks / Settings.HorizontalDivisions;
-            Settings.HorOffset = -start.Ticks;
+            dataSource.Settings.HorScale = scale.Ticks / dataSource.Settings.HorizontalDivisions;
+            dataSource.Settings.HorOffset = -start.Ticks;
         }
 
         public void AutoScaleHorizontalTime()
@@ -487,44 +490,44 @@ namespace FRMLib.Scope.Controls
                 min.KeepMinimum(t.Minimum);
                 max.KeepMaximum(t.Maximum);
             }
-            
+
 
             DateTime start = new DateTime((long)min.X);
             DateTime end = new DateTime((long)max.X);
             TimeSpan span = end - start;
-            if (span.TotalDays >= Settings.HorizontalDivisions)
+            if (span.TotalDays >= dataSource.Settings.HorizontalDivisions)
             {
-                Settings.HorScale = Math.Ceiling(span.TotalDays / Settings.HorizontalDivisions) * TimeSpan.TicksPerDay;
-                start.AddMilliseconds(-start.Millisecond); 
+                dataSource.Settings.HorScale = Math.Ceiling(span.TotalDays / dataSource.Settings.HorizontalDivisions) * TimeSpan.TicksPerDay;
+                start.AddMilliseconds(-start.Millisecond);
                 start.AddSeconds(-start.Second);
                 start.AddMinutes(-start.Minute);
                 start.AddHours(-start.Hour);
             }
-            else if (span.TotalHours >= Settings.HorizontalDivisions)
+            else if (span.TotalHours >= dataSource.Settings.HorizontalDivisions)
             {
-                Settings.HorScale = Math.Ceiling(span.TotalHours / Settings.HorizontalDivisions) * TimeSpan.TicksPerHour;
+                dataSource.Settings.HorScale = Math.Ceiling(span.TotalHours / dataSource.Settings.HorizontalDivisions) * TimeSpan.TicksPerHour;
                 start.AddMilliseconds(-start.Millisecond);
                 start.AddSeconds(-start.Second);
                 start.AddMinutes(-start.Minute);
             }
-            else if (span.TotalMinutes >= Settings.HorizontalDivisions)
+            else if (span.TotalMinutes >= dataSource.Settings.HorizontalDivisions)
             {
-                Settings.HorScale = Math.Ceiling(span.TotalMinutes / Settings.HorizontalDivisions) * TimeSpan.TicksPerMinute;
+                dataSource.Settings.HorScale = Math.Ceiling(span.TotalMinutes / dataSource.Settings.HorizontalDivisions) * TimeSpan.TicksPerMinute;
                 start.AddMilliseconds(-start.Millisecond);
                 start.AddSeconds(-start.Second);
             }
-            else if (span.TotalSeconds >= Settings.HorizontalDivisions)
+            else if (span.TotalSeconds >= dataSource.Settings.HorizontalDivisions)
             {
-                Settings.HorScale = Math.Ceiling(span.TotalSeconds / Settings.HorizontalDivisions) * TimeSpan.TicksPerSecond;
+                dataSource.Settings.HorScale = Math.Ceiling(span.TotalSeconds / dataSource.Settings.HorizontalDivisions) * TimeSpan.TicksPerSecond;
                 start.AddMilliseconds(-start.Millisecond);
                 start.AddSeconds(-start.Second);
             }
             else
             {
-                Settings.HorScale = Math.Ceiling(span.TotalMilliseconds / Settings.HorizontalDivisions) * TimeSpan.TicksPerMillisecond;
+                dataSource.Settings.HorScale = Math.Ceiling(span.TotalMilliseconds / dataSource.Settings.HorizontalDivisions) * TimeSpan.TicksPerMillisecond;
                 start.AddMilliseconds(-start.Millisecond);
             }
-            Settings.HorOffset = -start.Ticks;
+            dataSource.Settings.HorOffset = -start.Ticks;
         }
 
 
@@ -544,12 +547,12 @@ namespace FRMLib.Scope.Controls
             double distance = max.X - min.X;
             if (distance == 0)
             {
-                Settings.HorScale = 1;
-                Settings.HorOffset = -min.X;
+                dataSource.Settings.HorScale = 1;
+                dataSource.Settings.HorOffset = -min.X;
                 return;
             }
 
-            double div = distance / ((double)Settings.HorizontalDivisions);
+            double div = distance / ((double)dataSource.Settings.HorizontalDivisions);
             double multiplier = 1f;
 
             while (div > 10)
@@ -566,15 +569,15 @@ namespace FRMLib.Scope.Controls
 
 
             if (div <= 1)
-                Settings.HorScale = (double)(1 * multiplier);
+                dataSource.Settings.HorScale = (double)(1 * multiplier);
             else if (div <= 2)
-                Settings.HorScale = (double)(2 * multiplier);
+                dataSource.Settings.HorScale = (double)(2 * multiplier);
             else if (div <= 5)
-                Settings.HorScale = (double)(5 * multiplier);
+                dataSource.Settings.HorScale = (double)(5 * multiplier);
             else
-                Settings.HorScale = (double)(10 * multiplier);
+                dataSource.Settings.HorScale = (double)(10 * multiplier);
 
-            Settings.HorOffset = -(double)(min.X);
+            dataSource.Settings.HorOffset = -(double)(min.X);
         }
 
         public void FitHorizontalInXDivs(int divs)
@@ -591,13 +594,13 @@ namespace FRMLib.Scope.Controls
             double distance = max.X - min.X;
             if (distance == 0)
             {
-                Settings.HorScale = 1;
-                Settings.HorOffset = -min.X;
+                dataSource.Settings.HorScale = 1;
+                dataSource.Settings.HorOffset = -min.X;
                 return;
             }
 
-            Settings.HorScale = (double)distance / (double)divs;
-            Settings.HorOffset = -(double)(min.X);
+            dataSource.Settings.HorScale = (double)distance / (double)divs;
+            dataSource.Settings.HorOffset = -(double)(min.X);
         }
 
 
@@ -621,7 +624,7 @@ namespace FRMLib.Scope.Controls
             int spaceForScaleIndicatorsVertical = 45;
             int spaceForScaleIndicatorsHorizontal = 25;
 
-            switch (Settings.DrawScalePosVertical)
+            switch (dataSource.Settings.DrawScalePosVertical)
             {
                 case DrawPosVertical.Left:
                     viewPort.X += spaceForScaleIndicatorsVertical;
@@ -632,7 +635,7 @@ namespace FRMLib.Scope.Controls
                     break;
             }
 
-            switch (Settings.DrawScalePosHorizontal)
+            switch (dataSource.Settings.DrawScalePosHorizontal)
             {
                 case DrawPosHorizontal.Bottom:
                     viewPort.Height -= spaceForScaleIndicatorsHorizontal;
@@ -644,8 +647,8 @@ namespace FRMLib.Scope.Controls
             }
 
 
-            int columns = Settings.HorizontalDivisions;
-            int rows = Settings.VerticalDivisions;
+            int columns = dataSource.Settings.HorizontalDivisions;
+            int rows = dataSource.Settings.VerticalDivisions;
             int pxPerColumn = viewPort.Width / columns;
             int pxPerRow = viewPort.Height / rows;
             int restWidth = viewPort.Width % columns;
@@ -659,7 +662,7 @@ namespace FRMLib.Scope.Controls
             viewPort.Width = columns * pxPerColumn;
             viewPort.Height = rows * pxPerRow;
 
-            switch (Settings.ZeroPosition)
+            switch (dataSource.Settings.ZeroPosition)
             {
                 case VerticalZeroPosition.Middle:
                     zeroPos = viewPort.Y + viewPort.Height / 2;
@@ -672,28 +675,28 @@ namespace FRMLib.Scope.Controls
                     break;
             }
 
-            g.Clear(Settings.BackgroundColor);
+            g.Clear(dataSource.Settings.BackgroundColor);
 
             //Draw the viewport
-            g.DrawRectangle(Settings.GridPen, viewPort);
+            g.DrawRectangle(dataSource.Settings.GridPen, viewPort);
 
             //Draw the horizontal lines
             for (int row = 1; row < rows + 0; row++)
             {
                 int y = (int)(row * pxPerRow) + viewPort.Y;
-                g.DrawLine(Settings.GridPen, viewPort.X, y, viewPort.X + viewPort.Width, y);
+                g.DrawLine(dataSource.Settings.GridPen, viewPort.X, y, viewPort.X + viewPort.Width, y);
 
                 if (dataSource != null)
                 {
-                    if (Settings.DrawScalePosVertical != DrawPosVertical.None)
+                    if (dataSource.Settings.DrawScalePosVertical != DrawPosVertical.None)
                     {
                         int scaleDrawCount = dataSource.Traces.Where(a => a.DrawOption.HasFlag(Trace.DrawOptions.ShowScale)).Count();
-                        int fit = pxPerRow / Settings.Font.Height;
+                        int fit = pxPerRow / dataSource.Settings.Font.Height;
                         if (fit > scaleDrawCount)
                             fit = scaleDrawCount;
-                        int yy = y - (fit / 2) * Settings.Font.Height;
+                        int yy = y - (fit / 2) * dataSource.Settings.Font.Height;
                         if (fit % 2 != 0)
-                            yy -= Settings.Font.Height / 2;
+                            yy -= dataSource.Settings.Font.Height / 2;
 
                         int i = 0;
 
@@ -706,21 +709,21 @@ namespace FRMLib.Scope.Controls
                                 && t.Visible)
                             {
 
-                                double yValue = ((Settings.VerticalDivisions - row) * t.Scale) - t.Offset;
-                                switch (Settings.ZeroPosition)
+                                double yValue = ((dataSource.Settings.VerticalDivisions - row) * t.Scale) - t.Offset;
+                                switch (dataSource.Settings.ZeroPosition)
                                 {
                                     case VerticalZeroPosition.Middle:
-                                        yValue -= (Settings.VerticalDivisions / 2) * t.Scale;
+                                        yValue -= (dataSource.Settings.VerticalDivisions / 2) * t.Scale;
                                         break;
                                     case VerticalZeroPosition.Top:
-                                        yValue -= (Settings.VerticalDivisions) * t.Scale;
+                                        yValue -= (dataSource.Settings.VerticalDivisions) * t.Scale;
                                         break;
                                 }
 
                                 Brush b = new SolidBrush(t.Pen.Color);
-                                int x = Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
-                                g.DrawString(t.ToHumanReadable(yValue), Settings.Font, b, new Rectangle(x, yy, spaceForScaleIndicatorsVertical, Settings.Font.Height));
-                                yy += Settings.Font.Height;
+                                int x = dataSource.Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
+                                g.DrawString(t.ToHumanReadable(yValue), dataSource.Settings.Font, b, new Rectangle(x, yy, spaceForScaleIndicatorsVertical, dataSource.Settings.Font.Height));
+                                yy += dataSource.Settings.Font.Height;
                                 i++;
                             }
 
@@ -735,33 +738,30 @@ namespace FRMLib.Scope.Controls
             for (int i = 1; i < columns + 0; i++)
             {
                 int x = (int)(i * pxPerColumn) + viewPort.X;
-                g.DrawLine(Settings.GridPen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
+                g.DrawLine(dataSource.Settings.GridPen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
 
                 if (dataSource != null)
                 {
-                    if (Settings.DrawScalePosHorizontal != DrawPosHorizontal.None)
+                    if (dataSource.Settings.DrawScalePosHorizontal != DrawPosHorizontal.None)
                     {
-                        double pxPerUnits_hor = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
-                        double xVal = ((x - viewPort.X) / pxPerUnits_hor) - Settings.HorOffset;
-                        if (xVal > DateTime.MinValue.Ticks && xVal < DateTime.MaxValue.Ticks)
+                        double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
+                        double xVal = ((x - viewPort.X) / pxPerUnits_hor) - dataSource.Settings.HorOffset;
+                        string xString = dataSource.Settings.HorizontalToHumanReadable(xVal);
+
+                        if (xString != null)
                         {
-                            DateTime dt = new DateTime((long)xVal);
-                            if (dt.Year > 1970)
-                            {
-                                Brush b = new SolidBrush(Settings.GridZeroPen.Color);
-                                int y = Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height + 2;
-                                string dateString = dt.ToString("dd-MM-yyyy") + "\r\n" + dt.ToString("HH:mm:ss");
-                                StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center };
-                                Size textSize = TextRenderer.MeasureText(dateString, Settings.Font);
-                                g.DrawString(dateString, Settings.Font, b, new Rectangle(x - pxPerColumn / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal), sf);
-                            }
+                            Brush b = new SolidBrush(dataSource.Settings.GridZeroPen.Color);
+                            int y = dataSource.Settings.DrawScalePosHorizontal == DrawPosHorizontal.Top ? 0 : viewPort.Y + viewPort.Height + 2;
+                            StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center };
+                            Size textSize = TextRenderer.MeasureText(xString, dataSource.Settings.Font);
+                            g.DrawString(xString, dataSource.Settings.Font, b, new Rectangle(x - pxPerColumn / 2, y, pxPerColumn, spaceForScaleIndicatorsHorizontal), sf);
                         }
                     }
                 }
             }
 
             //Draw the zero line
-            g.DrawLine(Settings.GridZeroPen, viewPort.X, zeroPos, viewPort.X + viewPort.Width, zeroPos);
+            g.DrawLine(dataSource.Settings.GridZeroPen, viewPort.X, zeroPos, viewPort.X + viewPort.Width, zeroPos);
         }
 
         private void DrawData()
@@ -779,7 +779,7 @@ namespace FRMLib.Scope.Controls
             {
                 int errNo = 0;
                 Brush errBrush = new SolidBrush(Color.Red);
-                double pxPerUnits_hor = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale);
+                double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
                 var sortedTraces = from trace in DataSource.Traces
                                    orderby trace.Layer descending
                                    select trace;
@@ -793,24 +793,24 @@ namespace FRMLib.Scope.Controls
                     max.KeepMaximum(t.Maximum);
                 }
 
-                double xLeft = Settings.HorOffset;
-                double xRight = ((viewPort.Width) / pxPerUnits_hor) - Settings.HorOffset;
+                double xLeft = dataSource.Settings.HorOffset;
+                double xRight = ((viewPort.Width) / pxPerUnits_hor) - dataSource.Settings.HorOffset;
 
                 //Loop through traces
                 foreach (Trace trace in sortedTraces)
                 {
-                    double pxPerUnits_ver = viewPort.Height / (Settings.VerticalDivisions * trace.Scale);
+                    double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * trace.Scale);
 
                     Func<PointD, Point> convert = (p) => new Point(
-                        (int)((p.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
+                        (int)((p.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
                         (int)(zeroPos - (p.Y + trace.Offset) * pxPerUnits_ver));
                     try
                     {
-                        trace.Draw(g, viewPort, convert, min.X, max.X, xLeft, xRight, Settings.Font);
+                        trace.Draw(g, viewPort, convert, min.X, max.X, xLeft, xRight, dataSource.Settings.Font);
                     }
                     catch (Exception ex)
                     {
-                        g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
+                        g.DrawString(ex.Message, dataSource.Settings.Font, errBrush, new Point(0, (errNo++) * dataSource.Settings.Font.Height));
                     }
                 }
 
@@ -820,47 +820,47 @@ namespace FRMLib.Scope.Controls
                     {
                         if (marker is LinkedMarker lm)
                         {
-                            if(dataSource.Traces.Contains(lm.Trace))
+                            if (dataSource.Traces.Contains(lm.Trace))
                             {
-                                double pxPerUnits_ver = viewPort.Height / (Settings.VerticalDivisions * lm.Trace.Scale);
+                                double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * lm.Trace.Scale);
                                 Func<PointD, Point> convert = (p) => new Point(
-                                    (int)((p.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
+                                    (int)((p.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
                                     (int)(zeroPos - (p.Y + lm.Trace.Offset) * pxPerUnits_ver));
 
-                                marker.Draw(g, viewPort, convert, Settings.Font);
+                                marker.Draw(g, viewPort, convert, dataSource.Settings.Font);
                             }
                         }
                         else if (marker is FreeMarker fm)
                         {
-                            double pxPerUnits_ver = viewPort.Height / (Settings.VerticalDivisions * 1);
+                            double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * 1);
                             Func<PointD, Point> convert = (p) => new Point(
-                                (int)((p.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
+                                (int)((p.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
                                 (int)(zeroPos - (p.Y + 0) * pxPerUnits_ver));
 
-                            marker.Draw(g, viewPort, convert, Settings.Font);
+                            marker.Draw(g, viewPort, convert, dataSource.Settings.Font);
                         }
 
                     }
                 }
                 catch (Exception ex)
                 {
-                    g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
+                    g.DrawString(ex.Message, dataSource.Settings.Font, errBrush, new Point(0, (errNo++) * dataSource.Settings.Font.Height));
                 }
 
                 try
                 {
                     foreach (IScopeDrawable drawable in dataSource.Drawables)
                     {
-                        Func<PointD, Point> convert = (p) => new Point((int)((p.X + Settings.HorOffset) * pxPerUnits_hor), (int)(viewPort.Height / 2 - p.Y));
+                        Func<PointD, Point> convert = (p) => new Point((int)((p.X + dataSource.Settings.HorOffset) * pxPerUnits_hor), (int)(viewPort.Height / 2 - p.Y));
                         drawable.Draw(g, convert);
 
                     }
                 }
                 catch (Exception ex)
                 {
-                    g.DrawString(ex.Message, Settings.Font, errBrush, new Point(0, (errNo++) * Settings.Font.Height));
+                    g.DrawString(ex.Message, dataSource.Settings.Font, errBrush, new Point(0, (errNo++) * dataSource.Settings.Font.Height));
                 }
-            }           
+            }
         }
 
         private void DrawForeground()
@@ -871,7 +871,7 @@ namespace FRMLib.Scope.Controls
         {
             if (DataSource != null)
             {
-                double pxPerUnits_hor = viewPort.Width / (Settings.HorizontalDivisions * Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
+                double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
 
                 int markerNo = 0;
                 //Loop through markers
@@ -882,20 +882,20 @@ namespace FRMLib.Scope.Controls
 
                     try
                     {
-                        float x = (float)((marker.X + Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
+                        float x = (float)((marker.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
                         g.DrawLine(pen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
-                        g.DrawString(marker.ID.ToString(), Settings.Font, brush, new PointF(x, 0));
+                        g.DrawString(marker.ID.ToString(), dataSource.Settings.Font, brush, new PointF(x, 0));
 
                     }
 
                     catch (Exception ex)
                     {
-                        g.DrawString(ex.Message, Settings.Font, brush, new Point(0, markerNo * Settings.Font.Height));
+                        g.DrawString(ex.Message, dataSource.Settings.Font, brush, new Point(0, markerNo * dataSource.Settings.Font.Height));
                     }
                     markerNo++;
                 }
 
-                //Func<double, int> scaleX = (x) => (int)((x + Settings.HorOffset) * pxPerUnits_hor);
+                //Func<double, int> scaleX = (x) => (int)((x + dataSource.Settings.HorOffset) * pxPerUnits_hor);
                 //Loop trought mathitems
                 //@TODO
                 //foreach (MathItem mathItem in DataSource.MathItems)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
@@ -913,7 +913,7 @@ namespace FRMLib.Scope.Controls
                 //    }
                 //    catch (Exception ex)
                 //    {
-                //        g.DrawString(ex.Message, Settings.Font, Brushes.White, new Point(0, markerNo * Settings.Font.Height));
+                //        g.DrawString(ex.Message, dataSource.Settings.Font, Brushes.White, new Point(0, markerNo * dataSource.Settings.Font.Height));
                 //    }
                 //}
             }

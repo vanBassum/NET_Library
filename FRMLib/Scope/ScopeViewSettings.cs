@@ -1,4 +1,5 @@
 ﻿using STDLib.Misc;
+using System;
 using System.Drawing;
 
 namespace FRMLib.Scope
@@ -28,6 +29,17 @@ namespace FRMLib.Scope
         /// The amount per division in the horizontal direction
         /// </summary>
         public double HorScale { get { return GetPar<double>(10); } set { SetPar(value); } }
+
+        /// <summary>
+        /// Snapsize of horizontal axis
+        /// </summary>
+        public double HorSnapSize { get { return GetPar<double>(1); } set { SetPar(value); } }
+
+        /// <summary>
+        /// Function to convert X values to string.
+        /// </summary>
+        public Func<double, string> HorizontalToHumanReadable { get; set; } = (a) => a.ToString("F1");
+
 
         public VerticalZeroPosition ZeroPosition { get { return GetPar<VerticalZeroPosition>(VerticalZeroPosition.Middle); } set { SetPar(value); } }
 

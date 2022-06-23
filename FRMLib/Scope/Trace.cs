@@ -203,16 +203,16 @@ namespace FRMLib.Scope
                     //Outside view check
                     if (viewPort.CheckIfPointIsWithin(pAct) || viewPort.CheckIfPointIsWithin(pPrev) || viewPort.CheckIfPointIsWithin(pNext))
                     {
-                        if(pActD.X < xLeft)
-                            pAct = convert(new PointD(xLeft, GetYValue(xLeft)));
-                        else if (pActD.X > xRight)
-                            pAct = convert(new PointD(xRight, GetYValue(xRight)));
-
-                        if (pPrevD.X < xLeft)
-                            pPrev = convert(new PointD(xLeft, GetYValue(xLeft)));
-
-                        if (pNextD.X > xRight)
-                            pNext = convert(new PointD(xRight, GetYValue(xRight)));
+                        //if(pActD.X < xLeft)
+                        //    pAct = convert(new PointD(xLeft, GetYValue(xLeft)));
+                        //else if (pActD.X > xRight)
+                        //    pAct = convert(new PointD(xRight, GetYValue(xRight)));
+                        //
+                        //if (pPrevD.X < xLeft)
+                        //    pPrev = convert(new PointD(xLeft, GetYValue(xLeft)));
+                        //
+                        //if (pNextD.X > xRight)
+                        //    pNext = convert(new PointD(xRight, GetYValue(xRight)));
 
                         if (DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses) && viewPort.CheckIfPointIsWithin(convert(pActD)))
                             g.DrawCross(pen, convert(pActD), 3);

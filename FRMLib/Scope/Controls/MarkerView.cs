@@ -93,7 +93,7 @@ namespace FRMLib.Scope.Controls
 
             if (dgv.Columns[e.ColumnIndex].DataPropertyName == nameof(Scope.Cursor.X))
             {
-                e.Value = dataSource.HorizontalToHumanReadable((double)e.Value);
+                e.Value = dataSource.Settings.HorizontalToHumanReadable((double)e.Value);
             }
 
         }

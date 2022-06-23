@@ -12,9 +12,9 @@ namespace FRMLib.Scope
         public ThreadedBindingList<Marker> Markers { get; private set; } = new ThreadedBindingList<Marker>();
         public ThreadedBindingList<MathItem> MathItems { get; private set; } = new ThreadedBindingList<MathItem>();
         public ThreadedBindingList<IScopeDrawable> Drawables { get; private set; } = new ThreadedBindingList<IScopeDrawable>();
-        public Func<double, string> HorizontalToHumanReadable { get; set; } = TicksToString;
-        
+        public ScopeViewSettings Settings { get; private set; } = new ScopeViewSettings();
 
+        
         public void Clear()
         {
             MathItems.Clear();
@@ -31,12 +31,6 @@ namespace FRMLib.Scope
             Markers.Clear();
             foreach (var v in Traces)
                 v.Points.Clear();
-        }
-
-        static string TicksToString(double ticks)
-        {
-            DateTime dt = new DateTime((long)ticks);
-            return dt.ToString("dd-MM-yyyy") + " \r\n" + dt.ToString("HH:mm:ss");
         }
     }
 
