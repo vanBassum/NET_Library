@@ -23,9 +23,12 @@ namespace FRMLib.Scope.Controls
                     dataSource.Settings.PropertyChanged += (a, b) => this.InvokeIfRequired(() => DrawBackground());
                     dataSource.Traces.ListChanged += Traces_ListChanged;
                     dataSource.Cursors.ListChanged += Markers_ListChanged;
+                    dataSource.DoRedraw += (a, b) => DrawAll();
                 }
             }
         }
+
+
 
         private ContextMenuStrip menu;
         private Point lastClick = Point.Empty;
@@ -922,7 +925,7 @@ namespace FRMLib.Scope.Controls
         #endregion
 
 
-        public void DrawAll()
+        private void DrawAll()
         {
             DrawBackground();
             DrawData();

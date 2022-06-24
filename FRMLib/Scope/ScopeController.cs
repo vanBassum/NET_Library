@@ -14,6 +14,12 @@ namespace FRMLib.Scope
         public ThreadedBindingList<IScopeDrawable> Drawables { get; private set; } = new ThreadedBindingList<IScopeDrawable>();
         public ScopeViewSettings Settings { get; private set; } = new ScopeViewSettings();
 
+        public event EventHandler DoRedraw;
+
+        public void RedrawAll()
+        {
+            DoRedraw?.Invoke(this, null);
+        }
         
         public void Clear()
         {
