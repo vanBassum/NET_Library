@@ -38,6 +38,12 @@ namespace FRMLib.Scope
             foreach (var v in Traces)
                 v.Points.Clear();
         }
+
+        public static string TicksToString(double ticks)
+        {
+            DateTime dt = new DateTime((long)ticks);
+            return dt.ToString("dd-MM-yyyy") + " \r\n" + dt.ToString("HH:mm:ss");
+        }
     }
 
     public interface IScopeDrawable
