@@ -19,6 +19,19 @@ namespace FRMLib
             }
         }
 
+        public static T InvokeIfRequired<T>(this ISynchronizeInvoke obj, Func<T> action)
+        {
+            if (obj.InvokeRequired)
+            {
+                var args = new object[0];
+                return (T) obj.Invoke(action, args);
+            }
+            else
+            {
+                return action();
+            }
+        }
+
         public static void AddMenuItem(this ToolStrip menu, string menuPath, Action action)
         {
             string[] split = menuPath.Split('/');

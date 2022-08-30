@@ -40,6 +40,21 @@ namespace FRMLib.Scope
             Points.ListChanged += Points_ListChanged;
         }
 
+        public void AddPointSort(PointD pt)
+        {
+            int i = 0;
+            for(i=0; i< Points.Count; i++)
+            {
+                if (pt.X < Points[i].X)
+                {
+                    Points.Insert(i, pt);
+                    return;
+                }
+            }
+            Points.Add(pt);
+        }
+
+
         private void Points_ListChanged(object sender, System.ComponentModel.ListChangedEventArgs e)
         {
             switch (e.ListChangedType)
