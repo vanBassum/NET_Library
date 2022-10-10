@@ -11,7 +11,7 @@ namespace FRMLib.Scope.Controls
     public partial class ScopeView : UserControl
     {
         //public ScopeViewSettings Settings { get; set; } = new ScopeViewSettings();
-        private ScopeController dataSource;
+        private ScopeController dataSource = new ScopeController();
         public ScopeController DataSource
         {
             get { return dataSource; }
