@@ -627,6 +627,9 @@ namespace FRMLib.Scope.Controls
             int spaceForScaleIndicatorsVertical = 45;
             int spaceForScaleIndicatorsHorizontal = 25;
 
+            if (dataSource == null)
+                return;
+
             switch (dataSource.Settings.DrawScalePosVertical)
             {
                 case DrawPosVertical.Left:
