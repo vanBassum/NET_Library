@@ -25,7 +25,7 @@ namespace FormsLib.Scope
                 Brush brush = new SolidBrush(color);
                 Pen pen = new Pen(color);
                 //g.DrawString(Text, style.Font, brush, pt);
-                g.DrawCross(pen, viewPort, pt.X, pt.Y, 7, Text, style.Font );
+                g.DrawCross(pen, viewPort, pt.X, pt.Y, 5, Text, style.Font );
             }
         }
     }
