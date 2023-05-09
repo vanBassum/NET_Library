@@ -229,7 +229,19 @@ namespace FormsLib.Scope.Controls
             }
         }
 
+        public static void DrawCircle(this Graphics g, Pen pen,
+                                  float centerX, float centerY, float radius)
+        {
+            g.DrawEllipse(pen, centerX - radius, centerY - radius,
+                          radius + radius, radius + radius);
+        }
 
+        public static void FillCircle(this Graphics g, Brush brush,
+                                      float centerX, float centerY, float radius)
+        {
+            g.FillEllipse(brush, centerX - radius, centerY - radius,
+                          radius + radius, radius + radius);
+        }
         static void DrawFitTextToRectangle(this Graphics g, Pen p, Rectangle viewPort, Rectangle rect, string text, Font font)
         {
             if (rect.Width > 3)
@@ -261,6 +273,12 @@ namespace FormsLib.Scope.Controls
         }
 
 
+
+        //static void DrawPanel(this Graphics g, Color border, Color bg, Rectangle rect)
+        //{
+        //    Rectangle filled = new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2);
+        //
+        //}
 
 
         /*

@@ -1,11 +1,6 @@
 ﻿using CoreLib.Math;
-using System;
 using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Windows.Forms;
 
 namespace FormsLib.Scope.Controls
 {
@@ -28,7 +23,32 @@ namespace FormsLib.Scope.Controls
                 }
             }
         }
+        private bool _CursorShown = true;
+        public bool CursorShown
+        {
+            get
+            {
+                return _CursorShown;
+            }
+            set
+            {
+                if (value == _CursorShown)
+                {
+                    return;
+                }
 
+                if (value)
+                {
+                    System.Windows.Forms.Cursor.Show();
+                }
+                else
+                {
+                    System.Windows.Forms.Cursor.Hide();
+                }
+
+                _CursorShown = value;
+            }
+        }
 
 
         private ContextMenuStrip menu;
@@ -37,6 +57,7 @@ namespace FormsLib.Scope.Controls
         private double horOffsetLastClick = 0;
         private Cursor dragMarker = null;
         private Cursor hoverMarker = null;
+        private Point mousePos = Point.Empty;
         Rectangle viewPort = new Rectangle(0, 0, 0, 0);
         //int pxPerColumn;
         //int pxPerRow;
@@ -260,9 +281,13 @@ namespace FormsLib.Scope.Controls
             pictureBox3.MouseDown += picBox_MouseDown;
             pictureBox3.MouseUp += picBox_MouseUp;
             pictureBox3.MouseWheel += PictureBox3_MouseWheel;
+            pictureBox1.Parent.KeyDown += Parent_KeyDown;
+            pictureBox1.Parent.KeyUp += Parent_KeyUp;
 
             //pictureBox1.Resize += PictureBox1_Resize;
         }
+
+
 
         private void PictureBox3_MouseWheel(object sender, MouseEventArgs e)
         {
@@ -319,7 +344,7 @@ namespace FormsLib.Scope.Controls
 
         private void picBox_MouseMove(object sender, MouseEventArgs e)
         {
-
+            mousePos = e.Location;
             double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
             if (dragMarker != null)
             {
@@ -343,7 +368,7 @@ namespace FormsLib.Scope.Controls
                 }
                 else
                 {
-                    //Detect markers.
+                    //Detect cursors.
                     if (DataSource != null)
                     {
                         System.Windows.Forms.Cursor cur = System.Windows.Forms.Cursors.Default;
@@ -365,9 +390,30 @@ namespace FormsLib.Scope.Controls
                         System.Windows.Forms.Cursor.Current = cur;
                     }
                 }
+                if (ModifierKeys.HasFlag(Keys.Control))
+                    DrawForeground();
+            }
+
+
+
+        }
+
+        private void Parent_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyData.HasFlag(Keys.ControlKey))
+            {
+                CursorShown = false;
             }
         }
 
+        private void Parent_KeyUp(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyData.HasFlag(Keys.ControlKey))
+            {
+                CursorShown = true;
+                DrawForeground();
+            }
+        }
 
 
         #region Calculations
@@ -881,49 +927,85 @@ namespace FormsLib.Scope.Controls
             {
                 double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
 
-                int markerNo = 0;
+                int cursorNo = 0;
                 //Loop through markers
-                foreach (Cursor marker in DataSource.Cursors)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
+                foreach (Cursor cursor in DataSource.Cursors)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
                 {
-                    Pen pen = marker.Pen;
+                    Pen pen = cursor.Pen;
                     Brush brush = new SolidBrush(pen.Color);
-
+                
                     try
                     {
-                        float x = (float)((marker.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
+                        float x = (float)((cursor.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
                         g.DrawLine(pen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
-                        g.DrawString(marker.ID.ToString(), dataSource.Settings.Style.Font, brush, new PointF(x, 0));
-
+                        g.DrawString(cursor.ID.ToString(), dataSource.Settings.Style.Font, brush, new PointF(x, 0));
+                
                     }
-
+                
                     catch (Exception ex)
                     {
-                        g.DrawString(ex.Message, dataSource.Settings.Style.Font, brush, new Point(0, markerNo * dataSource.Settings.Style.Font.Height));
+                        g.DrawString(ex.Message, dataSource.Settings.Style.Font, brush, new Point(0, cursorNo * dataSource.Settings.Style.Font.Height));
                     }
-                    markerNo++;
+                    cursorNo++;
                 }
 
-                //Func<double, int> scaleX = (x) => (int)((x + dataSource.Settings.HorOffset) * pxPerUnits_hor);
-                //Loop trought mathitems
-                //@TODO
-                //foreach (MathItem mathItem in DataSource.MathItems)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
-                //{
-                //    try
-                //    {
-                //        if (mathItem.Trace != null)
-                //        {
-                //            double pxPerUnits_ver = viewPort.Height / (Settings.VerticalDivisions * mathItem.Trace.Scale);
-                //            Func<double, int> scaleY = (x) => (int)(zeroPos - (x + mathItem.Trace.Offset) * pxPerUnits_ver);
-                //
-                //            mathItem.Draw(g, scaleY, scaleX);
-                //        }
-                //
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        g.DrawString(ex.Message, dataSource.Settings.Font, Brushes.White, new Point(0, markerNo * dataSource.Settings.Font.Height));
-                //    }
-                //}
+                //Draw popup with list of marksers
+                if (ModifierKeys.HasFlag(Keys.Control))
+                {
+                    int radius = 5;
+                    g.DrawCircle(Pens.White, mousePos.X, mousePos.Y, radius);
+                    List<Marker> toDo = new List<Marker>();
+                    foreach (Marker marker in dataSource.Markers)
+                    {
+                        Func<PointD, PointD> convert = null;
+                        if (marker is LinkedMarker lm)
+                        {
+                            if (dataSource.Traces.Contains(lm.Trace))
+                            {
+                                double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * lm.Trace.Scale);
+                                convert = (p) => new PointD(
+                                    ((p.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
+                                    (zeroPos - (p.Y + lm.Trace.Offset) * pxPerUnits_ver));
+                            }
+                        }
+                        else if (marker is FreeMarker fm)
+                        {
+                            double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * 1);
+                            convert = (p) => new PointD(
+                                ((p.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X,
+                                (zeroPos - (p.Y + 0) * pxPerUnits_ver));
+                        }
+                    
+                        if (convert != null)
+                        {
+                            PointD screenPt = convert.Invoke(marker.Point);
+                            double distance = PointD.Distance(screenPt, mousePos);
+                            if (distance < radius)
+                            {
+                                toDo.Add(marker);
+                            }
+                        }
+                    }
+
+                    if (toDo.Count > 0)
+                    {
+                        int width = 200;
+                        int height = DataSource.Settings.Style.Font.Height;
+                        int offset = 0;
+                        SolidBrush brush = new SolidBrush(DataSource.Settings.Style.BackgroundColor);
+                        Pen border = new Pen(DataSource.Settings.Style.ForegroundColor);
+                        foreach (var marker in toDo)
+                        {
+                            SolidBrush pen = new SolidBrush(DataSource.Settings.Style.ColorPalette[marker.ColorPaletteIndex]);
+                            Rectangle row = new Rectangle(mousePos.X + 25, mousePos.Y - offset, width, height);
+                            offset += height;
+                            g.FillRectangle(brush, row);
+                            g.DrawString(marker.Text, DataSource.Settings.Style.Font, pen, row);
+                        }
+
+                        g.DrawRectangle(border, mousePos.X + 25, mousePos.Y - offset + height, width, offset);
+                    }
+                }
             }
         }
 

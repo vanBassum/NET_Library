@@ -57,6 +57,12 @@ namespace CoreLib.Math
             }
         }
 
+        public static double Distance(PointD p1, PointD p2 )
+        {
+            return System.Math.Sqrt(System.Math.Pow(p1.X - p2.X, 2) + System.Math.Pow(p1.Y - p2.Y, 2));
+        }
+
+        public static double Distance(PointD p1, Point p2) => Distance(p1, new PointD( p2.X, p2.Y)); 
 
 
         public static implicit operator PointD(V2D s) => new PointD(s.X, s.Y);
