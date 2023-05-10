@@ -63,7 +63,21 @@ namespace FormsLib.Scope
             HorScale = (untill - from).Ticks / HorizontalDivisions;
             HorOffset = -from.Ticks;
         }
-    
+
+
+        public DateTime GetStartDate()
+        {
+            long from = (long)-HorOffset;
+            return new DateTime(from);
+        }
+
+        public DateTime GetEndDate()
+        {
+            long from = (long)-HorOffset;
+            long until = (long)(from + HorScale * HorizontalDivisions);
+            return new DateTime(until);
+        }
+
     }
 
     public enum VerticalZeroPosition
