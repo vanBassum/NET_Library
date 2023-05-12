@@ -32,19 +32,19 @@ namespace FormsLib.Scope.Controls
             }
             set
             {
-                if (value == _CursorShown)
-                {
-                    return;
-                }
-
-                if (value)
-                {
-                    System.Windows.Forms.Cursor.Show();
-                }
-                else
-                {
-                    System.Windows.Forms.Cursor.Hide();
-                }
+                //if (value == _CursorShown)
+                //{
+                //    return;
+                //}
+                //
+                //if (value)
+                //{
+                //    System.Windows.Forms.Cursor.Show();
+                //}
+                //else
+                //{
+                //    System.Windows.Forms.Cursor.Hide();
+                //}
 
                 _CursorShown = value;
             }
