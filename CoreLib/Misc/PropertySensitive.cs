@@ -21,7 +21,7 @@ namespace CoreLib.Misc
         public bool NotifyOnChange { get; set; } = true;
         /// <summary>
         /// <see cref="INotifyPropertyChanged.PropertyChanged"/>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         private readonly Dictionary<string, object> fields = new Dictionary<string, object>();
 
