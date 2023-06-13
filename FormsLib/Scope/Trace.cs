@@ -54,6 +54,9 @@ namespace FormsLib.Scope
             Points.Add(pt);
         }
 
+        public void AddPoint(DateTime dt, double value) => Points.Add(dt.Ticks, value);
+        public void AddPoint(double x, double value) => Points.Add(x, value);
+
 
         private void Points_ListChanged(object sender, System.ComponentModel.ListChangedEventArgs e)
         {
