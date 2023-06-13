@@ -1,6 +1,7 @@
 ﻿using CoreLib.Math;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 
 namespace FormsLib.Scope.Controls
 {
@@ -666,6 +667,7 @@ namespace FormsLib.Scope.Controls
 
         private void DrawBackground(Graphics g)
         {
+            var stopwatch = Stopwatch.StartNew();
             viewPort.X = 0;
             viewPort.Y = 0;
             viewPort.Width = pictureBox1.Width - 1;
@@ -816,6 +818,11 @@ namespace FormsLib.Scope.Controls
 
             //Draw the zero line
             g.DrawLine(dataSource.Settings.Style.GridZeroPen, viewPort.X, zeroPos, viewPort.X + viewPort.Width, zeroPos);
+
+            stopwatch.Stop();
+#if DEBUG
+            g.DrawString($"B: {stopwatch.ElapsedMilliseconds.ToString().PadRight(5)} ms", dataSource.Settings.Style.Font, Brushes.White, new Point(viewPort.Width, 2 * dataSource.Settings.Style.Font.Height), new StringFormat() { Alignment = StringAlignment.Far });
+#endif
         }
 
         private void DrawData()
@@ -825,6 +832,7 @@ namespace FormsLib.Scope.Controls
 
         private void DrawData(Graphics g)
         {
+            var stopwatch = Stopwatch.StartNew();
             if (DataSource == null)
             {
                 g.DrawString("No datasource bound", DefaultFont, Brushes.White, new Point(this.Width / 2 - 50, this.Height / 2));
@@ -915,6 +923,12 @@ namespace FormsLib.Scope.Controls
                     g.DrawString(ex.Message, dataSource.Settings.Style.Font, errBrush, new Point(0, (errNo++) * dataSource.Settings.Style.Font.Height));
                 }
             }
+
+            stopwatch.Stop();
+#if DEBUG
+            g.DrawString($"D: {stopwatch.ElapsedMilliseconds.ToString().PadRight(5)} ms", dataSource.Settings.Style.Font, Brushes.White, new Point(viewPort.Width, 1 * dataSource.Settings.Style.Font.Height), new StringFormat() { Alignment = StringAlignment.Far });
+#endif
+
         }
 
         private void DrawForeground()
@@ -923,6 +937,7 @@ namespace FormsLib.Scope.Controls
         }
         void DrawForeground(Graphics g)
         {
+            var stopwatch = Stopwatch.StartNew();
             if (DataSource != null)
             {
                 double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale); // hPxPerSub * grid.Horizontal.SubDivs / (HorUnitsPerDivision /** grid.Horizontal.Divisions*/);
@@ -1007,6 +1022,11 @@ namespace FormsLib.Scope.Controls
                     }
                 }
             }
+
+            stopwatch.Stop();
+#if DEBUG
+            g.DrawString($"F: {stopwatch.ElapsedMilliseconds.ToString().PadRight(5)} ms", dataSource.Settings.Style.Font, Brushes.White, new Point(viewPort.Width, 0 * dataSource.Settings.Style.Font.Height), new StringFormat() { Alignment = StringAlignment.Far });
+#endif
         }
 
         #endregion
