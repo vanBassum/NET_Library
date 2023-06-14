@@ -31,9 +31,6 @@
     <Compile Update="Scope\Controls\MarkerView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Scope\Controls\MathView.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
     <Compile Update="Scope\Controls\ScopeView.cs">
       <SubType>UserControl</SubType>
     </Compile>
