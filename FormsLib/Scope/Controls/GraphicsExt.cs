@@ -80,7 +80,7 @@ namespace FormsLib.Scope.Controls
         public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, double x, double y, int size, string text, Font font)
         {
             DrawCross(g, p, viewPort, x, y, size);
-            Rectangle textRect = new Rectangle((int)x + 2, (int)y - (size / 2) - (font.Height / 2), viewPort.Width, font.Height);
+            Rectangle textRect = new Rectangle((int)x + 4, (int)y - (size / 2) - (font.Height / 2), viewPort.Width, font.Height);
             g.DrawFitTextToRectangle(p, viewPort, textRect, text, font);
         }
 

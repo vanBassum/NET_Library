@@ -7,12 +7,12 @@ namespace FormsLib.Scope
 {
     public class ScopeController
     {
-        public ThreadedBindingList<Trace> Traces { get; private set; } = new ThreadedBindingList<Trace>();
-        public ThreadedBindingList<Cursor> Cursors { get; private set; } = new ThreadedBindingList<Cursor>();
-        public ThreadedBindingList<Marker> Markers { get; private set; } = new ThreadedBindingList<Marker>();
-        public ThreadedBindingList<MathItem> MathItems { get; private set; } = new ThreadedBindingList<MathItem>();
-        public ThreadedBindingList<IScopeDrawable> Drawables { get; private set; } = new ThreadedBindingList<IScopeDrawable>();
-        public ScopeViewSettings Settings { get; private set; } = new ScopeViewSettings();
+        public ThreadedBindingList<Trace> Traces                { get; } = new ThreadedBindingList<Trace>();
+        public ThreadedBindingList<Cursor> Cursors              { get; } = new ThreadedBindingList<Cursor>();
+        public ThreadedBindingList<Marker> Markers              { get; } = new ThreadedBindingList<Marker>();
+        public ThreadedBindingList<MathItem> MathItems          { get; } = new ThreadedBindingList<MathItem>();
+        public ThreadedBindingList<IScopeDrawable> Drawables    { get; } = new ThreadedBindingList<IScopeDrawable>();
+        public ScopeViewSettings Settings { get; } = new ScopeViewSettings();
 
         public event EventHandler DoRedraw;
 

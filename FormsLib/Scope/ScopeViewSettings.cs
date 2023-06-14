@@ -1,19 +1,17 @@
-﻿using FormsLib.Design;
-using CoreLib.Misc;
-using System;
-using System.Drawing;
+﻿using CoreLib.Misc;
+using FormsLib.Design;
 
 namespace FormsLib.Scope
 {
     public class Style : PropertySensitive
     {
-        public string Name              { get => GetPar("New style"); set => SetPar(value); }
-        public Color BackgroundColor    { get => GetPar(Color.Black); set => SetPar(value); }
-        public Color ForegroundColor    { get => GetPar(Color.FromArgb(0xA0, 0xA0, 0xA0)); set => SetPar(value); }
-        public Pen GridZeroPen          { get => GetPar(new Pen(Color.FromArgb(0xA0, 0xA0, 0xA0))); set => SetPar(value); }
-        public Pen GridPen              { get => GetPar(new Pen(Color.FromArgb(0x30, 0x30, 0x30)) { DashPattern = new float[] { 4.0F, 4.0F } }); set => SetPar(value); }
-        public Font Font                { get => GetPar(new Font("Ariel", 8.0f)); set => SetPar(value); }
-        public IPalette ColorPalette    { get => GetPar(Palettes.DistinctiveOnBlack); set => SetPar(value); }
+        public string Name { get => GetPar("New style"); set => SetPar(value); }
+        public Color BackgroundColor { get => GetPar(Color.Black); set => SetPar(value); }
+        public Color ForegroundColor { get => GetPar(Color.FromArgb(0xA0, 0xA0, 0xA0)); set => SetPar(value); }
+        public Pen GridZeroPen { get => GetPar(new Pen(Color.FromArgb(0xA0, 0xA0, 0xA0))); set => SetPar(value); }
+        public Pen GridPen { get => GetPar(new Pen(Color.FromArgb(0x30, 0x30, 0x30)) { DashPattern = new float[] { 4.0F, 4.0F } }); set => SetPar(value); }
+        public Font Font { get => GetPar(new Font("Ariel", 8.0f)); set => SetPar(value); }
+        public IPalette ColorPalette { get => GetPar(Palettes.DistinctiveOnBlack); set => SetPar(value); }
     }
 
     public class ScopeViewSettings : PropertySensitive
@@ -58,8 +56,8 @@ namespace FormsLib.Scope
         public VerticalZeroPosition GridZeroPosition { get { return GetPar<VerticalZeroPosition>(VerticalZeroPosition.Middle); } set { SetPar(value); } }
         public DrawPosVertical DrawScalePosVertical { get { return GetPar<DrawPosVertical>(DrawPosVertical.Right); } set { SetPar(value); } }
         public DrawPosHorizontal DrawScalePosHorizontal { get { return GetPar<DrawPosHorizontal>(DrawPosHorizontal.Bottom); } set { SetPar(value); } }
-    
-    
+
+
         public void SetHorizontal(DateTime from, DateTime untill)
         {
             HorScale = (untill - from).Ticks / HorizontalDivisions;
@@ -80,6 +78,20 @@ namespace FormsLib.Scope
             return new DateTime(until);
         }
 
+        public void ApplySettings(ScopeViewSettings settings)
+        {
+            Style = settings.Style;
+            HorizontalDivisions = settings.HorizontalDivisions;
+            VerticalDivisions = settings.VerticalDivisions;
+            HorOffset = settings.HorOffset;
+            HorScale = settings.HorScale;
+            HorSnapSize = settings.HorSnapSize;
+            HorizontalToHumanReadable = settings.HorizontalToHumanReadable;
+            ZeroPosition = settings.ZeroPosition;
+            GridZeroPosition = settings.GridZeroPosition;
+            DrawScalePosVertical = settings.DrawScalePosVertical;
+            DrawScalePosHorizontal = settings.DrawScalePosHorizontal;
+        }
     }
 
     public enum VerticalZeroPosition
