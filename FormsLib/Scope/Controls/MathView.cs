@@ -89,7 +89,7 @@ namespace FormsLib.Scope.Controls
                     dataGridView.Columns.Add(col);
                     col.DataPropertyName = pi.Name;
                     col.Name = pi.Name;
-                    col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
+                    col.HeaderText = attr.HeaderText == null ? pi.Name : attr.HeaderText;
                     col.Width = attr.Width == 0 ? 100 : attr.Width;
                 }
             }

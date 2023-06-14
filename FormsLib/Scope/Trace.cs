@@ -11,9 +11,9 @@ namespace FormsLib.Scope
 {
     public class Trace : PropertySensitive
     {
-        [TraceViewAttribute(Width = 20)]
+        [TraceViewAttribute(Width = 20, HideValue = true)]
         public int ColorPaletteIndex { get { return GetPar(0); } set { SetPar(value); } }
-        [TraceViewAttribute(Width = 20, Text = "")]
+        [TraceViewAttribute(Width = 20, HeaderText = "")]
         public bool Visible { get { return GetPar(true); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 50)]
         public string Name { get { return GetPar("New Trace"); } set { SetPar(value); } }

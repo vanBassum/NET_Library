@@ -74,7 +74,7 @@ namespace FormsLib.Scope.Controls
                 dataGridView1.Columns.Add(col);
                 col.DataPropertyName = pi.Name;
                 col.Name = pi.Name;
-                col.HeaderText = attr.Text == null ? pi.Name : attr.Text;
+                col.HeaderText = attr.HeaderText == null ? pi.Name : attr.HeaderText;
                 col.Width = attr.Width == 0 ? 100 : attr.Width;
             }
 
@@ -120,8 +120,14 @@ namespace FormsLib.Scope.Controls
             {
                 case Pen p:
                     e.CellStyle.BackColor = p.Color;
-                    e.CellStyle.ForeColor = p.Color;
+                    //e.CellStyle.SelectionBackColor =  ControlPaint.Dark(p.Color); Doenst work?
                     break;
+            }
+
+            if (attr.HideValue)
+            {
+                e.CellStyle.ForeColor = Color.Transparent;
+                e.CellStyle.SelectionForeColor = Color.Transparent;
             }
         }
     }
@@ -129,7 +135,8 @@ namespace FormsLib.Scope.Controls
     public class TraceViewAttribute : Attribute
     {
         public bool Show { get; set; } = true;
-        public string Text { get; set; } = null;
+        public string HeaderText { get; set; } = null;
+        public bool HideValue { get; set; } = false;
         public int Width { get; set; } = 0;
         public DataGridViewAutoSizeColumnMode AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
 

@@ -11,13 +11,13 @@ namespace FormsLib.Scope
 {
     public class MathItem : PropertySensitive
     {
-        [TraceViewAttribute(Text = "", Width = 20)]
+        [TraceViewAttribute(HeaderText = "", Width = 20)]
         public Pen Pen { get { return GetPar(Pens.Red); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 60)]
         public Trace Trace { get { return GetPar<Trace>(null); } set { SetPar(value); } }
-        [TraceViewAttribute(Text = "M1", Width = 40)]
+        [TraceViewAttribute(HeaderText = "M1", Width = 40)]
         public Cursor Marker1 { get { return GetPar<Cursor>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
-        [TraceViewAttribute(Text = "M2", Width = 40)]
+        [TraceViewAttribute(HeaderText = "M2", Width = 40)]
         public Cursor Marker2 { get { return GetPar<Cursor>(null); } set { SetPar(value); value.PropertyChanged += Recalculate; } }
         [TraceViewAttribute(Width = 80)]
         public MathFunction Function { get { return GetPar<MathFunction>(null); } set { SetPar(value); } }
