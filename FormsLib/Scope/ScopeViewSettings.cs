@@ -14,8 +14,6 @@ namespace FormsLib.Scope
         public Pen GridPen              { get => GetPar(new Pen(Color.FromArgb(0x30, 0x30, 0x30)) { DashPattern = new float[] { 4.0F, 4.0F } }); set => SetPar(value); }
         public Font Font                { get => GetPar(new Font("Ariel", 8.0f)); set => SetPar(value); }
         public IPalette ColorPalette    { get => GetPar(Palettes.DistinctiveOnBlack); set => SetPar(value); }
-        public int DetailDetectRadius   { get => GetPar(7); set => SetPar(value); }
-        public int DetailWindowWidth    { get => GetPar(300); set => SetPar(value); }
     }
 
     public class ScopeViewSettings : PropertySensitive
@@ -23,6 +21,8 @@ namespace FormsLib.Scope
         public Style Style { get { return GetPar(new Style()); } set { SetPar(value); value.PropertyChanged += (s, e) => InvokePropertyChanged(e); } }
 
 
+        public int DetailDetectRadius { get => GetPar(7); set => SetPar(value); }
+        public int DetailWindowWidth { get => GetPar(300); set => SetPar(value); }
 
         /// <summary>
         /// Total number of divisions in the horizontal direction.
@@ -57,7 +57,7 @@ namespace FormsLib.Scope
         public VerticalZeroPosition ZeroPosition { get { return GetPar<VerticalZeroPosition>(VerticalZeroPosition.Middle); } set { SetPar(value); } }
         public VerticalZeroPosition GridZeroPosition { get { return GetPar<VerticalZeroPosition>(VerticalZeroPosition.Middle); } set { SetPar(value); } }
         public DrawPosVertical DrawScalePosVertical { get { return GetPar<DrawPosVertical>(DrawPosVertical.Right); } set { SetPar(value); } }
-        public DrawPosHorizontal DrawScalePosHorizontal { get { return GetPar<DrawPosHorizontal>(DrawPosHorizontal.Top); } set { SetPar(value); } }
+        public DrawPosHorizontal DrawScalePosHorizontal { get { return GetPar<DrawPosHorizontal>(DrawPosHorizontal.Bottom); } set { SetPar(value); } }
     
     
         public void SetHorizontal(DateTime from, DateTime untill)

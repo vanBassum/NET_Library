@@ -967,7 +967,7 @@ namespace FormsLib.Scope.Controls
                 //Draw popup with list of marksers
                 if (ModifierKeys.HasFlag(Keys.Control))
                 {
-                    int radius = dataSource.Settings.Style.DetailDetectRadius;
+                    int radius = dataSource.Settings.DetailDetectRadius;
                     g.DrawCircle(Pens.White, mousePos.X, mousePos.Y, radius);
                     List<Marker> toDo = new List<Marker>();
                     foreach (Marker marker in dataSource.Markers)
@@ -1004,7 +1004,7 @@ namespace FormsLib.Scope.Controls
 
                     if (toDo.Count > 0)
                     {
-                        int width = dataSource.Settings.Style.DetailWindowWidth;
+                        int width = dataSource.Settings.DetailWindowWidth;
                         int height = DataSource.Settings.Style.Font.Height;
                         int offset = 0;
                         SolidBrush brush = new SolidBrush(DataSource.Settings.Style.BackgroundColor);
