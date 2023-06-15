@@ -1,11 +1,12 @@
 ﻿using FormsLib.Scope.Controls;
-using CoreLib.Math;
 using CoreLib.Misc;
-using CoreLib.Extentions;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using FormsLib.Design;
+using FormsLib.Misc;
+using FormsLib.Extentions;
+using FormsLib.Maths;
 
 namespace FormsLib.Scope
 {

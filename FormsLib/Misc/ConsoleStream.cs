@@ -1,9 +1,8 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CoreLib.Misc
+namespace FormsLib.Misc
 {
     public class ConsoleStream
     {
@@ -13,7 +12,7 @@ namespace CoreLib.Misc
         public string ReadAll()
         {
             StringBuilder res = new StringBuilder();
-            while(x.Count>0)
+            while (x.Count > 0)
                 res.Append(x.Dequeue());
             return res.ToString();
         }

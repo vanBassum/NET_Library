@@ -19,7 +19,7 @@ namespace FormsLib.Design
             else
             {
                 double hf = H / 60.0;
-                int i = (int)Math.Floor(hf);
+                int i = (int)System.Math.Floor(hf);
                 double f = hf - i;
                 double pv = V * (1 - S);
                 double qv = V * (1 - S * f);

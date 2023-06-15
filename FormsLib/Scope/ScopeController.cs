@@ -1,5 +1,5 @@
-﻿using CoreLib.Math;
-using CoreLib.Misc;
+﻿using FormsLib.Maths;
+using FormsLib.Misc;
 using System;
 using System.Drawing;
 

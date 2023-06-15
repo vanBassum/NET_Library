@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 
-namespace CoreLib.Misc
+namespace FormsLib.Misc
 {
     /// <summary>
     /// Provides a thread-safe binding-list by using the synchronizationcontext where the list was created.

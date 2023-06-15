@@ -1,5 +1,4 @@
-﻿
-namespace CoreLib.Misc
+﻿namespace FormsLib.Misc
 {
     public class TLOGGER
     {

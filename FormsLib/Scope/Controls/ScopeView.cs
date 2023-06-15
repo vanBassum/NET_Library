@@ -1,4 +1,4 @@
-﻿using CoreLib.Math;
+﻿using FormsLib.Maths;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;

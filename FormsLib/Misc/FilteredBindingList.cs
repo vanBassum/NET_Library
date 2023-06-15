@@ -4,14 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace CoreLib.Misc
+namespace FormsLib.Misc
 {
 
     public static class BindingList_EXT
     {
         public static IEnumerable<T> Where<T>(this IBindingList list, Predicate<T> predicate)
         {
-            foreach(var item in list)
+            foreach (var item in list)
             {
                 if (item is T t)
                 {
@@ -90,14 +90,14 @@ namespace CoreLib.Misc
 
         public bool IsReadOnly => throw new NotImplementedException();
 
-        public int Count => DataSource.Where<T>(a=>Filter(a)).Count();
+        public int Count => DataSource.Where<T>(a => Filter(a)).Count();
 
         public bool IsSynchronized => throw new NotImplementedException();
 
         public object SyncRoot => throw new NotImplementedException();
 
-        public object this[int index] 
-        { 
+        public object this[int index]
+        {
             get
             {
                 var v = DataSource.Where<T>(a => Filter(a)).ToArray();
@@ -106,7 +106,7 @@ namespace CoreLib.Misc
             set
             {
                 var v = DataSource.Where<T>(a => Filter(a)).ToArray();
-                if(value is T t)
+                if (value is T t)
                     v[index] = t;
             }
         }

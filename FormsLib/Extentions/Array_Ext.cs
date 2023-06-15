@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CoreLib.Extentions
+namespace FormsLib.Extentions
 {
     public static partial class Array_Ext
     {
@@ -34,6 +34,6 @@ namespace CoreLib.Extentions
         }
     }
 
-    
+
 
 }

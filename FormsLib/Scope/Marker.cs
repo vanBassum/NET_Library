@@ -1,8 +1,8 @@
-﻿using CoreLib.Math;
-using CoreLib.Extentions;
-using FormsLib.Scope.Controls;
+﻿using FormsLib.Scope.Controls;
 using System;
 using System.Drawing;
+using FormsLib.Extentions;
+using FormsLib.Maths;
 
 namespace FormsLib.Scope
 {

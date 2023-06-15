@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace CoreLib.Extentions
+namespace FormsLib.Extentions
 {
     public static class Numers_Ext
     {
@@ -16,7 +16,7 @@ namespace CoreLib.Extentions
             if (digits <= 0)
                 throw new Exception("Size to small, use at least 5");
 
-            if(num == 0)
+            if (num == 0)
             {
                 return new string(' ', size - 2) + "0 ";
             }
@@ -25,20 +25,20 @@ namespace CoreLib.Extentions
 
             int i = 0;
 
-            for (i = 0; (i < prefix.Length - 2) && (abs >= 1000); i++)
+            for (i = 0; i < prefix.Length - 2 && abs >= 1000; i++)
                 abs /= 1000;
 
             int ditigsBeforeDot = (int)System.Math.Log10((double)abs) + 1;
             int ditigsAfterDot = digits - ditigsBeforeDot;
 
             StringBuilder result = new StringBuilder();
-            result.Append(negative ? '-':' ');
+            result.Append(negative ? '-' : ' ');
 
             if (ditigsAfterDot == 0)                //Dont have to show the dot, so add space
                 result.Append(' ');
 
             result.AppendFormat(string.Format(new NumberFormatInfo() { NumberDecimalDigits = ditigsAfterDot }, "{0:F}", abs));
-            if(prefix[i] != '\0')
+            if (prefix[i] != '\0')
                 result.Append(prefix[i]);
             return result.ToString();
         }
@@ -46,6 +46,6 @@ namespace CoreLib.Extentions
 
     }
 
-    
+
 
 }

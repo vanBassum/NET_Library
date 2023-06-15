@@ -7,8 +7,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using CoreLib.Extentions;
-using CoreLib.Misc;
+using FormsLib.Extentions;
+using FormsLib.Misc;
 
 namespace FormsLib.Controls
 {

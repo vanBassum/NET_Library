@@ -1,10 +1,10 @@
-﻿using CoreLib.Math;
+﻿using FormsLib.Maths;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 
-namespace CoreLib.Misc
+namespace FormsLib.Misc
 {
     public class ThreadedBindingList<T> : BindingList<T>
     {
@@ -17,7 +17,7 @@ namespace CoreLib.Misc
         public void AddRange(ICollection<T> collecion)
         {
             foreach (T t in collecion)
-                this.Add(t);
+                Add(t);
         }
 
         protected override void OnAddingNew(AddingNewEventArgs e)
@@ -62,10 +62,10 @@ namespace CoreLib.Misc
         {
             lock (this)
             {
-                for (int i = 0; i < this.Count; i++)
+                for (int i = 0; i < Count; i++)
                     if (predicate(this[i]))
                     {
-                        this.RemoveAt(i);
+                        RemoveAt(i);
                         i--;
                     }
             }

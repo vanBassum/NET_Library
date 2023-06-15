@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace CoreLib.Misc
+namespace FormsLib.Misc
 {
     /// <summary>
     /// https://stackoverflow.com/questions/10966331/two-way-bidirectional-dictionary-in-c/10966684
@@ -15,8 +15,8 @@ namespace CoreLib.Misc
 
         public Map()
         {
-            this.Forward = new Indexer<T1, T2>(_forward);
-            this.Reverse = new Indexer<T2, T1>(_reverse);
+            Forward = new Indexer<T1, T2>(_forward);
+            Reverse = new Indexer<T2, T1>(_reverse);
         }
 
         public class Indexer<T3, T4>

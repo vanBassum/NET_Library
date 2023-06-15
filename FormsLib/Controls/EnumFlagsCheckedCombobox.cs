@@ -1,4 +1,4 @@
-﻿using CoreLib.Extentions;
+﻿using FormsLib.Extentions;
 using System;
 using System.Windows.Forms;
 

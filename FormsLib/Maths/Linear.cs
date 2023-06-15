@@ -1,4 +1,4 @@
-﻿namespace CoreLib.Math
+﻿namespace FormsLib.Maths
 {
     public class Linear
     {

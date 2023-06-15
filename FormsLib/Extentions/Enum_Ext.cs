@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CoreLib.Extentions
+namespace FormsLib.Extentions
 {
     public static class Enum_Ext
     {

@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Threading;
 
-namespace CoreLib.Misc
+namespace FormsLib.Misc
 {
     public class TaskEvents
     {
         object lck = new object();
-        UInt32 bits = 0;
+        uint bits = 0;
         SemaphoreSlim sem = new SemaphoreSlim(0, 1);
 
 
-        public void SetBits(UInt32 val)
+        public void SetBits(uint val)
         {
             lock (lck)
             {
@@ -21,13 +21,13 @@ namespace CoreLib.Misc
         }
 
 
-        public UInt32 WaitOne()
+        public uint WaitOne()
         {
 
             sem.Wait();
             lock (lck)
             {
-                UInt32 val = bits;
+                uint val = bits;
                 bits = 0;
                 return val;
             }
