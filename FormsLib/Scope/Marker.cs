@@ -11,7 +11,7 @@ namespace FormsLib.Scope
         public virtual bool Visible { get; set; } = true;
         public virtual double Scale { get; set; } = 1;
         public virtual double Offset { get; set; } = 0;
-        public virtual int ColorPaletteIndex { get; set; } = 0;
+        public virtual Color Color { get; set; } = Color.Green;
         public virtual PointD Point { get; set; }
         public string Text { get; set; }
 
@@ -21,9 +21,8 @@ namespace FormsLib.Scope
 
             if (viewPort.CheckIfPointIsWithin(pt) && Visible)
             {
-                Color color = style.ColorPalette[ColorPaletteIndex];
-                Brush brush = new SolidBrush(color);
-                Pen pen = new Pen(color);
+                Brush brush = new SolidBrush(Color);
+                Pen pen = new Pen(Color);
                 //g.DrawString(Text, style.Font, brush, pt);
                 g.DrawCross(pen, viewPort, pt.X, pt.Y, 5, Text, style.Font );
             }
@@ -44,7 +43,7 @@ namespace FormsLib.Scope
         public LinkedMarker(Trace trace, double x) { Trace = trace; Point = new PointD(x, trace.GetYValue(x)); }
         public LinkedMarker(Trace trace, double x, double y) { Trace = trace; Point = new PointD(x, y); }
 
-        public override int ColorPaletteIndex { get { return Trace.ColorPaletteIndex; } }
+        public override Color Color { get { return Trace.Color; } }
         public override double Scale { get => Trace.Scale; }
         public override double Offset { get => Trace.Offset; }
         public override bool Visible { get => Trace.Visible; }

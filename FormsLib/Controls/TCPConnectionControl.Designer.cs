@@ -1,4 +1,4 @@
-﻿namespace SmarthomeAnalyser.Simulate
+﻿namespace FormsLib.Simulate
 {
     partial class TCPConnectionControl : UserControl
     {

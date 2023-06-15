@@ -12,7 +12,7 @@ namespace FormsLib.Scope
     public class Trace : PropertySensitive
     {
         [TraceViewAttribute(Width = 20, HideValue = true)]
-        public int ColorPaletteIndex { get { return GetPar(0); } set { SetPar(value); } }
+        public Color Color { get { return GetPar(Colors.Green); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 20, HeaderText = "")]
         public bool Visible { get { return GetPar(true); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 50)]
@@ -181,8 +181,8 @@ namespace FormsLib.Scope
 
         public void Draw(Graphics g, Style style, Rectangle viewPort, Func<PointD, Point> convert, double firstX, double lastX, double xLeft, double xRight)
         {
-            Pen pen = new Pen(style.ColorPalette[ColorPaletteIndex]);
-            Brush brush = new SolidBrush(pen.Color);
+            Pen pen = new Pen(Color);
+            Brush brush = new SolidBrush(Color);
 
             if (Visible)
             {

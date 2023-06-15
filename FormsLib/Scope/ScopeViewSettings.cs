@@ -11,7 +11,7 @@ namespace FormsLib.Scope
         public Pen GridZeroPen { get => GetPar(new Pen(Color.FromArgb(0xA0, 0xA0, 0xA0))); set => SetPar(value); }
         public Pen GridPen { get => GetPar(new Pen(Color.FromArgb(0x30, 0x30, 0x30)) { DashPattern = new float[] { 4.0F, 4.0F } }); set => SetPar(value); }
         public Font Font { get => GetPar(new Font("Ariel", 8.0f)); set => SetPar(value); }
-        public IPalette ColorPalette { get => GetPar(Palettes.DistinctiveOnBlack); set => SetPar(value); }
+        //public IPalette ColorPalette { get => GetPar(Palettes.DistinctiveOnBlack); set => SetPar(value); }
     }
 
     public class ScopeViewSettings : PropertySensitive

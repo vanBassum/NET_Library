@@ -110,10 +110,10 @@ namespace FormsLib.Scope.Controls
             if (attr == null)
                 return;
 
-            if (pi.Name == nameof(Trace.ColorPaletteIndex))
+            if (pi.Name == nameof(Trace.Color))
             {
-                if(e.Value is int index)
-                    e.CellStyle.BackColor = dataSource.Settings.Style.ColorPalette[index];
+                if(e.Value is Color color)
+                    e.CellStyle.BackColor = color;
             }
 
             switch (e.Value)

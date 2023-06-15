@@ -775,7 +775,7 @@ namespace FormsLib.Scope.Controls
                                         break;
                                 }
 
-                                Color color = DataSource.Settings.Style.ColorPalette[t.ColorPaletteIndex];
+                                Color color = t.Color;
                                 Brush b = new SolidBrush(color);
                                 int x = dataSource.Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
                                 g.DrawString(t.ToHumanReadable(yValue), dataSource.Settings.Style.Font, b, new Rectangle(x, yy, spaceForScaleIndicatorsVertical, dataSource.Settings.Style.Font.Height));
@@ -1011,7 +1011,7 @@ namespace FormsLib.Scope.Controls
                         Pen border = new Pen(DataSource.Settings.Style.ForegroundColor);
                         foreach (var marker in toDo)
                         {
-                            SolidBrush pen = new SolidBrush(DataSource.Settings.Style.ColorPalette[marker.ColorPaletteIndex]);
+                            SolidBrush pen = new SolidBrush(marker.Color);
                             Rectangle row = new Rectangle(mousePos.X + 25, mousePos.Y - offset, width, height);
                             offset += height;
                             g.FillRectangle(brush, row);
