@@ -969,7 +969,7 @@ namespace FormsLib.Scope.Controls
                 //Draw popup with list of marksers and trace values
                 if (ModifierKeys.HasFlag(Keys.Control))
                 {
-                    int radius = dataSource.Settings.DetailDetectRadius;
+                    int radius = dataSource.Settings.Style.DetailDetectRadius;
                     g.DrawCircle(Pens.White, mousePos.X, mousePos.Y, radius);
                     List<Marker> toDo = new List<Marker>();
                     foreach (Marker marker in dataSource.Markers)
@@ -1022,35 +1022,38 @@ namespace FormsLib.Scope.Controls
                         }
                     }
 
-
-                    if (toDo.Count + toDoTraces.Count > 0)
+                    int linesCount = toDo.Count + toDoTraces.Count;
+                    if (linesCount > 0)
                     {
-                        int width = dataSource.Settings.DetailWindowWidth;
-                        int height = DataSource.Settings.Style.Font.Height;
-                        int offset = 0;
+                        int width = dataSource.Settings.Style.DetailWindowWidth;
+                        int lineHeight = DataSource.Settings.Style.Font.Height;
+                        int lineNo = 0;
+                        int tempRad = radius + 2;
+                        if (tempRad > 25)
+                            tempRad = 25;
+                        Rectangle window = new Rectangle(mousePos, new Size(width, lineHeight * linesCount));
+                        KeepInWindow(ref window, viewPort, mousePos, tempRad);
                         SolidBrush brush = new SolidBrush(DataSource.Settings.Style.BackgroundColor);
                         Pen border = new Pen(DataSource.Settings.Style.ForegroundColor);
+
+                        g.FillRectangle(brush, window); //Draw window background
                         foreach (var marker in toDo)
                         {
                             SolidBrush pen = new SolidBrush(marker.Color);
-                            Rectangle row = new Rectangle(mousePos.X + 25, mousePos.Y - offset, width, height);
-                            offset += height;
-                            g.FillRectangle(brush, row);
-                            g.DrawString(marker.Text, DataSource.Settings.Style.Font, pen, row);
+                            Rectangle rowRectangle = new Rectangle(window.X, window.Y + (lineNo * lineHeight), window.Width, lineHeight);
+                            g.DrawString(marker.Text, DataSource.Settings.Style.Font, pen, rowRectangle);
+                            lineNo ++;
                         }
-
                         foreach (var val in toDoTraces)
                         {
                             SolidBrush pen = new SolidBrush(val.Item1.Color);
-                            Rectangle row = new Rectangle(mousePos.X + 25, mousePos.Y - offset, width, height);
-                            offset += height;
-                            g.FillRectangle(brush, row);
-                            g.DrawString(val.Item1.Name, DataSource.Settings.Style.Font, pen, row);
-                            g.DrawString(val.Item1.ToHumanReadable.Invoke(val.Item2), DataSource.Settings.Style.Font, pen, row, new StringFormat { Alignment = StringAlignment.Far });
+                            Rectangle rowRectangle = new Rectangle(window.X, window.Y + (lineNo * lineHeight), window.Width, lineHeight);
+                            g.DrawString(val.Item1.Name, DataSource.Settings.Style.Font, pen, rowRectangle);
+                            g.DrawString(val.Item1.ToHumanReadable.Invoke(val.Item2), DataSource.Settings.Style.Font, pen, rowRectangle, new StringFormat { Alignment = StringAlignment.Far });
+                            lineNo++;
+                        
                         }
-
-
-                        g.DrawRectangle(border, mousePos.X + 25, mousePos.Y - offset + height, width, offset);
+                        g.DrawRectangle(border, window);  //Draw border
                     }
                 }
             }
@@ -1060,6 +1063,38 @@ namespace FormsLib.Scope.Controls
             g.DrawString($"F: {stopwatch.ElapsedMilliseconds.ToString().PadRight(5)} ms", dataSource.Settings.Style.Font, Brushes.White, new Point(viewPort.Width, 0 * dataSource.Settings.Style.Font.Height), new StringFormat() { Alignment = StringAlignment.Far });
 #endif
         }
+
+        void KeepInWindow(ref Rectangle rectangle, Rectangle window, Point mouse, int radius)
+        {
+            if (Collides(window, mouse, radius))    //Window is to bottom right of the mouse
+                rectangle.X = mouse.X + radius;
+
+            if (rectangle.X + rectangle.Width > window.Width)
+            {
+                rectangle.X = window.Width - rectangle.Width;   //Move left
+                if (Collides(window, mouse, radius))
+                {
+                    rectangle.X = mouse.X - rectangle.Width - radius;
+                }
+            }
+
+            if(rectangle.Y + rectangle.Height > window.Height)
+            {
+                rectangle.Y = window.Height - rectangle.Height; //Move up
+                if (Collides(window, mouse, radius))
+                {
+                    rectangle.Y = mouse.Y - rectangle.Height - radius;
+                }
+            }
+
+            if (rectangle.X < 0)
+                rectangle.X = 0;
+            if (rectangle.Y < 0)
+                rectangle.Y = 0;
+
+        }
+
+        bool Collides(Rectangle rectangle, Point point, int radius) => point.X - radius > rectangle.X && point.Y - radius > rectangle.Y && point.X + radius < rectangle.X + rectangle.Width && point.Y + radius < rectangle.Y + rectangle.Height;
 
         #endregion
 
