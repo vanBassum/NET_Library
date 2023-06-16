@@ -24,33 +24,6 @@ namespace FormsLib.Scope.Controls
                 }
             }
         }
-        private bool _CursorShown = true;
-        public bool CursorShown
-        {
-            get
-            {
-                return _CursorShown;
-            }
-            set
-            {
-                //if (value == _CursorShown)
-                //{
-                //    return;
-                //}
-                //
-                //if (value)
-                //{
-                //    System.Windows.Forms.Cursor.Show();
-                //}
-                //else
-                //{
-                //    System.Windows.Forms.Cursor.Hide();
-                //}
-
-                _CursorShown = value;
-            }
-        }
-
 
         private ContextMenuStrip menu;
         private ContextMenuStrip cursorMenu;
@@ -284,8 +257,6 @@ namespace FormsLib.Scope.Controls
             pictureBox3.MouseDown += picBox_MouseDown;
             pictureBox3.MouseUp += picBox_MouseUp;
             pictureBox3.MouseWheel += PictureBox3_MouseWheel;
-            pictureBox1.Parent.KeyDown += Parent_KeyDown;
-            pictureBox1.Parent.KeyUp += Parent_KeyUp;
 
             //pictureBox1.Resize += PictureBox1_Resize;
         }
@@ -395,28 +366,10 @@ namespace FormsLib.Scope.Controls
                         System.Windows.Forms.Cursor.Current = cur;
                     }
                 }
-                if (ModifierKeys.HasFlag(Keys.Control))
+                if (ModifierKeys.HasFlag(Keys.Control) || dataSource.Settings.Style.AlwaysDetectRadius)
                     DrawForeground();
             }
         }
-
-        private void Parent_KeyDown(object? sender, KeyEventArgs e)
-        {
-            if (e.KeyData.HasFlag(Keys.ControlKey))
-            {
-                CursorShown = false;
-            }
-        }
-
-        private void Parent_KeyUp(object? sender, KeyEventArgs e)
-        {
-            if (e.KeyData.HasFlag(Keys.ControlKey))
-            {
-                CursorShown = true;
-                DrawForeground();
-            }
-        }
-
 
         #region Calculations
 
@@ -967,7 +920,7 @@ namespace FormsLib.Scope.Controls
                 }
 
                 //Draw popup with list of marksers and trace values
-                if (ModifierKeys.HasFlag(Keys.Control))
+                if (ModifierKeys.HasFlag(Keys.Control) || dataSource.Settings.Style.AlwaysDetectRadius)
                 {
                     int radius = dataSource.Settings.Style.DetailDetectRadius;
                     g.DrawCircle(Pens.White, mousePos.X, mousePos.Y, radius);
@@ -1015,8 +968,6 @@ namespace FormsLib.Scope.Controls
                             double val = trace.GetYValue(worldX);
                             double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * trace.Scale);
                             double screenVal = (zeroPos - (val + trace.Offset) * pxPerUnits_ver);
-
-
                             if (screenVal > mousePos.Y - radius && screenVal < mousePos.Y + radius)
                                 toDoTraces.Add(new Tuple<Trace, double>(trace, val));
                         }

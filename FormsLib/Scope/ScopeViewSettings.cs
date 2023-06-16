@@ -13,7 +13,7 @@ namespace FormsLib.Scope
         public Font Font { get => GetPar(new Font("Ariel", 8.0f)); set => SetPar(value); }
         public int DetailDetectRadius { get => GetPar(7); set => SetPar(value); }
         public int DetailWindowWidth { get => GetPar(300); set => SetPar(value); }
-        //public IPalette ColorPalette { get => GetPar(Palettes.DistinctiveOnBlack); set => SetPar(value); }
+        public bool AlwaysDetectRadius { get => GetPar(false); set => SetPar(value); }
     }
 
     public class ScopeViewSettings : PropertySensitive
