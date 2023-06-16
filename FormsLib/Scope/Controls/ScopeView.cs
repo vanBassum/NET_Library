@@ -53,6 +53,7 @@ namespace FormsLib.Scope.Controls
 
 
         private ContextMenuStrip menu;
+        private ContextMenuStrip cursorMenu;
         private Point lastClick = Point.Empty;
         private Point lastClickDown = Point.Empty;
         private double horOffsetLastClick = 0;
@@ -97,31 +98,32 @@ namespace FormsLib.Scope.Controls
 
             menu = new ContextMenuStrip();
 
-            AddMenuItem("Add marker", () => dataSource.Cursors.Add(dragMarker = new Cursor() { X = -dataSource.Settings.HorOffset }));
-            AddMenuItem("Zoom", () => Zoom_Click());
+            AddMenuItem(menu, "Add marker", () => dataSource.Cursors.Add(dragMarker = new Cursor() { X = -dataSource.Settings.HorOffset }));
+            AddMenuItem(menu, "Zoom", () => Zoom_Click());
+            AddMenuItem(menu, "Horizontal scale/Draw/None", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.None);
+            AddMenuItem(menu, "Horizontal scale/Draw/Top", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.Top);
+            AddMenuItem(menu, "Horizontal scale/Draw/Bottom", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.Bottom);
+            AddMenuItem(menu, "Horizontal scale/Fit", () => FitHorizontalInXDivs(dataSource.Settings.HorizontalDivisions));
+            AddMenuItem(menu, "Horizontal scale/Day", () => AutoScaleHorizontalTime(TimeSpan.FromDays(1)));
+            AddMenuItem(menu, "Horizontal scale/Hour", () => AutoScaleHorizontalTime(TimeSpan.FromHours(1)));
+            AddMenuItem(menu, "Vertical scale/Draw/None", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.None);
+            AddMenuItem(menu, "Vertical scale/Draw/Left", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.Left);
+            AddMenuItem(menu, "Vertical scale/Draw/Right", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.Right);
+            AddMenuItem(menu, "Vertical scale/Zero position/Top", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Top);
+            AddMenuItem(menu, "Vertical scale/Zero position/Middle", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Middle);
+            AddMenuItem(menu, "Vertical scale/Zero position/Bottom", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Bottom);
+            AddMenuItem(menu, "Vertical scale/Auto", () => AutoScaleTracesKeepZero());
+            AddMenuItem(menu, "Clear", () => dataSource.Clear());
+            AddMenuItem(menu, "Screenshot/To clipboard", () => Screenshot_Click(true));
+            AddMenuItem(menu, "Screenshot/To file", () => Screenshot_Click(false));
 
-            AddMenuItem("Horizontal scale/Draw/None", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.None);
-            AddMenuItem("Horizontal scale/Draw/Top", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.Top);
-            AddMenuItem("Horizontal scale/Draw/Bottom", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.Bottom);
-            AddMenuItem("Horizontal scale/Fit", () => FitHorizontalInXDivs(dataSource.Settings.HorizontalDivisions));
-            AddMenuItem("Horizontal scale/Day", () => AutoScaleHorizontalTime(TimeSpan.FromDays(1)));
-            AddMenuItem("Horizontal scale/Hour", () => AutoScaleHorizontalTime(TimeSpan.FromHours(1)));
 
-            AddMenuItem("Vertical scale/Draw/None", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.None);
-            AddMenuItem("Vertical scale/Draw/Left", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.Left);
-            AddMenuItem("Vertical scale/Draw/Right", () => dataSource.Settings.DrawScalePosVertical = DrawPosVertical.Right);
-            AddMenuItem("Vertical scale/Zero position/Top", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Top);
-            AddMenuItem("Vertical scale/Zero position/Middle", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Middle);
-            AddMenuItem("Vertical scale/Zero position/Bottom", () => dataSource.Settings.ZeroPosition = VerticalZeroPosition.Bottom);
-            AddMenuItem("Vertical scale/Auto", () => AutoScaleTracesKeepZero());
-
-            AddMenuItem("Clear", () => dataSource.Clear());
-            AddMenuItem("Screenshot/To clipboard", () => Screenshot_Click(true));
-            AddMenuItem("Screenshot/To file", () => Screenshot_Click(false));
+            cursorMenu = new ContextMenuStrip();
+            AddMenuItem(cursorMenu, "Remove", () => dataSource.Cursors.Remove(hoverMarker));
         }
 
 
-        void AddMenuItem(string menuPath, Action action)
+        void AddMenuItem(ContextMenuStrip menu, string menuPath, Action action)
         {
             string[] split = menuPath.Split('/');
 
@@ -338,6 +340,8 @@ namespace FormsLib.Scope.Controls
             {
                 if (dragMarker != null)
                     dragMarker = null;
+                if (hoverMarker != null)
+                    cursorMenu.Show(this, e.Location);
                 else
                     menu.Show(this, e.Location);
             }
