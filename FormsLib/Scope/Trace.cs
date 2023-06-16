@@ -179,7 +179,6 @@ namespace FormsLib.Scope
 
         }
 
-
         public void Draw(Graphics g, Style style, Rectangle viewPort, Func<PointD, Point> convert, double firstX, double lastX, double xLeft, double xRight)
         {
             Pen pen = new Pen(Color);

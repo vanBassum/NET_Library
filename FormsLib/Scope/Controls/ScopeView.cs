@@ -398,9 +398,6 @@ namespace FormsLib.Scope.Controls
                 if (ModifierKeys.HasFlag(Keys.Control))
                     DrawForeground();
             }
-
-
-
         }
 
         private void Parent_KeyDown(object? sender, KeyEventArgs e)
@@ -969,7 +966,7 @@ namespace FormsLib.Scope.Controls
                     cursorNo++;
                 }
 
-                //Draw popup with list of marksers
+                //Draw popup with list of marksers and trace values
                 if (ModifierKeys.HasFlag(Keys.Control))
                 {
                     int radius = dataSource.Settings.DetailDetectRadius;
@@ -1007,7 +1004,26 @@ namespace FormsLib.Scope.Controls
                         }
                     }
 
-                    if (toDo.Count > 0)
+                    List<Tuple<Trace, double>> toDoTraces = new();
+                    foreach(var trace in DataSource.Traces)
+                    {
+                        if (trace.DrawStyle == Trace.DrawStyles.Lines
+                            || trace.DrawStyle == Trace.DrawStyles.NonInterpolatedLine)
+                        {
+                            double pxPerUnits_hor2 = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
+                            double worldX = ((mousePos.X - viewPort.X) / pxPerUnits_hor2) - dataSource.Settings.HorOffset;
+                            double val = trace.GetYValue(worldX);
+                            double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * trace.Scale);
+                            double screenVal = (zeroPos - (val + trace.Offset) * pxPerUnits_ver);
+
+
+                            if (screenVal > mousePos.Y - radius && screenVal < mousePos.Y + radius)
+                                toDoTraces.Add(new Tuple<Trace, double>(trace, val));
+                        }
+                    }
+
+
+                    if (toDo.Count + toDoTraces.Count > 0)
                     {
                         int width = dataSource.Settings.DetailWindowWidth;
                         int height = DataSource.Settings.Style.Font.Height;
@@ -1022,6 +1038,17 @@ namespace FormsLib.Scope.Controls
                             g.FillRectangle(brush, row);
                             g.DrawString(marker.Text, DataSource.Settings.Style.Font, pen, row);
                         }
+
+                        foreach (var val in toDoTraces)
+                        {
+                            SolidBrush pen = new SolidBrush(val.Item1.Color);
+                            Rectangle row = new Rectangle(mousePos.X + 25, mousePos.Y - offset, width, height);
+                            offset += height;
+                            g.FillRectangle(brush, row);
+                            g.DrawString(val.Item1.Name, DataSource.Settings.Style.Font, pen, row);
+                            g.DrawString(val.Item1.ToHumanReadable.Invoke(val.Item2), DataSource.Settings.Style.Font, pen, row, new StringFormat { Alignment = StringAlignment.Far });
+                        }
+
 
                         g.DrawRectangle(border, mousePos.X + 25, mousePos.Y - offset + height, width, offset);
                     }
