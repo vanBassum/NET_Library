@@ -28,7 +28,7 @@
     <Compile Update="Controls\EnumFlagsCheckedCombobox.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Scope\Controls\MarkerView.cs">
+    <Compile Update="Scope\Controls\CursorsView.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Scope\Controls\ScopeView.cs">

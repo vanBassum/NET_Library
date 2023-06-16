@@ -957,10 +957,11 @@ namespace FormsLib.Scope.Controls
                     {
                         float x = (float)((cursor.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
                         g.DrawLine(pen, x, viewPort.Y, x, viewPort.Y + viewPort.Height);
-                        g.DrawString(cursor.ID.ToString(), dataSource.Settings.Style.Font, brush, new PointF(x, 0));
-                
+                        if(string.IsNullOrEmpty(cursor.Name))
+                            g.DrawString($"{cursor.ID.ToString()}", dataSource.Settings.Style.Font, brush, new PointF(x, 0));
+                        else
+                            g.DrawString($"{cursor.ID.ToString()}_{cursor.Name}", dataSource.Settings.Style.Font, brush, new PointF(x, 0));
                     }
-                
                     catch (Exception ex)
                     {
                         g.DrawString(ex.Message, dataSource.Settings.Style.Font, brush, new Point(0, cursorNo * dataSource.Settings.Style.Font.Height));

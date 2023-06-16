@@ -1,6 +1,6 @@
 ﻿namespace FormsLib.Scope.Controls
 {
-    partial class MarkerView
+    partial class CursorsView
     {
         /// <summary> 
         /// Required designer variable.

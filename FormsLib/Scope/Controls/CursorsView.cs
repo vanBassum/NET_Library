@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace FormsLib.Scope.Controls
 {
-    public partial class MarkerView : UserControl
+    public partial class CursorsView : UserControl
     {
         DataGridView dataGridView = new DataGridView();
         private ScopeController dataSource;
@@ -20,14 +20,14 @@ namespace FormsLib.Scope.Controls
                 {
                     dataGridView.DataSource = dataSource.Cursors;
                     dataSource.Traces.ListChanged += Traces_ListChanged;
-                    dataSource.Cursors.ListChanged += Markers_ListChanged;
+                    dataSource.Cursors.ListChanged += Cursors_ListChanged;
                 }
             }
         }
 
 
 
-        public MarkerView()
+        public CursorsView()
         {
             InitializeComponent();
 
@@ -75,7 +75,7 @@ namespace FormsLib.Scope.Controls
             //dataGridView.AutoResizeColumns();
         }
 
-        private void Markers_ListChanged(object sender, ListChangedEventArgs e)
+        private void Cursors_ListChanged(object sender, ListChangedEventArgs e)
         {
             dataGridView.Refresh();
         }
