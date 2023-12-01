@@ -36,6 +36,7 @@ namespace FormsLib.Scope
         public PointD Minimum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public PointD Maximum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public Trace Self { get { return this; } }
+        public string Key { get; set; }
         public Trace()
         {
             Points.ListChanged += Points_ListChanged;
