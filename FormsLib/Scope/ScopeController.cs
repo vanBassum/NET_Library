@@ -50,8 +50,8 @@ namespace FormsLib.Scope
             if (trace == null)
             {
                 trace = new Trace { Key = key };
-                configure?.Invoke(trace);
                 Traces.Add(trace);
+                configure?.Invoke(trace);
             }
             return trace;
         }
@@ -63,9 +63,4 @@ namespace FormsLib.Scope
         void Draw(Graphics g,  Func<PointD, Point> convert);
 
     }
-
-
-
-
-
 }

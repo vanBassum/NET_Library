@@ -17,7 +17,8 @@ namespace FormsLib.Scope
         [TraceViewAttribute(Width = 20, HeaderText = "")]
         public bool Visible { get { return GetPar(true); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 50)]
-        public string Name { get { return GetPar("New Trace"); } set { SetPar(value); } }
+        public string Name { get { return GetPar("New trace"); } set { SetPar(value); } }
+
         //[TraceViewAttribute]
         public string Unit { get { return GetPar(""); } set { SetPar(value); } }
         [TraceViewAttribute(Width = 40)]
@@ -36,7 +37,8 @@ namespace FormsLib.Scope
         public PointD Minimum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public PointD Maximum { get { return GetPar(PointD.Empty); } set { SetPar(value); } }
         public Trace Self { get { return this; } }
-        public string Key { get; set; }
+        public string Key = "";
+        public Dictionary<string, string> Tags = new Dictionary<string, string>();
         public Trace()
         {
             Points.ListChanged += Points_ListChanged;
