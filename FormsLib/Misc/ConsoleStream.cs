@@ -6,7 +6,7 @@ namespace FormsLib.Misc
 {
     public class ConsoleStream
     {
-        public event EventHandler OnRecieved;
+        public event EventHandler? OnRecieved;
         Queue<string> x = new Queue<string>();
 
         public string ReadAll()
@@ -20,7 +20,7 @@ namespace FormsLib.Misc
         public void Write(string text)
         {
             x.Enqueue(text);
-            OnRecieved?.Invoke(this, null);
+            OnRecieved?.Invoke(this, EventArgs.Empty);
         }
     }
 }
