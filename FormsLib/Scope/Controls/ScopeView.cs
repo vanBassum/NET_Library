@@ -65,6 +65,8 @@ namespace FormsLib.Scope.Controls
             pictureBox2.Paint += PictureBox2_Paint;
             pictureBox3.Paint += PictureBox3_Paint;
 
+            KeyUp += (s, e) => DrawAll();
+
             pictureBox1.BringToFront();
             pictureBox2.BringToFront();
             pictureBox3.BringToFront();
