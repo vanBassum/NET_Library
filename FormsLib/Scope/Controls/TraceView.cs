@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FormsLib.Extentions;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
@@ -25,7 +26,6 @@ namespace FormsLib.Scope.Controls
             }
         }
 
-
         public TraceView()
         {
             InitializeComponent();
@@ -37,11 +37,9 @@ namespace FormsLib.Scope.Controls
             dataGridView1.RowHeadersVisible = false;
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
-            
-
             foreach (var pi in typeof(Trace).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
             {
-                TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
+                TraceViewAttribute? attr = pi.GetCustomAttribute<TraceViewAttribute>();
                 DataGridViewColumn col;
 
                 if (pi.PropertyType == typeof(bool))
@@ -80,18 +78,12 @@ namespace FormsLib.Scope.Controls
 
             dataGridView1.CellFormatting += dataGridView1_CellFormatting;
             dataGridView1.KeyDown += DataGridView1_KeyDown;
-            dataGridView1.CurrentCellDirtyStateChanged += DataGridView1_CurrentCellDirtyStateChanged;
         }
 
-        private void DataGridView1_KeyDown(object sender, KeyEventArgs e)
+        private void DataGridView1_KeyDown(object? sender, KeyEventArgs e)
         {
             if(e.KeyCode == Keys.Enter)
                 dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
-        }
-
-        private void DataGridView1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
-        {
-            
         }
 
         private void TraceView_Load(object sender, EventArgs e)
@@ -99,7 +91,7 @@ namespace FormsLib.Scope.Controls
 
         }
 
-        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        private void dataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             DataGridView dgv = sender as DataGridView;
 
@@ -141,4 +133,23 @@ namespace FormsLib.Scope.Controls
         public DataGridViewAutoSizeColumnMode AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
 
     }
+
+
+
+    //class TraceComparer : IComparer<Trace>
+    //{
+    //    public int Compare(Trace? trace1, Trace? trace2)
+    //    {
+    //        if(trace1== null || trace2==null) 
+    //            return 0;
+    //
+    //        int orderCompare = trace1.Order - trace2.Order;
+    //        if (orderCompare != 0)
+    //            return orderCompare;
+    //
+    //        int compareResult = System.String.Compare(trace1.Name, trace2.Name);
+    //
+    //        return compareResult;
+    //    }
+    //}
 }

@@ -186,7 +186,6 @@ namespace FormsLib.Scope
         {
             Pen pen = new Pen(Color);
             Brush brush = new SolidBrush(Color);
-
             if (Visible)
             {
                 //Pen linePen = new Pen(trace.Colour);
@@ -241,10 +240,15 @@ namespace FormsLib.Scope
                         if (DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses) && viewPort.CheckIfPointIsWithin(convert(pActD)))
                             g.DrawCross(pen, viewPort, convert(pActD), 3);
 
+
                         switch (DrawStyle)
                         {
                             case Trace.DrawStyles.Points:
                                 g.Drawpoint(brush, pAct, 2);
+                                break;
+
+                            case Trace.DrawStyles.Cross:
+                                g.DrawCross(pen, viewPort, convert(pActD), 5);
                                 break;
 
                             case Trace.DrawStyles.DiscreteSingal:
@@ -317,16 +321,17 @@ namespace FormsLib.Scope
             NonInterpolatedLine,
             DiscreteSingal,
             State,
+            Cross,
         }
 
         [Flags]
         public enum DrawOptions
         {
             None = 0,
-            ShowCrosses = (1 << 0),
-            ExtendBegin = (1 << 1),
-            ExtendEnd = (1 << 2),
-            ShowScale = (1 << 3),
+            ShowCrosses =   0x01,
+            ExtendBegin =   0x02,
+            ExtendEnd =     0x04,
+            ShowScale =     0x08,
         }
 
 

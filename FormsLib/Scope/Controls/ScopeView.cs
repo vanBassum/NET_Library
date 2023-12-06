@@ -930,6 +930,8 @@ namespace FormsLib.Scope.Controls
                         Func<PointD, PointD> convert = null;
                         if (marker is LinkedMarker lm)
                         {
+                            if (!lm.Trace.Visible)
+                                continue;
                             if (dataSource.Traces.Contains(lm.Trace))
                             {
                                 double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * lm.Trace.Scale);
@@ -960,6 +962,9 @@ namespace FormsLib.Scope.Controls
                     List<Tuple<Trace, double>> toDoTraces = new();
                     foreach(var trace in DataSource.Traces)
                     {
+                        if (!trace.Visible)
+                            continue;
+
                         if (trace.DrawStyle == Trace.DrawStyles.Lines
                             || trace.DrawStyle == Trace.DrawStyles.NonInterpolatedLine)
                         {
@@ -973,7 +978,7 @@ namespace FormsLib.Scope.Controls
                         }
                     }
 
-                    int linesCount = toDo.Count + toDoTraces.Count;
+                    int linesCount = toDo.Sum(a=>a.Text.Count(c=>c == '\n') + (a.Text.EndsWith('\n')?0:1)) + toDoTraces.Count;
                     if (linesCount > 0)
                     {
                         int width = dataSource.Settings.Style.DetailWindowWidth;
@@ -991,9 +996,16 @@ namespace FormsLib.Scope.Controls
                         foreach (var marker in toDo)
                         {
                             SolidBrush pen = new SolidBrush(marker.Color);
-                            Rectangle rowRectangle = new Rectangle(window.X, window.Y + (lineNo * lineHeight), window.Width, lineHeight);
-                            g.DrawString(marker.Text, DataSource.Settings.Style.Font, pen, rowRectangle);
-                            lineNo ++;
+
+                            var lines = marker.Text.Split('\n');
+                            int line = 0;
+                            for (line = 0; line < lines.Length; line++)
+                            {
+                                Rectangle rowRectangle = new Rectangle(window.X, window.Y + ((lineNo + line) * lineHeight), window.Width, lineHeight);
+                                string text = line == 0 ? $"- {lines[line]}" : $"  {lines[line]}";
+                                g.DrawString(text, DataSource.Settings.Style.Font, pen, rowRectangle);
+                            }
+                            lineNo += line;
                         }
                         foreach (var val in toDoTraces)
                         {

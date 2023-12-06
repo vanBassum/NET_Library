@@ -14,6 +14,7 @@ namespace FormsLib.Scope
         public virtual Color Color { get; set; } = Color.Green;
         public virtual PointD Point { get; set; }
         public string Text { get; set; }
+        public int MaxLines { get; set; } = 1;
 
         public void Draw(Graphics g, Style style, Rectangle viewPort, Func<PointD, Point> convert)
         {
@@ -24,7 +25,10 @@ namespace FormsLib.Scope
                 Brush brush = new SolidBrush(Color);
                 Pen pen = new Pen(Color);
                 //g.DrawString(Text, style.Font, brush, pt);
-                g.DrawCross(pen, viewPort, pt.X, pt.Y, 5, Text, style.Font );
+
+                string[] lines = Text.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                string truncatedText = string.Join(Environment.NewLine, lines.Take(MaxLines));
+                g.DrawCross(pen, viewPort, pt.X, pt.Y, 5, truncatedText, style.Font );
             }
         }
     }

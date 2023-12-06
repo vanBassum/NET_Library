@@ -80,8 +80,53 @@ namespace FormsLib.Scope.Controls
         public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, double x, double y, int size, string text, Font font)
         {
             DrawCross(g, p, viewPort, x, y, size);
-            Rectangle textRect = new Rectangle((int)x + 4, (int)y - (size / 2) - (font.Height / 2), viewPort.Width, font.Height);
+            int enters = text.Count(c => c == '\n');
+            if (!text.EndsWith('\n'))
+                enters++;
+            Rectangle textRect = new Rectangle((int)x + 8, (int)y - (font.Height * enters), viewPort.Width - 8, font.Height * enters);
             g.DrawFitTextToRectangle(p, viewPort, textRect, text, font);
+        }
+
+        public static void DrawFitTextToRectangle(this Graphics g, Pen p, Rectangle viewPort, Rectangle rect, string text, Font font)
+        {
+            if (rect.Width > 3)
+            {
+                if (rect.X >= viewPort.X + viewPort.Width)
+                    return;
+
+                if (rect.X + rect.Width <= viewPort.X)
+                    return;
+
+                if (rect.X < viewPort.X)
+                {
+                    int delta = viewPort.X - rect.X;
+                    rect.X = viewPort.X;
+                    rect.Width -= delta;
+                }
+
+                if ((rect.X + rect.Width) > (viewPort.X + viewPort.Width))
+                {
+                    int delta = (viewPort.X + viewPort.Width) - (rect.X + rect.Width);
+                    rect.Width += delta;
+                }
+
+                string[] lines = text.Split('\n');
+                int lineHeight = (int)font.GetHeight();
+
+
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    int lineY = rect.Y + i * lineHeight;
+
+                    // Only draw the line if it's within the rectangle
+                    if (lineY >= rect.Y && lineY + lineHeight <= rect.Bottom)
+                    {
+                        g.DrawString(line, font, new SolidBrush(p.Color), rect.X, lineY);
+                    }
+                }
+            }
         }
 
         public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, double x, double y, int size)
@@ -242,35 +287,7 @@ namespace FormsLib.Scope.Controls
             g.FillEllipse(brush, centerX - radius, centerY - radius,
                           radius + radius, radius + radius);
         }
-        static void DrawFitTextToRectangle(this Graphics g, Pen p, Rectangle viewPort, Rectangle rect, string text, Font font)
-        {
-            if (rect.Width > 3)
-            {
-                if (rect.X >= viewPort.X + viewPort.Width)
-                    return;
-
-                if (rect.X + rect.Width <= viewPort.X)
-                    return;
-
-                if (rect.X < viewPort.X)
-                {
-                    int delta = viewPort.X- rect.X;
-                    rect.X = viewPort.X;
-                    rect.Width -= delta;
-                }
-
-                if ((rect.X + rect.Width) > (viewPort.X + viewPort.Width))
-                {
-                    int delta = (viewPort.X + viewPort.Width) - (rect.X + rect.Width);
-                    rect.Width += delta;
-                }
-
-                // while (g.MeasureString(text, font).Width > rect.Width)
-                //     text = text.Substring(0, text.Length - 1);
-
-                g.DrawString(text, font, new SolidBrush(p.Color), rect);
-            }
-        }
+        
 
 
 
