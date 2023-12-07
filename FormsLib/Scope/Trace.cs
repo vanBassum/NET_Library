@@ -87,7 +87,7 @@ namespace FormsLib.Scope
         }
 
 
-        public IEnumerable<PointD> GetPointsBetweenMarkers(Cursor marker1, Cursor marker2)
+        public IEnumerable<PointD> GetPointsBetweenMarkers(Marker marker1, Marker marker2)
         {
             double x1 = 0;
             double x2 = 0;

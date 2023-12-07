@@ -18,9 +18,9 @@ namespace FormsLib.Scope.Controls
                 dataSource = value;
                 if (dataSource != null)
                 {
-                    dataGridView.DataSource = dataSource.Cursors;
+                    dataGridView.DataSource = dataSource.Markers;
                     dataSource.Traces.ListChanged += Traces_ListChanged;
-                    dataSource.Cursors.ListChanged += Cursors_ListChanged;
+                    dataSource.Markers.ListChanged += Cursors_ListChanged;
                 }
             }
         }
@@ -39,13 +39,8 @@ namespace FormsLib.Scope.Controls
             dataGridView.AllowUserToResizeRows = false;
             dataGridView.RowHeadersVisible = false;
             dataGridView.CellFormatting += DataGridView_CellFormatting;
-        }
 
-        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            //TODO: There is a lot of optimalisation possible here!
-            dataGridView.Columns.Clear();
-            foreach (var pi in typeof(Cursor).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
+            foreach (var pi in typeof(Marker).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
             {
                 TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
                 DataGridViewColumn col;
@@ -57,23 +52,36 @@ namespace FormsLib.Scope.Controls
                 col.Width = attr.Width == 0 ? 100 : attr.Width;
                 col.AutoSizeMode = attr.AutoSizeMode;
             }
+        }
+
+        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            //TODO: There is a lot of optimalisation possible here!
+            //dataGridView.Columns.Clear();
+            
 
             if (dataSource != null)
             {
                 foreach (Trace t in dataSource.Traces)
                 {
-                    DataGridViewColumn col;
-                    dataGridView.Columns.Add(col = new DataGridViewColumn(new DataGridViewTextBoxCell()));
+                    DataGridViewColumn? col = dataGridView.Columns.Cast<DataGridViewColumn>().FirstOrDefault(column => column.Tag != null && column.Tag == t);
 
-                    col.Tag = t;
-                    col.Name = t.Name;
+                    if (col == null)
+                    {
+                        col = new DataGridViewColumn(new DataGridViewTextBoxCell());
+                        dataGridView.Columns.Add(col = new DataGridViewColumn(new DataGridViewTextBoxCell()));
+                        col.Tag = t;
+                        col.Name = t.Name;
+                        col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                    }
+
                     col.HeaderText = t.Name;
-                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            
                 }
             }
             //dataGridView.AutoResizeColumns();
         }
+
+
 
         private void Cursors_ListChanged(object sender, ListChangedEventArgs e)
         {
@@ -88,10 +96,10 @@ namespace FormsLib.Scope.Controls
 
             if (t != null)
             {
-                e.Value = t.ToHumanReadable(t.GetYValue(DataSource.Cursors[e.RowIndex].X));
+                e.Value = t.ToHumanReadable(t.GetYValue(DataSource.Markers[e.RowIndex].X));
             }
 
-            if (dgv.Columns[e.ColumnIndex].DataPropertyName == nameof(Scope.Cursor.X))
+            if (dgv.Columns[e.ColumnIndex].DataPropertyName == nameof(Scope.Marker.X))
             {
                 e.Value = dataSource.Settings.HorizontalToHumanReadable((double)e.Value);
             }
