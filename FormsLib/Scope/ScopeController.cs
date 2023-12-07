@@ -7,14 +7,13 @@ namespace FormsLib.Scope
 {
     public class ScopeController
     {
+
         public event EventHandler? DoRedraw;
         public ThreadedBindingList<Trace> Traces                { get; } = new ThreadedBindingList<Trace>();
+        public ThreadedBindingList<Cursor> Cursors              { get; } = new ThreadedBindingList<Cursor>();
         public ThreadedBindingList<Marker> Markers              { get; } = new ThreadedBindingList<Marker>();
-        public ThreadedBindingList<Label> Labels              { get; } = new ThreadedBindingList<Label>();
         public ThreadedBindingList<IScopeDrawable> Drawables    { get; } = new ThreadedBindingList<IScopeDrawable>();
         public ScopeViewSettings Settings                       { get; } = new ScopeViewSettings();
-
-
 
 
         public void RedrawAll()
@@ -24,16 +23,16 @@ namespace FormsLib.Scope
         
         public void Clear()
         {
+            Cursors.Clear();
             Markers.Clear();
-            Labels.Clear();
             Traces.Clear();
         }
 
 
         public void ClearData()
         {
+            Cursors.Clear();
             Markers.Clear();
-            Labels.Clear();
             foreach (var v in Traces)
                 v.Points.Clear();
         }

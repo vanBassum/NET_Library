@@ -28,13 +28,11 @@
     <Compile Update="Controls\EnumFlagsCheckedCombobox.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Scope\Controls\CursorsView.cs">
+    <Compile Update="Scope\Controls\MarkerListView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Scope\Controls\ScopeView.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="Scope\Controls\TraceView.cs">
+    <Compile Update="Scope\Controls\GraphPlotView.cs" />
+    <Compile Update="Scope\Controls\TraceListView.cs">
       <SubType>UserControl</SubType>
     </Compile>
   </ItemGroup>

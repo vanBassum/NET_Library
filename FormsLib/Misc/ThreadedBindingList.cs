@@ -1,5 +1,4 @@
-﻿using FormsLib.Maths;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
@@ -69,14 +68,6 @@ namespace FormsLib.Misc
                         i--;
                     }
             }
-        }
-    }
-
-    public static class Ext
-    {
-        public static void Add(this ThreadedBindingList<PointD> list, double x, double y)
-        {
-            list.Add(new PointD(x, y));
         }
     }
 }

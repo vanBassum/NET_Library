@@ -18,9 +18,9 @@ namespace FormsLib.Scope.Controls
                 dataSource = value;
                 if (dataSource != null)
                 {
-                    dataGridView.DataSource = dataSource.Markers;
+                    dataGridView.DataSource = dataSource.Cursors;
                     dataSource.Traces.ListChanged += Traces_ListChanged;
-                    dataSource.Markers.ListChanged += Cursors_ListChanged;
+                    dataSource.Cursors.ListChanged += Cursors_ListChanged;
                 }
             }
         }
@@ -40,7 +40,7 @@ namespace FormsLib.Scope.Controls
             dataGridView.RowHeadersVisible = false;
             dataGridView.CellFormatting += DataGridView_CellFormatting;
 
-            foreach (var pi in typeof(Marker).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
+            foreach (var pi in typeof(Cursor).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
             {
                 TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
                 DataGridViewColumn col;
@@ -96,10 +96,10 @@ namespace FormsLib.Scope.Controls
 
             if (t != null)
             {
-                e.Value = t.ToHumanReadable(t.GetYValue(DataSource.Markers[e.RowIndex].X));
+                e.Value = t.ToHumanReadable(t.GetYValue(DataSource.Cursors[e.RowIndex].X));
             }
 
-            if (dgv.Columns[e.ColumnIndex].DataPropertyName == nameof(Scope.Marker.X))
+            if (dgv.Columns[e.ColumnIndex].DataPropertyName == nameof(Scope.Cursor.X))
             {
                 e.Value = dataSource.Settings.HorizontalToHumanReadable((double)e.Value);
             }

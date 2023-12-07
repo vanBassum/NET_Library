@@ -19,19 +19,19 @@ namespace FormsLib.Scope.Controls
                 {
                     dataSource.Settings.PropertyChanged += (a, b) => this.InvokeIfRequired(() => DrawBackground());
                     //dataSource.Traces.ListChanged += Traces_ListChanged;
-                    dataSource.Markers.ListChanged += Markers_ListChanged;
+                    dataSource.Cursors.ListChanged += Markers_ListChanged;
                     dataSource.DoRedraw += (a, b) => DrawAll();
                 }
             }
-        }
+        }z
 
         private ContextMenuStrip menu;
         private ContextMenuStrip cursorMenu;
         private Point lastClick = Point.Empty;
         private Point lastClickDown = Point.Empty;
         private double horOffsetLastClick = 0;
-        private Marker dragMarker = null;
-        private Marker hoverMarker = null;
+        private Cursor dragMarker = null;
+        private Cursor hoverMarker = null;
         private Point mousePos = Point.Empty;
         Rectangle viewPort = new Rectangle(0, 0, 0, 0);
         //int pxPerColumn;
@@ -73,7 +73,7 @@ namespace FormsLib.Scope.Controls
 
             menu = new ContextMenuStrip();
 
-            AddMenuItem(menu, "Add marker", () => dataSource.Markers.Add(dragMarker = new Marker() { X = -dataSource.Settings.HorOffset }));
+            AddMenuItem(menu, "Add marker", () => dataSource.Cursors.Add(dragMarker = new Cursor() { X = -dataSource.Settings.HorOffset }));
             AddMenuItem(menu, "Zoom", () => Zoom_Click());
             AddMenuItem(menu, "Horizontal scale/Draw/None", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.None);
             AddMenuItem(menu, "Horizontal scale/Draw/Top", () => dataSource.Settings.DrawScalePosHorizontal = DrawPosHorizontal.Top);
@@ -94,7 +94,7 @@ namespace FormsLib.Scope.Controls
 
 
             cursorMenu = new ContextMenuStrip();
-            AddMenuItem(cursorMenu, "Remove", () => dataSource.Markers.Remove(hoverMarker));
+            AddMenuItem(cursorMenu, "Remove", () => dataSource.Cursors.Remove(hoverMarker));
         }
 
 
@@ -167,11 +167,11 @@ namespace FormsLib.Scope.Controls
 
         private void Zoom_Click()
         {
-            if (DataSource.Markers.Count == 0)
+            if (DataSource.Cursors.Count == 0)
                 return;
 
-            Marker left = null;
-            Marker right = null;
+            Cursor left = null;
+            Cursor right = null;
 
             GetMarkersAdjecentToX(lastClick.X, ref left, ref right);
 
@@ -203,7 +203,7 @@ namespace FormsLib.Scope.Controls
             DrawAll();
         }
 
-        void GetMarkersAdjecentToX(double xPos, ref Marker left, ref Marker right)
+        void GetMarkersAdjecentToX(double xPos, ref Cursor left, ref Cursor right)
         {
             double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
             double x = (xPos * dataSource.Settings.HorScale * dataSource.Settings.HorizontalDivisions / viewPort.Height) - dataSource.Settings.HorOffset + viewPort.X;
@@ -211,26 +211,26 @@ namespace FormsLib.Scope.Controls
             int iLeft = -1;
             int iRight = -1;
 
-            for (int i = 0; i < DataSource.Markers.Count; i++)
+            for (int i = 0; i < DataSource.Cursors.Count; i++)
             {
-                if (DataSource.Markers[i].X < x)
+                if (DataSource.Cursors[i].X < x)
                 {
                     if (iLeft == -1)
                         iLeft = i;
                     else
                     {
-                        if (DataSource.Markers[i].X > DataSource.Markers[iLeft].X)
+                        if (DataSource.Cursors[i].X > DataSource.Cursors[iLeft].X)
                             iLeft = i;
                     }
                 }
 
-                if (DataSource.Markers[i].X > x)
+                if (DataSource.Cursors[i].X > x)
                 {
                     if (iRight == -1)
                         iRight = i;
                     else
                     {
-                        if (DataSource.Markers[i].X < DataSource.Markers[iRight].X)
+                        if (DataSource.Cursors[i].X < DataSource.Cursors[iRight].X)
                             iRight = i;
                     }
                 }
@@ -239,12 +239,12 @@ namespace FormsLib.Scope.Controls
             if (iLeft == -1)
                 left = null;
             else
-                left = DataSource.Markers[iLeft];
+                left = DataSource.Cursors[iLeft];
 
             if (iRight == -1)
                 right = null;
             else
-                right = DataSource.Markers[iRight];
+                right = DataSource.Cursors[iRight];
         }
 
         private void ScopeView_Load(object sender, EventArgs e)
@@ -351,9 +351,9 @@ namespace FormsLib.Scope.Controls
                     {
                         System.Windows.Forms.Cursor cur = System.Windows.Forms.Cursors.Default;
                         hoverMarker = null;
-                        for (int i = 0; i < DataSource.Markers.Count; i++)
+                        for (int i = 0; i < DataSource.Cursors.Count; i++)
                         {
-                            Marker cursor = DataSource.Markers[i];
+                            Cursor cursor = DataSource.Cursors[i];
                             int cursorX = (int)((cursor.X + dataSource.Settings.HorOffset) * pxPerUnits_hor) + viewPort.X;
                             int xMin = cursorX - 4;
                             int xMax = cursorX + 4;
@@ -362,7 +362,7 @@ namespace FormsLib.Scope.Controls
                             if (e.X > xMin && e.X < xMax)
                             {
                                 cur = Cursors.VSplit;
-                                hoverMarker = DataSource.Markers[i];
+                                hoverMarker = DataSource.Cursors[i];
                             }
                         }
                         System.Windows.Forms.Cursor.Current = cur;
@@ -834,9 +834,9 @@ namespace FormsLib.Scope.Controls
 
                 try
                 {
-                    foreach (Label marker in dataSource.Labels)
+                    foreach (Marker marker in dataSource.Markers)
                     {
-                        if (marker is LinkedLabel lm)
+                        if (marker is LinkedMarker lm)
                         {
                             if (dataSource.Traces.Contains(lm.Trace))
                             {
@@ -848,7 +848,7 @@ namespace FormsLib.Scope.Controls
                                 marker.Draw(g, dataSource.Settings.Style, viewPort, convert);
                             }
                         }
-                        else if (marker is FreeLabel fm)
+                        else if (marker is FreeMarker fm)
                         {
                             double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * 1);
                             Func<PointD, Point> convert = (p) => new Point(
@@ -900,7 +900,7 @@ namespace FormsLib.Scope.Controls
 
                 int cursorNo = 0;
                 //Loop through markers
-                foreach (Marker cursor in DataSource.Markers)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
+                foreach (Cursor cursor in DataSource.Cursors)  // (int traceIndex = 0; traceIndex < Scope.Traces.Count; traceIndex++)
                 {
                     Pen pen = cursor.Pen;
                     Brush brush = new SolidBrush(pen.Color);
@@ -926,11 +926,11 @@ namespace FormsLib.Scope.Controls
                 {
                     int radius = dataSource.Settings.Style.DetailDetectRadius;
                     g.DrawCircle(Pens.White, mousePos.X, mousePos.Y, radius);
-                    List<Label> toDo = new List<Label>();
-                    foreach (Label marker in dataSource.Labels)
+                    List<Marker> toDo = new List<Marker>();
+                    foreach (Marker marker in dataSource.Markers)
                     {
                         Func<PointD, PointD> convert = null;
-                        if (marker is LinkedLabel lm)
+                        if (marker is LinkedMarker lm)
                         {
                             if (!lm.Trace.Visible)
                                 continue;
@@ -942,7 +942,7 @@ namespace FormsLib.Scope.Controls
                                     (zeroPos - (p.Y + lm.Trace.Offset) * pxPerUnits_ver));
                             }
                         }
-                        else if (marker is FreeLabel fm)
+                        else if (marker is FreeMarker fm)
                         {
                             double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * 1);
                             convert = (p) => new PointD(
