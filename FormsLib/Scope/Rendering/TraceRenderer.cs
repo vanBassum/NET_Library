@@ -117,7 +117,7 @@ namespace FormsLib.Scope.Rendering
             {
                 var point = trace.Points[i];
                 var screenPos = worldToScreen(point);
-                if (GraphicCalculator.IsPointWithinViewport(calculator.GraphViewport, screenPos))
+                if (GraphicCalculator.IsPointWithinViewport(calculator.GraphViewport, screenPos) || GraphicCalculator.IsPointWithinViewport(calculator.GraphViewport, previous))
                 {
                     if (trace.DrawOptions.HasFlag(DrawOptions.ShowCrosses))
                         graphics.DrawCross(pen, screenPos, Vector2.One * 5f);
