@@ -2,9 +2,9 @@
 using System.ComponentModel;
 using System.Windows.Forms;
 
-namespace FormsLib
+namespace FormsLib.Extentions
 {
-    public static class Ext
+    public static class Control_Ext
     {
         public static void InvokeIfRequired(this ISynchronizeInvoke obj, MethodInvoker action)
         {
@@ -24,7 +24,7 @@ namespace FormsLib
             if (obj.InvokeRequired)
             {
                 var args = new object[0];
-                return (T) obj.Invoke(action, args);
+                return (T)obj.Invoke(action, args);
             }
             else
             {
