@@ -39,7 +39,40 @@ namespace FormsLib.Scope.Controls
             dataGridView.AllowUserToResizeRows = false;
             dataGridView.RowHeadersVisible = false;
             dataGridView.CellFormatting += DataGridView_CellFormatting;
+            ResetColumns();
 
+        }
+
+        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            //TODO: There is a lot of optimalisation possible here!
+            
+
+            if (dataSource != null)
+            {
+
+                switch (e.ListChangedType)
+                {
+                    case ListChangedType.Reset:
+                        ResetColumns();
+                        break;
+                    case ListChangedType.ItemAdded:
+                        AddTrace(DataSource.Traces[e.NewIndex]);
+                        break;
+                    case ListChangedType.ItemChanged:
+                        UpdateTrace(DataSource.Traces[e.NewIndex]);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+
+            }
+            //dataGridView.AutoResizeColumns();
+        }
+
+        void ResetColumns()
+        {
+            dataGridView.Columns.Clear();
             foreach (var pi in typeof(Marker).GetProperties().Where(p => p.GetCustomAttribute<TraceViewAttribute>() != null))
             {
                 TraceViewAttribute attr = pi.GetCustomAttribute<TraceViewAttribute>();
@@ -54,32 +87,35 @@ namespace FormsLib.Scope.Controls
             }
         }
 
-        private void Traces_ListChanged(object sender, ListChangedEventArgs e)
+        void AddTrace(Trace trace)
         {
-            //TODO: There is a lot of optimalisation possible here!
-            //dataGridView.Columns.Clear();
-            
+            DataGridViewColumn? col = dataGridView.Columns.Cast<DataGridViewColumn>().FirstOrDefault(column => column.Tag != null && column.Tag == trace);
 
-            if (dataSource != null)
+            if (col == null)
             {
-                foreach (Trace t in dataSource.Traces)
-                {
-                    DataGridViewColumn? col = dataGridView.Columns.Cast<DataGridViewColumn>().FirstOrDefault(column => column.Tag != null && column.Tag == t);
-
-                    if (col == null)
-                    {
-                        col = new DataGridViewColumn(new DataGridViewTextBoxCell());
-                        dataGridView.Columns.Add(col = new DataGridViewColumn(new DataGridViewTextBoxCell()));
-                        col.Tag = t;
-                        col.Name = t.Name;
-                        col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                    }
-
-                    col.HeaderText = t.Name;
-                }
+                col = new DataGridViewColumn(new DataGridViewTextBoxCell());
+                dataGridView.Columns.Add(col = new DataGridViewColumn(new DataGridViewTextBoxCell()));
+                col.Tag = trace;
+                col.Name = trace.Name;
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
-            //dataGridView.AutoResizeColumns();
+
+            col.HeaderText = trace.Name;
         }
+
+        void UpdateTrace(Trace trace)
+        {
+            DataGridViewColumn? col = dataGridView.Columns.Cast<DataGridViewColumn>().FirstOrDefault(column => column.Tag != null && column.Tag == trace);
+            if (col != null)
+            {
+                col.Tag = trace;
+                col.Name = trace.Name;
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                col.HeaderText = trace.Name;
+            }
+        }
+
+
 
 
 
