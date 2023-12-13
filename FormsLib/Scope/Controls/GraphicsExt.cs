@@ -118,12 +118,12 @@ namespace FormsLib.Scope.Controls
                 for (int i = 0; i < lines.Length; i++)
                 {
                     string line = lines[i];
-                    int lineY = rect.Y + i * lineHeight;
+                    var lineRectangle = new Rectangle(rect.X, rect.Y + i * lineHeight, rect.Width, lineHeight);
 
                     // Only draw the line if it's within the rectangle
-                    if (lineY >= rect.Y && lineY + lineHeight <= rect.Bottom)
+                    if (lineRectangle.Y >= rect.Y && lineRectangle.Y + lineHeight <= rect.Bottom)
                     {
-                        g.DrawString(line, font, new SolidBrush(p.Color), rect.X, lineY);
+                        g.DrawString(line, font, new SolidBrush(p.Color), lineRectangle);
                     }
                 }
             }
