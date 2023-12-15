@@ -138,17 +138,6 @@ namespace FormsLib.Scope
 
             switch (DrawStyle)
             {
-                case DrawStyles.DiscreteSingal:
-                case DrawStyles.Points:
-                    if ((Points[i].X - x) > (Points[i - 1].X - x))
-                        i -= 1;
-                    // i = closest to x
-                    if (i == -1)
-                        i = 0;
-                    if (i >= Points.Count)
-                        i = Points.Count - 1;
-                    return Points[i].Y;
-
                 case DrawStyles.Lines:
                     if (i > 0 & i < Points.Count)
                     {
@@ -163,6 +152,8 @@ namespace FormsLib.Scope
                     }
                     else
                         return double.NaN;
+                case DrawStyles.DiscreteSingal:
+                case DrawStyles.Points:
                 case DrawStyles.NonInterpolatedLine:
                     if (i > 0 && (i < (Points.Count + (DrawOption.HasFlag(DrawOptions.ExtendEnd) ? 1 : 0))))
                         return Points[i - 1].Y;
