@@ -43,19 +43,6 @@ namespace FormsLib.Scope
             DateTime dt = new DateTime((long)ticks);
             return dt.ToString("dd-MM-yyyy") + " \r\n" + dt.ToString("HH:mm:ss");
         }
-
-
-        public Trace GetOrCreateTraceByKey(string key, Action<Trace>? configure = null)
-        {
-            Trace? trace = Traces.FirstOrDefault(t => t.Key == key);
-            if (trace == null)
-            {
-                trace = new Trace { Key = key };
-                Traces.Add(trace);
-                configure?.Invoke(trace);
-            }
-            return trace;
-        }
     }
 
     public interface IScopeDrawable
