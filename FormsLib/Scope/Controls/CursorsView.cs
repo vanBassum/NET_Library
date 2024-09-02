@@ -97,10 +97,27 @@ namespace FormsLib.Scope.Controls
             if (col == null)
             {
                 col = new DataGridViewColumn(new DataGridViewTextBoxCell());
-                dataGridView.Columns.Add(col = new DataGridViewColumn(new DataGridViewTextBoxCell()));
                 col.Tag = trace;
                 col.Name = trace.Name;
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
+                // Get the index of the trace in the DataSource
+                int traceIndex = DataSource.Traces.IndexOf(trace);
+
+                // Calculate the index to insert the new column, skipping the first two columns
+                int skipCount = 2;
+                int index = dataGridView.Columns
+                    .Cast<DataGridViewColumn>()
+                    .Skip(skipCount) // Skip the first two columns
+                    .TakeWhile(column => column.Tag is Trace existingTrace && DataSource.Traces.IndexOf((Trace)column.Tag) < traceIndex)
+                    .Count() + skipCount; // Add skipCount to adjust for skipped columns
+
+                // Insert the new column at the determined index
+                if (index < dataGridView.Columns.Count)
+                    dataGridView.Columns.Insert(index, col);
+                else
+                    dataGridView.Columns.Add(col);
+                
             }
 
             col.HeaderText = trace.Name;
@@ -119,6 +136,10 @@ namespace FormsLib.Scope.Controls
 
                 if (trace.Visible == false)
                     dataGridView.Columns.Remove(col);
+            }
+            else
+            {
+                AddTrace(trace);
             }
         }
 

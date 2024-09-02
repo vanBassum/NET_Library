@@ -800,7 +800,6 @@ namespace FormsLib.Scope.Controls
                 Brush errBrush = new SolidBrush(Color.Red);
                 double pxPerUnits_hor = viewPort.Width / (dataSource.Settings.HorizontalDivisions * dataSource.Settings.HorScale);
                 var sortedTraces = from trace in DataSource.Traces
-                                   orderby trace.Layer descending
                                    select trace;
 
                 PointD min = PointD.Empty;

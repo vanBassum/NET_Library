@@ -78,6 +78,25 @@ namespace FormsLib.Scope.Controls
 
             dataGridView1.CellFormatting += dataGridView1_CellFormatting;
             dataGridView1.KeyDown += DataGridView1_KeyDown;
+            dataGridView1.CurrentCellDirtyStateChanged += dataGridView1_CurrentCellDirtyStateChanged;
+            dataGridView1.CellValueChanged += dataGridView1_CellValueChanged;
+        }
+
+        // Event handler for CurrentCellDirtyStateChanged
+        private void dataGridView1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            // Check if the current cell is a checkbox cell
+            if (dataGridView1.CurrentCell is DataGridViewCheckBoxCell)
+            {
+                // Commit the edit so CellValueChanged is triggered
+                dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
+
+        // Event handler for CellValueChanged
+        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            DataSource.RedrawAll(); 
         }
 
         private void DataGridView1_KeyDown(object? sender, KeyEventArgs e)

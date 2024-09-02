@@ -26,8 +26,6 @@ namespace FormsLib.Scope
         public double Scale { get { return GetPar<double>(1f); } set { SetPar<double>(value); } }
         [TraceViewAttribute(Width = 40)]
         public double Offset { get { return GetPar<double>(0f); } set { SetPar<double>(value); } }
-        //[TraceViewAttribute(Width = 40)]
-        public int Layer { get { return GetPar(10); } set { SetPar(value); } }
         public ThreadedBindingList<PointD> Points { get; } = new ThreadedBindingList<PointD>();
         //public ThreadedBindingList<Mark> Marks { get; } = new ThreadedBindingList<Mark>();
         [TraceViewAttribute(Width = 80)]
