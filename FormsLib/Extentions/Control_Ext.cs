@@ -20,16 +20,16 @@ namespace FormsLib.Extentions
             }
         }
 
-        public static ToolStripMenuItem AddMenuItem(this ToolStrip menu, string path, Action action) => AddMenuItem(menu.Items, path, action);
-        public static ToolStripMenuItem AddMenuItem(this ToolStripMenuItem menu, string path, Action action) => AddMenuItem(menu.DropDown, path, action);
+        public static ToolStripMenuItem AddMenuItem(this ToolStrip menu, string path, Action<ToolStripMenuItem> action) => AddMenuItem(menu.Items, path, action);
+        public static ToolStripMenuItem AddMenuItem(this ToolStripMenuItem menu, string path, Action<ToolStripMenuItem> action) => AddMenuItem(menu.DropDown, path, action);
         public static ToolStripMenuItem AddRadioButtonMenuItem(this ToolStrip menu, string path, bool allowNone, Action<ToolStripMenuItem> action) => AddRadioButtonMenuItem(menu.Items, path, allowNone, action);
         public static ToolStripMenuItem AddRadioButtonMenuItem(this ToolStripMenuItem menu, string path, bool allowNone, Action<ToolStripMenuItem> action) => AddRadioButtonMenuItem(menu.DropDown, path, allowNone, action);
 
 
-        private static ToolStripMenuItem AddMenuItem(this ToolStripItemCollection collection, string path, Action action)
+        private static ToolStripMenuItem AddMenuItem(this ToolStripItemCollection collection, string path, Action<ToolStripMenuItem> action)
         {
             ToolStripMenuItem item = GetOrCreateMenuItem(collection, path.Split('/'));
-            item.Click += (sender, e) => action();
+            item.Click += (sender, e) => action(item);
             return item;
         }
 
