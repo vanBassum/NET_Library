@@ -7,6 +7,7 @@ using FormsLib.Design;
 using FormsLib.Misc;
 using FormsLib.Extentions;
 using FormsLib.Maths;
+using System.Security.Cryptography.X509Certificates;
 
 namespace FormsLib.Scope
 {
@@ -55,6 +56,11 @@ namespace FormsLib.Scope
                 }
             }
             Points.Add(pt);
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
 
         public void AddPoint(DateTime dt, double value) => Points.Add(dt.Ticks, value);
@@ -300,7 +306,10 @@ namespace FormsLib.Scope
                         }
                     }
                 }
+                
             }
+
+            
         }
 
 

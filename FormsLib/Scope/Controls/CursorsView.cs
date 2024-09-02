@@ -89,6 +89,9 @@ namespace FormsLib.Scope.Controls
 
         void AddTrace(Trace trace)
         {
+            if (trace.Visible == false)
+                return;
+
             DataGridViewColumn? col = dataGridView.Columns.Cast<DataGridViewColumn>().FirstOrDefault(column => column.Tag != null && column.Tag == trace);
 
             if (col == null)
@@ -105,6 +108,7 @@ namespace FormsLib.Scope.Controls
 
         void UpdateTrace(Trace trace)
         {
+
             DataGridViewColumn? col = dataGridView.Columns.Cast<DataGridViewColumn>().FirstOrDefault(column => column.Tag != null && column.Tag == trace);
             if (col != null)
             {
@@ -112,6 +116,9 @@ namespace FormsLib.Scope.Controls
                 col.Name = trace.Name;
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
                 col.HeaderText = trace.Name;
+
+                if (trace.Visible == false)
+                    dataGridView.Columns.Remove(col);
             }
         }
 
