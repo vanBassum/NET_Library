@@ -22,8 +22,11 @@ namespace FormsLib.Extentions
 
         public static ToolStripMenuItem AddMenuItem(this ToolStrip menu, string path, Action<ToolStripMenuItem> action) => AddMenuItem(menu.Items, path, action);
         public static ToolStripMenuItem AddMenuItem(this ToolStripMenuItem menu, string path, Action<ToolStripMenuItem> action) => AddMenuItem(menu.DropDown, path, action);
-        public static ToolStripMenuItem AddRadioButtonMenuItem(this ToolStrip menu, string path, bool allowNone, Action<ToolStripMenuItem> action) => AddRadioButtonMenuItem(menu.Items, path, allowNone, action);
-        public static ToolStripMenuItem AddRadioButtonMenuItem(this ToolStripMenuItem menu, string path, bool allowNone, Action<ToolStripMenuItem> action) => AddRadioButtonMenuItem(menu.DropDown, path, allowNone, action);
+        public static ToolStripMenuItem AddRadioButtonMenuItem(this ToolStrip menu, string path, Action<ToolStripMenuItem> action) => AddRadioButtonMenuItem(menu.Items, path, action);
+        public static ToolStripMenuItem AddRadioButtonMenuItem(this ToolStripMenuItem menu, string path, Action<ToolStripMenuItem> action) => AddRadioButtonMenuItem(menu.DropDown, path, action);
+        public static ToolStripMenuItem AddCheckboxMenuItem(this ToolStrip menu, string path, Action<ToolStripMenuItem> action) => AddCheckboxMenuItem(menu.Items, path, action);
+        public static ToolStripMenuItem AddCheckboxMenuItem(this ToolStripMenuItem menu, string path, Action<ToolStripMenuItem> action) => AddCheckboxMenuItem(menu.DropDown, path, action);
+
 
 
         private static ToolStripMenuItem AddMenuItem(this ToolStripItemCollection collection, string path, Action<ToolStripMenuItem> action)
@@ -33,7 +36,7 @@ namespace FormsLib.Extentions
             return item;
         }
 
-        private static ToolStripMenuItem AddRadioButtonMenuItem(this ToolStripItemCollection collection, string path, bool allowNone, Action<ToolStripMenuItem> action)
+        private static ToolStripMenuItem AddRadioButtonMenuItem(this ToolStripItemCollection collection, string path, Action<ToolStripMenuItem> action)
         {
             // Create or retrieve the menu item
             ToolStripMenuItem item = GetOrCreateMenuItem(collection, path.Split('/'));
@@ -52,14 +55,14 @@ namespace FormsLib.Extentions
                 action?.Invoke(item);
 
                 // Ensure at least one item is always selected if needed
-                if (!allowNone && collection.OfType<ToolStripMenuItem>().All(x => !x.Checked))
+                if (collection.OfType<ToolStripMenuItem>().All(x => !x.Checked))
                 {
                     item.Checked = true; // Re-check the item if none were checked
                 }
             };
 
             // Initially ensure at least one item is checked if needed
-            if (!allowNone && !collection.OfType<ToolStripMenuItem>().Any(x => x.Checked))
+            if (!collection.OfType<ToolStripMenuItem>().Any(x => x.Checked))
             {
                 item.Checked = true;
                 action?.Invoke(item);
@@ -68,6 +71,18 @@ namespace FormsLib.Extentions
             return item;
         }
 
+        private static ToolStripMenuItem AddCheckboxMenuItem(this ToolStripItemCollection collection, string path, Action<ToolStripMenuItem> action)
+        {
+            ToolStripMenuItem item = GetOrCreateMenuItem(collection, path.Split('/'));
+            item.CheckOnClick = true;
+
+            item.Click += (sender, e) =>
+            {
+                action?.Invoke(item);
+            };
+
+            return item;
+        }
 
         private static ToolStripMenuItem GetOrCreateMenuItem(ToolStripItemCollection parentCollection, string[] path)
         {
