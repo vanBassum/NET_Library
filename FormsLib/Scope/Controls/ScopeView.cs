@@ -630,7 +630,7 @@ namespace FormsLib.Scope.Controls
             viewPort.Width = pictureBox1.Width - 1;
             viewPort.Height = pictureBox1.Height - 1;
 
-            int spaceForScaleIndicatorsVertical = 45;
+            int spaceForScaleIndicatorsVertical = 80;
             int spaceForScaleIndicatorsHorizontal = 25;
 
             if (dataSource == null)
@@ -715,12 +715,14 @@ namespace FormsLib.Scope.Controls
                         foreach (Trace t in dataSource.Traces)
                         {
 
-                            if (i < dataSource.Traces.Count
-                                && (i) < fit
-                                && t.DrawOption.HasFlag(Trace.DrawOptions.ShowScale)
-                                && t.Visible)
-                            {
+                            if(!t.Visible)
+                                continue;
 
+                            if (i >= fit)
+                                continue;
+
+                            if(t.DrawOption.HasFlag(Trace.DrawOptions.ShowScale))
+                            {
                                 double yValue = ((dataSource.Settings.VerticalDivisions - row) * t.Scale) - t.Offset;
                                 switch (dataSource.Settings.ZeroPosition)
                                 {
@@ -737,11 +739,8 @@ namespace FormsLib.Scope.Controls
                                 int x = dataSource.Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
                                 g.DrawString(t.ToHumanReadable(yValue), dataSource.Settings.Style.Font, b, new Rectangle(x, yy, spaceForScaleIndicatorsVertical, dataSource.Settings.Style.Font.Height));
                                 yy += dataSource.Settings.Style.Font.Height;
-                                i++;
                             }
-
-                            else
-                                break;
+                            i++;
                         }
                     }
                 }
@@ -772,6 +771,27 @@ namespace FormsLib.Scope.Controls
                     }
                 }
             }
+
+            //Draw traceNames
+            foreach (Trace t in dataSource.Traces)
+            {
+                if (!t.Visible)
+                    continue;
+
+                if (t.DrawOption.HasFlag(Trace.DrawOptions.DrawNames))
+                {
+                    double pxPerUnits_ver = viewPort.Height / (dataSource.Settings.VerticalDivisions * t.Scale);
+
+                    Color color = t.Color;
+                    Brush b = new SolidBrush(color);
+                    int x = dataSource.Settings.DrawScalePosVertical == DrawPosVertical.Left ? 0 : viewPort.X + viewPort.Width;
+                    int y = (int)(zeroPos - (1 + t.Offset) * pxPerUnits_ver) - 8;
+                    g.DrawString(t.Name, dataSource.Settings.Style.Font, b, new Rectangle(x, y, spaceForScaleIndicatorsVertical, dataSource.Settings.Style.Font.Height));
+                }
+            }
+
+
+
 
             //Draw the zero line
             g.DrawLine(dataSource.Settings.Style.GridZeroPen, viewPort.X, zeroPos, viewPort.X + viewPort.Width, zeroPos);

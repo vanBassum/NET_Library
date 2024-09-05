@@ -329,6 +329,7 @@ namespace FormsLib.Scope
             ExtendBegin =   0x02,
             ExtendEnd =     0x04,
             ShowScale =     0x08,
+            DrawNames =     0x10,
         }
 
 
