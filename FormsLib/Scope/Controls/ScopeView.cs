@@ -98,7 +98,6 @@ namespace FormsLib.Scope.Controls
             AddMenuItem(cursorMenu, "Remove", () => dataSource.Markers.Remove(hoverMarker));
         }
 
-
         void AddMenuItem(ContextMenuStrip menu, string menuPath, Action action)
         {
             string[] split = menuPath.Split('/');

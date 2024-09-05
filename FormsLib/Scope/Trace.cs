@@ -123,118 +123,113 @@ namespace FormsLib.Scope
             }
         }
 
+        private int BinarySearchPoint(ThreadedBindingList<PointD> points, double x)
+        {
+            int left = 0;
+            int right = points.Count - 1;
+
+            while (left <= right)
+            {
+                int mid = (left + right) / 2;
+
+                if (points[mid].X == x)
+                    return mid; // Return exact match
+                else if (points[mid].X < x)
+                    left = mid + 1;
+                else
+                    right = mid - 1;
+            }
+
+            // Return the first index where points[i].X > x, or points.Count if x is beyond the last point
+            return left;
+        }
 
 
         public double GetYValue(double x)
         {
-            int i;
-
             if (Points.Count == 0)
                 return 0;
 
-            for (i = 0; i < Points.Count; i++)
-            {
-                if (Points[i].X > x)
-                    break;
-            }
+            // Use binary search to find the closest point
+            int i = BinarySearchPoint(Points, x);
 
+            if (i < 0) i = ~i; // Get the insertion point if x is not found exactly
+
+            // If we're beyond the last point, check if we can extend
+            bool canExtendEnd = DrawOption.HasFlag(DrawOptions.ExtendEnd);
 
             switch (DrawStyle)
             {
                 case DrawStyles.Lines:
-                    if (i > 0 & i < Points.Count)
+                    if (i > 0 && i < Points.Count)
                     {
                         double x1 = Points[i - 1].X;
                         double x2 = Points[i].X;
                         double y1 = Points[i - 1].Y;
                         double y2 = Points[i].Y;
+
+                        // Linear interpolation formula
                         double a = (y2 - y1) / (x2 - x1);
-                        double b = y2 - a * x2;
-                        double y = a * x + b;
-                        return y;
+                        return a * (x - x1) + y1;
                     }
-                    else
-                        return double.NaN;
+                    break;
+
                 case DrawStyles.DiscreteSingal:
                 case DrawStyles.Points:
                 case DrawStyles.NonInterpolatedLine:
-                    if (i > 0 && (i < (Points.Count + (DrawOption.HasFlag(DrawOptions.ExtendEnd) ? 1 : 0))))
-                        return Points[i - 1].Y;
-                    else
-                        return double.NaN;
-
                 case DrawStyles.State:
-                    if (i > 0 && (i < (Points.Count + (DrawOption.HasFlag(DrawOptions.ExtendEnd) ? 1 : 0))))
+                    if (i > 0 && (i < Points.Count || (i == Points.Count && canExtendEnd)))
                         return Points[i - 1].Y;
-                    else
-                        return double.NaN;
+                    break;
 
                 default:
-                    throw new NotImplementedException($"Not yet implemented GetYValue of drawstyle '{DrawStyle}'");
-
+                    throw new NotImplementedException($"Not yet implemented GetYValue for drawstyle '{DrawStyle}'");
             }
 
+            return double.NaN;
         }
 
         public void Draw(Graphics g, Style style, Rectangle viewPort, Func<PointD, Point> convert, double firstX, double lastX, double xLeft, double xRight)
         {
-            Pen pen = new Pen(Color);
-            Brush brush = new SolidBrush(Color);
-            if (Visible)
+            if (!Visible || Points.Count == 0) return;
+
+            // Cache Pen and Brush to avoid recreating them
+            using (Pen pen = new Pen(Color))
+            using (Brush brush = new SolidBrush(Color))
             {
-                //Pen linePen = new Pen(trace.Colour);
-                double stateY = convert(new PointD(0, 1)).Y;// viewPort.Height / 2 - Offset * pxPerUnits_ver;// * trace.Scale;
-
+                double stateY = convert(new PointD(0, 1)).Y;
                 int pointCnt = Points.Count;
-                int inc = 1;
-                //Only draw points within screen, this can be calculated.
 
-                for (int i = 0; i < pointCnt; i += inc)
+                // Cache flags to avoid repeated calls to HasFlag
+                bool extendEnd = DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
+                bool extendBegin = DrawOption.HasFlag(Trace.DrawOptions.ExtendBegin);
+                bool showCrosses = DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses);
+
+                for (int i = 0; i < pointCnt; i++)
                 {
-                    bool last = (i == (pointCnt - inc));
-                    bool first = i == 0;
+                    bool last = (i == pointCnt - 1);
+                    bool first = (i == 0);
 
-                    bool extendEnd = DrawOption.HasFlag(Trace.DrawOptions.ExtendEnd);
-                    bool extendBegin = DrawOption.HasFlag(Trace.DrawOptions.ExtendBegin);
-
-                    PointD pPrevD = PointD.Empty;
+                    PointD pPrevD = first && extendBegin ? new PointD(firstX, Points[i].Y) : (i > 0 ? Points[i - 1] : PointD.Empty);
                     PointD pActD = Points[i];
-                    PointD pNextD = PointD.Empty;
-
-                    if (!first)
-                        pPrevD = Points[i - inc];
-                    if (first && extendBegin)
-                        pPrevD = new PointD(firstX, Points[i].Y);
-                    if (!last)
-                        pNextD = Points[i + inc];
-                    if (last && extendEnd)
-                        pNextD = new PointD(lastX, Points[i].Y);
+                    PointD pNextD = last && extendEnd ? new PointD(lastX, Points[i].Y) : (i < pointCnt - 1 ? Points[i + 1] : PointD.Empty);
 
                     Point pPrev = convert(pPrevD);
                     Point pAct = convert(pActD);
                     Point pNext = convert(pNextD);
 
-
                     bool across = pAct.X <= viewPort.X && pNext.X >= (viewPort.X + viewPort.Width);
 
-                    //Outside view check
+                    // Check if the points are within the viewport or across it
                     if (viewPort.CheckIfPointIsWithin(pAct) || viewPort.CheckIfPointIsWithin(pPrev) || viewPort.CheckIfPointIsWithin(pNext) || across)
                     {
-                        //if(pActD.X < xLeft)
-                        //    pAct = convert(new PointD(xLeft, GetYValue(xLeft)));
-                        //else if (pActD.X > xRight)
-                        //    pAct = convert(new PointD(xRight, GetYValue(xRight)));
-                        //
-                        //if (pPrevD.X < xLeft)
-                        //    pPrev = convert(new PointD(xLeft, GetYValue(xLeft)));
-                        //
-                        //if (pNextD.X > xRight)
-                        //    pNext = convert(new PointD(xRight, GetYValue(xRight)));
+                        // Show crosses if necessary
+                        if (showCrosses && viewPort.CheckIfPointIsWithin(convert(pActD)))
+                        {
+                            g.DrawCross(pen, viewPort, pAct, 3);
+                        }
 
-                        if (DrawOption.HasFlag(Trace.DrawOptions.ShowCrosses) && viewPort.CheckIfPointIsWithin(convert(pActD)))
-                            g.DrawCross(pen, viewPort, convert(pActD), 3);
-
-
+                        // Handle drawing styles
                         switch (DrawStyle)
                         {
                             case Trace.DrawStyles.Points:
@@ -242,7 +237,7 @@ namespace FormsLib.Scope
                                 break;
 
                             case Trace.DrawStyles.Cross:
-                                g.DrawCross(pen, viewPort, convert(pActD), 5);
+                                g.DrawCross(pen, viewPort, pAct, 5);
                                 break;
 
                             case Trace.DrawStyles.DiscreteSingal:
@@ -251,67 +246,47 @@ namespace FormsLib.Scope
                                 break;
 
                             case Trace.DrawStyles.Lines:
-
-                                if (first && extendBegin)
-                                    g.DrawLine(pen, viewPort, pPrev, pAct, true, false);
-
-                                if (last && extendEnd)
-                                    g.DrawLine(pen, viewPort, pAct, pNext, false, true);
-
-                                if (!last)
-                                    g.DrawLine(pen, viewPort, pAct, pNext, false, false);
-
+                                if (first && extendBegin) g.DrawLine(pen, viewPort, pPrev, pAct, true, false);
+                                if (last && extendEnd) g.DrawLine(pen, viewPort, pAct, pNext, false, true);
+                                if (!last) g.DrawLine(pen, viewPort, pAct, pNext, false, false);
                                 break;
 
                             case Trace.DrawStyles.NonInterpolatedLine:
-                                if (first && extendBegin)
-                                    g.DrawLine(pen, viewPort, pPrev, pAct, true, false);
-
-                                if (last && extendEnd)
-                                    g.DrawLine(pen, viewPort, pAct, pNext, false, true);
-
+                                if (first && extendBegin) g.DrawLine(pen, viewPort, pPrev, pAct, true, false);
+                                if (last && extendEnd) g.DrawLine(pen, viewPort, pAct, pNext, false, true);
                                 if (!last)
                                 {
-                                    var pInbetween = new Point(pNext.X, pAct.Y);
+                                    Point pInbetween = new Point(pNext.X, pAct.Y);
                                     g.DrawLine(pen, viewPort, pAct, pInbetween, false, false);
                                     g.DrawLine(pen, viewPort, pInbetween, pNext, false, false);
                                 }
                                 break;
 
                             case Trace.DrawStyles.State:
-                                string text = ToHumanReadable(Points[i].Y);
+                                string text = ToHumanReadable(pActD.Y);
+                                int rectHeight = style.Font.Height;
 
-                                //1, 2, 3
+                                Rectangle rect = first && extendBegin
+                                    ? new Rectangle(pPrev.X, (int)stateY - 8, pAct.X - pPrev.X, rectHeight)
+                                    : last && extendEnd
+                                        ? new Rectangle(pAct.X, (int)stateY - 8, pNext.X - pAct.X, rectHeight)
+                                        : new Rectangle(pAct.X, (int)stateY - 8, pNext.X - pAct.X, rectHeight);
 
-                                Rectangle rect = Rectangle.Empty;
-                                //throw new NotImplementedException("Implement stateY");
-                                if (first && extendBegin)
-                                    rect = new Rectangle((int)pPrev.X, (int)stateY - 8, pAct.X - pPrev.X, style.Font.Height);
-                                
-                                if (last && extendEnd)
-                                    rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, style.Font.Height);
-                                
-                                if (!last)
-                                    rect = new Rectangle((int)pAct.X, (int)stateY - 8, pNext.X - pAct.X, style.Font.Height);
-                                
-                                if (rect != Rectangle.Empty)
+                                if (!rect.IsEmpty)
                                     g.DrawState(pen, viewPort, rect, text, style.Font, !(first && extendBegin), !(last && extendEnd));
-
                                 break;
 
                             default:
-                                throw new NotImplementedException($"Drawing of '{DrawStyle}' is not supported yet.");
+                                throw new NotImplementedException($"Drawing style '{DrawStyle}' not supported.");
                         }
                     }
                 }
-                
             }
-
-            
         }
 
 
-        public enum DrawStyles
+
+    public enum DrawStyles
         {
             Points,
             Lines,

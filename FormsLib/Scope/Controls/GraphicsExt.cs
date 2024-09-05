@@ -1,74 +1,60 @@
-﻿using System.Drawing;
-using System.Drawing.Imaging;
-
-namespace FormsLib.Scope.Controls
+﻿namespace FormsLib.Scope.Controls
 {
-
 
     public static class GraphicsExt
     {
-        /*
-        public static void DrawArrow(this Graphics g, Pen p, Point pt, double dir, int size)
-        {
-            DrawCross(g, p, pt.X, pt.Y, size);
-        }
-        */
-
-        static Dictionary<Font, int> heightTable = new Dictionary<Font, int>(); 
+        static Dictionary<Font, int> heightTable = new Dictionary<Font, int>();
 
         public static int GetFontHeight(Font font)
         {
             int height = 0;
-            if(!heightTable.TryGetValue(font, out height))
+            if (!heightTable.TryGetValue(font, out height))
             {
                 height = font.Height;
                 heightTable[font] = height;
             }
             return height;
         }
-
-
         public static void DrawArrow(this Graphics g, Pen p, Point pt, double xDir, double yDir, float size)
         {
-
-            PointF[] fig = new PointF[] {
+            PointF[] fig = {
                 new PointF(0, 0),
                 new PointF(-1, 1),
                 new PointF(2, 0),
                 new PointF(-1, -1),
-                new PointF(0,0 ),
+                new PointF(0, 0)
             };
 
-            g.DrawFigure(p, pt, fig, xDir, yDir, size, true);
+            // Pre-calculate rotation and size scaling outside the loop for efficiency
+            DrawFigure(g, p, pt, fig, xDir, yDir, size, true);
         }
 
-        /// <summary>
-        /// Orient the image to the right
-        /// </summary>
-        /// <param name="g"></param>
-        /// <param name="p"></param>
-        /// <param name="pts"></param>
-        /// <param name="xDir"></param>
-        /// <param name="yDir"></param>
-        /// <param name="size"></param>
         static void DrawFigure(this Graphics g, Pen p, PointF pos, PointF[] fig, double xDir, double yDir, float size, bool solid = false)
         {
+            float cosAngle = (float)xDir;
+            float sinAngle = (float)yDir;
+
+            // Pre-allocated array for transformed points
+            PointF[] transformedFig = new PointF[fig.Length];
+
             for (int i = 0; i < fig.Length; i++)
             {
-                fig[i].X *= size;
-                fig[i].Y *= size;
+                // Apply size scaling and rotation in one step
+                float scaledX = fig[i].X * size;
+                float scaledY = fig[i].Y * size;
 
-                fig[i] = RotatePoint(fig[i], new PointF(0, 0), xDir, yDir);
-
-                fig[i].X += pos.X;
-                fig[i].Y += pos.Y;
+                transformedFig[i] = new PointF(
+                    cosAngle * scaledX - sinAngle * scaledY + pos.X,
+                    sinAngle * scaledX + cosAngle * scaledY + pos.Y
+                );
             }
 
             if (solid)
-                g.FillPolygon(new SolidBrush(p.Color), fig);
+                g.FillPolygon(new SolidBrush(p.Color), transformedFig);
             else
-                g.DrawLines(p, fig);
+                g.DrawLines(p, transformedFig);
         }
+
 
 
         static Point RotatePoint(PointF pointToRotate, PointF centerPoint, double xDir, double yDir)
@@ -86,65 +72,74 @@ namespace FormsLib.Scope.Controls
             };
         }
 
+        public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, double x, double y, int size, string text, Font font)
+        {
+            DrawCross(g, p, viewPort, x, y, size);
+
+            // Calculate how many lines the text contains
+            int enters = text.Count(c => c == '\n') + (text.EndsWith('\n') ? 0 : 1);
+
+            int fontHeight = GetFontHeight(font);
+            Rectangle textRect = new Rectangle((int)x + 8, (int)y - (fontHeight * enters), viewPort.Width - 8, fontHeight * enters);
+
+            // Reuse solid brush for better performance
+            using (SolidBrush brush = new SolidBrush(p.Color))
+            {
+                g.DrawFitTextToRectangle(p, viewPort, textRect, text, font);
+            }
+        }
+
         public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, Point pt, int size)
         {
             DrawCross(g, p, viewPort, pt.X, pt.Y, size);
         }
 
-        public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, double x, double y, int size, string text, Font font)
-        {
-            DrawCross(g, p, viewPort, x, y, size);
-            int enters = text.Count(c => c == '\n');
-            if (!text.EndsWith('\n'))
-                enters++;
-            int fontHeight = GetFontHeight(font);
-            Rectangle textRect = new Rectangle((int)x + 8, (int)y - (fontHeight * enters), viewPort.Width - 8, fontHeight * enters);
-            g.DrawFitTextToRectangle(p, viewPort, textRect, text, font);
-        }
 
         public static void DrawFitTextToRectangle(this Graphics g, Pen p, Rectangle viewPort, Rectangle rect, string text, Font font)
         {
-            if (rect.Width > 3)
+            // Early exit if the width is too small
+            if (rect.Width <= 3)
+                return;
+
+            // Check if the rectangle is outside the viewport bounds
+            if (rect.Right <= viewPort.X || rect.X >= viewPort.Right)
+                return;
+
+            // Adjust the rectangle if it extends outside the viewport on the left or right
+            if (rect.X < viewPort.X)
             {
-                if (rect.X >= viewPort.X + viewPort.Width)
-                    return;
+                int delta = viewPort.X - rect.X;
+                rect.X = viewPort.X;
+                rect.Width -= delta;
+            }
 
-                if (rect.X + rect.Width <= viewPort.X)
-                    return;
+            if (rect.Right > viewPort.Right)
+            {
+                int delta = rect.Right - viewPort.Right;
+                rect.Width -= delta;
+            }
 
-                if (rect.X < viewPort.X)
-                {
-                    int delta = viewPort.X - rect.X;
-                    rect.X = viewPort.X;
-                    rect.Width -= delta;
-                }
+            // Precalculate the line height and prepare a reusable brush
+            int lineHeight = GetFontHeight(font);
+            using (SolidBrush brush = new SolidBrush(p.Color))
+            {
+                // Only split the text if necessary
+                string[] lines = text.Contains("\n") ? text.Split('\n') : new string[] { text };
 
-                if ((rect.X + rect.Width) > (viewPort.X + viewPort.Width))
-                {
-                    int delta = (viewPort.X + viewPort.Width) - (rect.X + rect.Width);
-                    rect.Width += delta;
-                }
-
-                string[] lines = text.Split('\n');
-                int lineHeight = GetFontHeight(font);
-
-
-
+                // Draw each line, only if within the rectangle bounds
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    string line = lines[i];
-                    var lineRectangle = new Rectangle(rect.X, rect.Y + i * lineHeight, rect.Width, lineHeight);
+                    int yPosition = rect.Y + i * lineHeight;
+                    if (yPosition + lineHeight > rect.Bottom)
+                        break; // No need to continue if the line is outside the rectangle bounds
 
-                    // Only draw the line if it's within the rectangle
-                    if (lineRectangle.Y >= rect.Y && lineRectangle.Y + lineHeight <= rect.Bottom)
+                    if (yPosition >= rect.Y)
                     {
-                        g.DrawString(line, font, new SolidBrush(p.Color), lineRectangle);
+                        g.DrawString(lines[i], font, brush, new RectangleF(rect.X, yPosition, rect.Width, lineHeight));
                     }
                 }
             }
         }
-
-
 
         public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, double x, double y, int size)
         {
@@ -191,7 +186,7 @@ namespace FormsLib.Scope.Controls
                     p2.Y = (int)(p2.X * a + b);
                 }
 
-                if (p1.X <viewPort.X)
+                if (p1.X < viewPort.X)
                 {
                     float a = (float)(p2.Y - p1.Y) / (float)(p2.X - p1.X);
                     float b = p1.Y - (a * p1.X);
@@ -212,84 +207,86 @@ namespace FormsLib.Scope.Controls
 
         public static void DrawState(this Graphics g, Pen p, Rectangle viewPort, Rectangle rect, string text, Font font, bool closeBegin = true, bool closeEnd = true)
         {
-            if (false)
+            int viewPortRight = viewPort.X + viewPort.Width;
+            int viewPortLeft = viewPort.X + 5;
+            int rectRight = rect.X + rect.Width;
+
+            // Early return if rectangle is outside the viewport
+            if (rect.X > viewPortRight || rectRight < viewPort.X)
+                return;
+
+            // Adjust rectangle to fit within the viewport
+            if (rect.X < viewPortLeft)
             {
-                g.DrawRectangle(p, rect);
-                rect.X += 2;
-                rect.Width -= 4;
-                DrawFitTextToRectangle(g, p, viewPort, rect, text, font);
+                int delta = viewPortLeft - rect.X;
+                rect.X = viewPortLeft;
+                rect.Width -= delta;
+                closeBegin = false;
+            }
+
+            if (rectRight > viewPortRight - 5)
+            {
+                int delta = (viewPortRight - 5) - rectRight;
+                rect.Width += delta;
+                closeEnd = false;
+            }
+
+            // Calculate bracketWidth, spaceBegin, spaceEnd
+            int bracketWidth = rect.Height / 2;
+            if (rect.Width < (bracketWidth * 2))
+                bracketWidth = rect.Width / 2;
+
+            int spaceBegin = closeBegin ? (closeEnd ? bracketWidth : bracketWidth / 2) : 0;
+            int spaceEnd = closeEnd ? (closeBegin ? bracketWidth : bracketWidth / 2) : 0;
+            int midY = rect.Y + rect.Height / 2;
+
+            // Calculate top and other values only once
+            double top = rect.Y;
+            int div = 6;
+            double space = rect.Height / (double)div;
+            int wibber = rect.Height / 4;
+
+            // Draw the opening arrows or zigzag if closeBegin is false
+            if (closeBegin)
+            {
+                g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y);
+                g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y + rect.Height);
             }
             else
             {
-                if (rect.X > viewPort.X + viewPort.Width)
-                    return;
-
-                if (rect.X + rect.Width < viewPort.X)
-                    return;
-
-                if (rect.X < viewPort.X + 5)
+                for (int i = 0; i < div; i++)
                 {
-                    int delta = viewPort.X + 5 - rect.X;
-                    rect.X = viewPort.X + 5;
-                    rect.Width -= delta;
-                    closeBegin = false;
+                    int startY = (int)(top + space * i);
+                    int endY = (int)(top + space * (i + 1));
+                    g.DrawLine(p, rect.X - ((i % 2 == 1) ? wibber : 0), startY, rect.X - ((i % 2 == 0) ? wibber : 0), endY);
                 }
-
-                if ((rect.X + rect.Width) > (viewPort.X + viewPort.Width - 5))
-                {
-                    int delta = (viewPort.X + viewPort.Width - 5) - (rect.X + rect.Width);
-                    rect.Width += delta;
-                    closeEnd = false;
-                }
-
-
-
-                //Draw opening and closing arrow.
-                int bracketWidth = rect.Height / 2;
-
-                if (rect.Width < (bracketWidth * 2))
-                    bracketWidth = rect.Width / 2;
-
-                int spaceBegin = closeBegin ? closeEnd ? bracketWidth : bracketWidth / 2 : 0;
-                int spaceEnd = closeEnd ? closeBegin ? bracketWidth : bracketWidth / 2 : 0;
-                int midY = rect.Y + rect.Height / 2;
-
-                double top = rect.Y;
-                int div = 6;
-                double space = (double)rect.Height / (double)div;
-                int wibber = rect.Height / 4;
-
-                if (closeBegin)
-                {
-                    g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y);
-                    g.DrawLine(p, rect.X, midY, rect.X + spaceBegin, rect.Y + rect.Height);
-                }
-                else
-                {
-                    for (int i = 0; i < div; i++)
-                        g.DrawLine(p, rect.X - (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X - (((i % 2) == 0) ? wibber : 0), (int)(top + space * (i + 1)));
-                }
-
-                if (closeEnd)
-                {
-                    g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y);
-                    g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
-                }
-                else
-                {
-                    for (int i = 0; i < div; i++)
-                        g.DrawLine(p, rect.X + rect.Width + (((i % 2) == 1) ? wibber : 0), (int)(top + space * i), rect.X + rect.Width + (((i % 2) == 0) ? wibber : 0), (int)(top + space * (i + 1)));
-                }
-
-
-                g.DrawLine(p, rect.X + spaceBegin, rect.Y, rect.X + rect.Width - spaceEnd, rect.Y);
-                g.DrawLine(p, rect.X + spaceBegin, rect.Y + rect.Height, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
-
-
-                Rectangle textRect = new Rectangle(rect.X + spaceBegin, rect.Y, rect.Width - spaceBegin - spaceEnd, rect.Height);
-                DrawFitTextToRectangle(g, p, viewPort, textRect, text, font);
             }
+
+            // Draw the closing arrows or zigzag if closeEnd is false
+            if (closeEnd)
+            {
+                g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y);
+                g.DrawLine(p, rect.X + rect.Width, midY, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
+            }
+            else
+            {
+                for (int i = 0; i < div; i++)
+                {
+                    int startY = (int)(top + space * i);
+                    int endY = (int)(top + space * (i + 1));
+                    g.DrawLine(p, rect.X + rect.Width + ((i % 2 == 1) ? wibber : 0), startY, rect.X + rect.Width + ((i % 2 == 0) ? wibber : 0), endY);
+                }
+            }
+
+            // Draw the rectangle's horizontal lines
+            g.DrawLine(p, rect.X + spaceBegin, rect.Y, rect.X + rect.Width - spaceEnd, rect.Y);
+            g.DrawLine(p, rect.X + spaceBegin, rect.Y + rect.Height, rect.X + rect.Width - spaceEnd, rect.Y + rect.Height);
+
+            // Draw the text inside the rectangle
+            Rectangle textRect = new Rectangle(rect.X + spaceBegin, rect.Y, rect.Width - spaceBegin - spaceEnd, rect.Height);
+            DrawFitTextToRectangle(g, p, viewPort, textRect, text, font);
         }
+
 
         public static void DrawCircle(this Graphics g, Pen pen,
                                   float centerX, float centerY, float radius)
@@ -304,69 +301,7 @@ namespace FormsLib.Scope.Controls
             g.FillEllipse(brush, centerX - radius, centerY - radius,
                           radius + radius, radius + radius);
         }
-        
 
-
-
-        //static void DrawPanel(this Graphics g, Color border, Color bg, Rectangle rect)
-        //{
-        //    Rectangle filled = new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2);
-        //
-        //}
-
-
-        /*
-        public static void DrawState(this Graphics g, Pen p, Rectangle rect, string text, Font font, bool closeBegin = true, bool closeEnd = true)
-        {
-            bool simple = true;
-            if (simple)
-            {
-                g.DrawRectangle(p, rect);
-                g.DrawString(text, font, new SolidBrush(p.Color), rect);
-            }
-            else
-            {
-                int halfSize = (int)(rect.Width / 2);
-                if (halfSize > rect.Height / 2)
-                    halfSize = rect.Height / 2;
-                if (halfSize < 0)
-                    halfSize = 0;
-
-                int stateB = rect.X;
-                int stateE = rect.X + rect.Width;
-
-                if (closeBegin)
-                {
-                    g.DrawLine(p, stateB, rect.Y + rect.Height / 2, stateB + halfSize, rect.Y);
-                    g.DrawLine(p, stateB, rect.Y + rect.Height / 2, stateB + halfSize, rect.Y + rect.Height);
-                    stateB += halfSize;
-                }
-
-                if (closeEnd)
-                {
-                    g.DrawLine(p, stateE, rect.Y + rect.Height / 2, stateE - halfSize, rect.Y);
-                    g.DrawLine(p, stateE, rect.Y + rect.Height / 2, stateE - halfSize, rect.Y + rect.Height);
-                    stateE -= halfSize;
-                }
-
-
-                if (halfSize >= rect.Height / 2)
-                {
-                    g.DrawLine(p, stateB, rect.Y, stateE, rect.Y);
-                    g.DrawLine(p, stateB, rect.Y + rect.Height, stateE, rect.Y + rect.Height);
-
-
-                    if (stateB < 2)
-                        stateB = 2;
-
-                    rect = new Rectangle(stateB, rect.Y, stateE - stateB, rect.Height);
-
-                    g.DrawString(text, font, new SolidBrush(p.Color), rect);
-                }
-            }
-            
-        }
-        */
     }
 
 }
