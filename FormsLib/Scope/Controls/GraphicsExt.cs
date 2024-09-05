@@ -14,6 +14,20 @@ namespace FormsLib.Scope.Controls
         }
         */
 
+        static Dictionary<Font, int> heightTable = new Dictionary<Font, int>(); 
+
+        public static int GetFontHeight(Font font)
+        {
+            int height = 0;
+            if(!heightTable.TryGetValue(font, out height))
+            {
+                height = font.Height;
+                heightTable[font] = height;
+            }
+            return height;
+        }
+
+
         public static void DrawArrow(this Graphics g, Pen p, Point pt, double xDir, double yDir, float size)
         {
 
@@ -83,7 +97,8 @@ namespace FormsLib.Scope.Controls
             int enters = text.Count(c => c == '\n');
             if (!text.EndsWith('\n'))
                 enters++;
-            Rectangle textRect = new Rectangle((int)x + 8, (int)y - (font.Height * enters), viewPort.Width - 8, font.Height * enters);
+            int fontHeight = GetFontHeight(font);
+            Rectangle textRect = new Rectangle((int)x + 8, (int)y - (fontHeight * enters), viewPort.Width - 8, fontHeight * enters);
             g.DrawFitTextToRectangle(p, viewPort, textRect, text, font);
         }
 
@@ -111,7 +126,7 @@ namespace FormsLib.Scope.Controls
                 }
 
                 string[] lines = text.Split('\n');
-                int lineHeight = (int)font.GetHeight();
+                int lineHeight = GetFontHeight(font);
 
 
 
@@ -128,6 +143,8 @@ namespace FormsLib.Scope.Controls
                 }
             }
         }
+
+
 
         public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, double x, double y, int size)
         {
