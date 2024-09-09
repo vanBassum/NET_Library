@@ -119,27 +119,33 @@
                 rect.Width -= delta;
             }
 
-            // Precalculate the line height and prepare a reusable brush
+            // Precalculate the line height
             int lineHeight = GetFontHeight(font);
-            using (SolidBrush brush = new SolidBrush(p.Color))
+
+            // Only split the text if necessary
+            string[] lines = text.Contains("\n") ? text.Split('\n') : new string[] { text };
+
+            // Create a reusable rectangle for drawing
+            Rectangle drawRect = new Rectangle(rect.X, rect.Y, rect.Width, lineHeight);
+
+            // Cache the TextFormatFlags
+            const TextFormatFlags textFormatFlags = TextFormatFlags.NoPadding;
+
+            // Draw each line, only if within the rectangle bounds
+            for (int i = 0; i < lines.Length; i++)
             {
-                // Only split the text if necessary
-                string[] lines = text.Contains("\n") ? text.Split('\n') : new string[] { text };
+                int yPosition = rect.Y + i * lineHeight;
+                if (yPosition + lineHeight > rect.Bottom)
+                    break; // No need to continue if the line is outside the rectangle bounds
 
-                // Draw each line, only if within the rectangle bounds
-                for (int i = 0; i < lines.Length; i++)
+                if (yPosition >= rect.Y)
                 {
-                    int yPosition = rect.Y + i * lineHeight;
-                    if (yPosition + lineHeight > rect.Bottom)
-                        break; // No need to continue if the line is outside the rectangle bounds
-
-                    if (yPosition >= rect.Y)
-                    {
-                        g.DrawString(lines[i], font, brush, new RectangleF(rect.X, yPosition, rect.Width, lineHeight));
-                    }
+                    drawRect.Y = yPosition; // Reuse the rectangle by updating Y position
+                    TextRenderer.DrawText(g, lines[i], font, drawRect, p.Color, textFormatFlags);
                 }
             }
         }
+
 
         public static void DrawCross(this Graphics g, Pen p, Rectangle viewPort, double x, double y, int size)
         {
