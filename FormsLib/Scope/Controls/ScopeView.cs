@@ -618,7 +618,8 @@ namespace FormsLib.Scope.Controls
 
         private void DrawBackground()
         {
-            pictureBox1.Refresh();
+            pictureBox1.InvokeIfRequired(() => pictureBox1.Refresh());
+           
         }
 
         private void DrawBackground(Graphics g)
@@ -803,7 +804,8 @@ namespace FormsLib.Scope.Controls
 
         private void DrawData()
         {
-            pictureBox2.Refresh();
+
+            pictureBox2.InvokeIfRequired(() => pictureBox2.Refresh());
         }
 
         private void DrawData(Graphics g)
@@ -908,7 +910,7 @@ namespace FormsLib.Scope.Controls
 
         private void DrawForeground()
         {
-            pictureBox3.Refresh();
+            pictureBox3.InvokeIfRequired(() => pictureBox3.Refresh());
         }
         void DrawForeground(Graphics g)
         {
